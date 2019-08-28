@@ -1,0 +1,30 @@
+{application, capi , [
+    {description, "A service that does something"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {mod, {capi , []}},
+    {applications, [
+        kernel,
+        stdlib,
+        public_key,
+        genlib,
+        woody,
+        capi_woody_client,
+        dmsl,
+        bender_proto,
+        binbase_proto,
+        dmt_client,
+        swag_server,
+        jose,
+        cowboy_cors,
+        cowboy_access_log,
+        rfc3339,
+        base64url,
+        snowflake,
+        woody_user_identity,
+        payproc_errors,
+        how_are_you,
+        erl_health
+    ]},
+    {env, []}
+]}.

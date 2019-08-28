@@ -1,0 +1,8 @@
+[submodule "schemes/swag"]
+	path = schemes/swag
+	url = git@github.com:rbkmoney/swag.git
+	branch = release/v3
+[submodule "build_utils"]
+	path = build_utils
+	url = git@github.com:rbkmoney/build_utils.git
+	branch = master

@@ -1,0 +1,25 @@
+# general
+log
+/_build/
+*~
+erl_crash.dump
+.tags*
+*.sublime-*
+
+.DS_Store
+
+# rebar
+/_checkouts/
+
+# generated
+apps/swag_server/*
+apps/swag_client/*
+*.beam
+
+# containerization
+\#*
+.\#*
+Dockerfile
+docker-compose.yml
+
+tags

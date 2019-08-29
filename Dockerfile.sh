@@ -2,9 +2,9 @@
 cat <<EOF
 FROM $BASE_IMAGE
 MAINTAINER Artem Ocheredko <a.ocheredko@rbkmoney.com>
-COPY ./_build/prod/rel/capi /opt/capi
-WORKDIR /opt/capi
-CMD /opt/capi/bin/capi foreground
+COPY ./_build/prod/rel/yapi /opt/yapi
+WORKDIR /opt/yapi
+CMD /opt/yapi/bin/yapi foreground
 EXPOSE 8080
 # A bit of magic below to get a proper branch name
 # even when the HEAD is detached (Hey Jenkins!

@@ -1,6 +1,6 @@
--sname capi
+-sname yapi
 
--setcookie capi_cookie
+-setcookie yapi_cookie
 
 +K true
 +A 10

@@ -7,7 +7,7 @@ def finalHook = {
   }
 }
 
-build('capi', 'docker-host', finalHook) {
+build('yapi', 'docker-host', finalHook) {
   checkoutRepo()
   loadBuildUtils()
 

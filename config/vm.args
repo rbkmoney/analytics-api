@@ -1,6 +1,6 @@
--sname yapi
+-sname anapi
 
--setcookie yapi_cookie
+-setcookie anapi_cookie
 
 +K true
 +A 10

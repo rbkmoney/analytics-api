@@ -49,24 +49,7 @@ authorize_api_key(OperationID, ApiKey, _HandlerOpts) ->
 
 get_handlers() ->
     [
-        anapi_handler_accounts,
-        anapi_handler_analytics,
-        anapi_handler_categories,
-        anapi_handler_claims,
-        anapi_handler_contracts,
-        anapi_handler_customers,
-        anapi_handler_geo,
-        anapi_handler_invoice_templates,
-        anapi_handler_invoices,
-        anapi_handler_parties,
-        anapi_handler_payment_institutions,
-        anapi_handler_payments,
-        anapi_handler_payouts,
-        anapi_handler_reports,
-        anapi_handler_search,
-        anapi_handler_shops,
-        anapi_handler_tokens,
-        anapi_handler_webhooks
+        anapi_handler_search
     ].
 
 -spec handle_request(

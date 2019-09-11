@@ -20,10 +20,10 @@
 -export([mock_services_/2]).
 -export([get_lifetime/0]).
 
--define(CAPI_IP                     , "::").
--define(CAPI_PORT                   , 8080).
--define(CAPI_HOST_NAME              , "localhost").
--define(CAPI_URL                    , ?CAPI_HOST_NAME ++ ":" ++ integer_to_list(?CAPI_PORT)).
+-define(ANAPI_IP                     , "::").
+-define(ANAPI_PORT                   , 8080).
+-define(ANAPI_HOST_NAME              , "localhost").
+-define(ANAPI_URL                    , ?ANAPI_HOST_NAME ++ ":" ++ integer_to_list(?ANAPI_PORT)).
 
 %%
 -type config()          :: [{atom(), any()}].
@@ -69,8 +69,8 @@ start_app(AppName, Env) ->
 
 start_anapi(Config) ->
     CapiEnv = [
-        {ip, ?CAPI_IP},
-        {port, ?CAPI_PORT},
+        {ip, ?ANAPI_IP},
+        {port, ?ANAPI_PORT},
         {service_type, real},
         {authorizers, #{
             jwt => #{
@@ -128,7 +128,7 @@ get_context(Token) ->
     anapi_client_lib:context().
 
 get_context(Token, ExtraProperties) ->
-    anapi_client_lib:get_context(?CAPI_URL, Token, 10000, ipv4, ExtraProperties).
+    anapi_client_lib:get_context(?ANAPI_URL, Token, 10000, ipv4, ExtraProperties).
 
 % TODO move it to `anapi_dummy_service`, looks more appropriate
 
@@ -165,7 +165,7 @@ mock_services_(Services, Config) when is_list(Config) ->
 mock_services_(Services, SupPid) when is_pid(SupPid) ->
     Name = lists:map(fun get_service_name/1, Services),
     Port = get_random_port(),
-    {ok, IP} = inet:parse_address(?CAPI_IP),
+    {ok, IP} = inet:parse_address(?ANAPI_IP),
     ChildSpec = woody_server:child_spec(
         {dummy, Name},
         #{
@@ -203,7 +203,7 @@ get_random_port() ->
     rand:uniform(32768) + 32767.
 
 make_url(ServiceName, Port) ->
-    iolist_to_binary(["http://", ?CAPI_HOST_NAME, ":", integer_to_list(Port), make_path(ServiceName)]).
+    iolist_to_binary(["http://", ?ANAPI_HOST_NAME, ":", integer_to_list(Port), make_path(ServiceName)]).
 
 make_path(ServiceName) ->
     "/" ++ atom_to_list(ServiceName).

@@ -2,3 +2,7 @@
 	path = build_utils
 	url = git@github.com:rbkmoney/build_utils.git
 	branch = master
+[submodule "schemes/swag"]
+	path = schemes/swag
+	url = git@github.com:rbkmoney/swag-analytics.git
+	branch = release/master

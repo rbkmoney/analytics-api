@@ -20,7 +20,7 @@ build('anapi', 'docker-host', finalHook) {
   }
 
   pipeDefault() {
-    if (!env.BRANCH_NAME.matches('^v\\d+')) {
+    if (env.BRANCH_NAME != 'master') {
       runStage('compile') {
         withGithubPrivkey {
           sh 'make wc_compile'
@@ -52,7 +52,7 @@ build('anapi', 'docker-host', finalHook) {
     }
 
     try {
-      if (env.BRANCH_NAME.startsWith('epic') || env.BRANCH_NAME.matches('^v\\d+')) {
+      if (env.BRANCH_NAME.startsWith('epic') || env.BRANCH_NAME == 'master') {
         runStage('push image') {
           sh "make push_image"
         }

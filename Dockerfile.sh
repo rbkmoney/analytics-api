@@ -1,7 +1,7 @@
 #!/bin/bash
 cat <<EOF
 FROM $BASE_IMAGE
-MAINTAINER Artem Ocheredko <a.ocheredko@rbkmoney.com>
+MAINTAINER Rustem Shaidullin <ndiezel0@gmail.com>
 COPY ./_build/prod/rel/anapi /opt/anapi
 WORKDIR /opt/anapi
 CMD /opt/anapi/bin/anapi foreground

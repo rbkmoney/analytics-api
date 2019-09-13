@@ -1,5 +1,5 @@
 {application, anapi , [
-    {description, "A service that does something"},
+    {description, "A service that does analytical api"},
     {vsn, "0.1.0"},
     {registered, []},
     {mod, {anapi , []}},
@@ -11,9 +11,6 @@
         woody,
         anapi_woody_client,
         dmsl,
-        bender_proto,
-        binbase_proto,
-        dmt_client,
         swag_server,
         jose,
         cowboy_cors,

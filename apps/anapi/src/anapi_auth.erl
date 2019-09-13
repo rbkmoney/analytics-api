@@ -2,7 +2,6 @@
 
 -export([authorize_api_key/2]).
 -export([authorize_operation/3]).
--export([issue_access_token/2]).
 -export([issue_access_token/3]).
 
 -export([get_subject_id/1]).
@@ -107,11 +106,6 @@ authorize_operation(OperationID, Req, {{_SubjectID, ACL}, _}) ->
     | {invoice_tpl, InvoiceTplID :: binary()}
     | {customer   , CustomerID   :: binary()}
 .
-
--spec issue_access_token(PartyID :: binary(), token_spec()) ->
-    anapi_authorizer_jwt:token().
-issue_access_token(PartyID, TokenSpec) ->
-    issue_access_token(PartyID, TokenSpec, #{}).
 
 -spec issue_access_token(PartyID :: binary(), token_spec(), map()) ->
     anapi_authorizer_jwt:token().

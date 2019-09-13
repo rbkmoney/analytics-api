@@ -11,7 +11,6 @@
 -export([redact/2]).
 
 -export([unwrap/1]).
--export([define/2]).
 
 -define(MAX_DEADLINE_TIME, 1*60*1000). % 1 min
 
@@ -73,12 +72,6 @@ unwrap({ok, Value}) ->
     Value;
 unwrap({error, Error}) ->
     erlang:error({unwrap_error, Error}).
-
--spec define(undefined | T, T) -> T.
-define(undefined, V) ->
-    V;
-define(V, _Default) ->
-    V.
 
 -spec parse_deadline
     (binary()) -> {ok, woody:deadline()} | {error, bad_deadline};

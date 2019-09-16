@@ -1,8 +1,5 @@
 -module(anapi_handler_utils).
 
--include_lib("dmsl/include/dmsl_payment_processing_thrift.hrl").
--include_lib("dmsl/include/dmsl_domain_thrift.hrl").
-
 -export([logic_error/2]).
 -export([server_error/1]).
 -export([format_request_errors/1]).

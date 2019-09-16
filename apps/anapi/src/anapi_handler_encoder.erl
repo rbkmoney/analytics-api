@@ -1,7 +1,5 @@
 -module(anapi_handler_encoder).
 
--include_lib("dmsl/include/dmsl_payment_processing_thrift.hrl").
--include_lib("dmsl/include/dmsl_domain_thrift.hrl").
 -include_lib("dmsl/include/dmsl_merch_stat_thrift.hrl").
 
 -export([encode_stat_request/2]).

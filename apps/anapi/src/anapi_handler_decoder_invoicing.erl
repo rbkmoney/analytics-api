@@ -1,7 +1,5 @@
 -module(anapi_handler_decoder_invoicing).
 
--include_lib("dmsl/include/dmsl_payment_processing_thrift.hrl").
--include_lib("dmsl/include/dmsl_domain_thrift.hrl").
 -include_lib("dmsl/include/dmsl_merch_stat_thrift.hrl").
 
 -export([decode_invoice_cart/1]).
@@ -19,8 +17,6 @@ decode_payment_operation_failure({operation_timeout, _}, _) ->
     payment_error(<<"timeout">>);
 decode_payment_operation_failure({failure, Failure}, Context) ->
     case anapi_auth:get_consumer(anapi_auth:get_claims(anapi_handler_utils:get_auth_context(Context))) of
-        client ->
-            payment_error(payproc_errors:match('PaymentFailure', Failure, fun payment_error_client_maping/1));
         merchant ->
             % чтобы не городить ещё один обход дерева как в payproc_errors проще отформатировать в текст,
             % а потом уже в json
@@ -60,27 +56,6 @@ decode_recurrent_parent(#merchstat_RecurrentParentPayment{invoice_id = InvoiceID
 
 payment_error(Code) ->
     #{<<"code">> => Code}.
-
-%% client error mapping
-%% @see https://github.com/petrkozorezov/swag/blob/master/spec/definitions/PaymentError.yaml
--spec payment_error_client_maping(anapi_handler_encoder:encode_data()) ->
-    binary().
-payment_error_client_maping({preauthorization_failed, _})->
-    <<"PreauthorizationFailed">>;
-payment_error_client_maping({authorization_failed, {account_blocked, _}}) ->
-    <<"RejectedByIssuer">>;
-payment_error_client_maping({authorization_failed, {rejected_by_issuer, _}}) ->
-    <<"RejectedByIssuer">>;
-payment_error_client_maping({authorization_failed, {payment_tool_rejected, _}}) ->
-    <<"InvalidPaymentTool">>;
-payment_error_client_maping({authorization_failed, {account_not_found, _}}) ->
-    <<"InvalidPaymentTool">>;
-payment_error_client_maping({authorization_failed, {account_limit_exceeded, _}}) ->
-    <<"AccountLimitsExceeded">>;
-payment_error_client_maping({authorization_failed, {insufficient_funds, _}}) ->
-    <<"InsufficientFunds">>;
-payment_error_client_maping(_) ->
-    <<"PaymentRejected">>.
 
 -spec decode_invoice_cart(anapi_handler_encoder:encode_data() | undefined) ->
     anapi_handler_decoder_utils:decode_data() | undefined.

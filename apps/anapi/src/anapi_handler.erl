@@ -1,9 +1,5 @@
 -module(anapi_handler).
 
--include_lib("dmsl/include/dmsl_payment_processing_thrift.hrl").
--include_lib("dmsl/include/dmsl_domain_thrift.hrl").
--include_lib("dmsl/include/dmsl_merch_stat_thrift.hrl").
-
 -behaviour(swag_server_logic_handler).
 
 %% API callbacks

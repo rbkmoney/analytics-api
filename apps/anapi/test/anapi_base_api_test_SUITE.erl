@@ -1,21 +1,10 @@
--module(anapi_base_api_token_tests_SUITE).
+-module(anapi_base_api_test_SUITE).
 
 -include_lib("common_test/include/ct.hrl").
 -include_lib("stdlib/include/assert.hrl").
 
--include_lib("dmsl/include/dmsl_payment_processing_thrift.hrl").
--include_lib("dmsl/include/dmsl_payment_processing_errors_thrift.hrl").
--include_lib("dmsl/include/dmsl_accounter_thrift.hrl").
--include_lib("dmsl/include/dmsl_cds_thrift.hrl").
--include_lib("dmsl/include/dmsl_domain_config_thrift.hrl").
--include_lib("dmsl/include/dmsl_webhooker_thrift.hrl").
 -include_lib("dmsl/include/dmsl_merch_stat_thrift.hrl").
--include_lib("dmsl/include/dmsl_reporting_thrift.hrl").
--include_lib("dmsl/include/dmsl_payment_tool_provider_thrift.hrl").
--include_lib("dmsl/include/dmsl_payout_processing_thrift.hrl").
--include_lib("binbase_proto/include/binbase_binbase_thrift.hrl").
 -include_lib("anapi_dummy_data.hrl").
--include_lib("jose/include/jose_jwk.hrl").
 
 -export([all/0]).
 -export([groups/0]).
@@ -56,14 +45,14 @@ init([]) ->
     [test_case_name()].
 all() ->
     [
-        {group, operations_by_base_api_token}
+        {group, all_tests}
     ].
 
 -spec groups() ->
     [{group_name(), list(), [test_case_name()]}].
 groups() ->
     [
-        {operations_by_base_api_token, [],
+        {all_tests, [],
             [
                 search_invoices_ok_test,
                 search_payments_ok_test,
@@ -90,7 +79,7 @@ end_per_suite(C) ->
 
 -spec init_per_group(group_name(), config()) ->
     config().
-init_per_group(operations_by_base_api_token, Config) ->
+init_per_group(all_tests, Config) ->
     BasePermissions = [
         {[invoices], write},
         {[invoices], read},

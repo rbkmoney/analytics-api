@@ -1,6 +1,5 @@
 -module(anapi_utils).
 
--export([base64url_to_map/1]).
 -export([map_to_base64url/1]).
 
 -export([parse_deadline/1]).

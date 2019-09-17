@@ -14,15 +14,6 @@
 
 -define(MAX_DEADLINE_TIME, 5*60*1000). % 5 min
 
--spec base64url_to_map(binary()) -> map() | no_return().
-base64url_to_map(Base64) when is_binary(Base64) ->
-    try jsx:decode(base64url:decode(Base64), [return_maps])
-    catch
-        Class:Reason ->
-            _ = logger:debug("decoding base64 ~p to map failed with ~p:~p", [Base64, Class, Reason]),
-            erlang:error(badarg)
-    end.
-
 -spec map_to_base64url(map()) -> binary() | no_return().
 map_to_base64url(Map) when is_map(Map) ->
     try base64url:encode(jsx:encode(Map))

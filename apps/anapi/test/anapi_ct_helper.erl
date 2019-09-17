@@ -62,12 +62,19 @@ start_anapi(Config) ->
         {ip, ?ANAPI_IP},
         {port, ?ANAPI_PORT},
         {service_type, real},
-        {authorizers, #{
+        {access_conf, #{
             jwt => #{
                 signee => anapi,
                 keyset => #{
                     % TODO use crypto:generate_key here when move on 21 Erlang
                     anapi => {pem_file, get_keysource("keys/local/private.pem", Config)}
+                }
+            },
+            access => #{
+                service_name => <<"analytical-api">>,
+                resource_hierarchy => #{
+                    invoices => #{payments => #{}},
+                    party => #{}
                 }
             }
         }}
@@ -106,7 +113,29 @@ issue_token(ACL, LifeTime, ExtraProperties) ->
 
 issue_token(PartyID, ACL, LifeTime, ExtraProperties) ->
     Claims = maps:merge(#{?STRING => ?STRING}, ExtraProperties),
-    anapi_authorizer_jwt:issue({{PartyID, anapi_acl:from_list(ACL)}, Claims}, LifeTime).
+    UniqueId = get_unique_id(),
+    logger:error("ACL: ~w", [ACL]),
+    case uac_authorizer_jwt:issue(
+        UniqueId,
+        LifeTime,
+        {PartyID, uac_acl:from_list(ACL)},
+        Claims,
+        anapi
+    ) of
+        {ok, Token} ->
+            {ok, Token};
+        {error, nonexistent_signee} ->
+            {error, nonexistent_signee};
+        {error, {invalid_signee, Reason}} ->
+            error({invalid_signee, Reason})
+    end.
+
+-spec get_unique_id() ->
+    binary().
+
+get_unique_id() ->
+    <<ID:64>> = snowflake:new(),
+    genlib_format:format_int_base(ID, 62).
 
 -spec get_context(binary()) ->
     anapi_client_lib:context().

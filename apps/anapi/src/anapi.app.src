@@ -21,7 +21,9 @@
         woody_user_identity,
         payproc_errors,
         how_are_you,
-        erl_health
+        erl_health,
+        scoper,
+        uac
     ]},
     {env, []}
 ]}.

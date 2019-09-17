@@ -81,20 +81,12 @@ end_per_suite(C) ->
     config().
 init_per_group(all_tests, Config) ->
     BasePermissions = [
-        {[invoices], write},
         {[invoices], read},
-        {[party], write},
         {[party], read},
-        {[invoices, payments], write},
-        {[invoices, payments], read},
-        {[customers], write},
-        {[payouts], write},
-        {[payouts], read}
+        {[invoices, payments], read}
     ],
     {ok, Token} = anapi_ct_helper:issue_token(BasePermissions, unlimited),
-    {ok, Token2} = anapi_ct_helper:issue_token(<<"TEST2">>, BasePermissions, unlimited, #{}),
-    Config2 = [{context_with_diff_party, anapi_ct_helper:get_context(Token2)} | Config],
-    [{context, anapi_ct_helper:get_context(Token)} | Config2];
+    [{context, anapi_ct_helper:get_context(Token)} | Config];
 
 init_per_group(_, Config) ->
     Config.

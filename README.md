@@ -1,1 +1,1 @@
-# YAPI - ЛК API
+# anapi - ЛК API

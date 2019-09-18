@@ -71,7 +71,7 @@ start_anapi(Config) ->
                 }
             },
             access => #{
-                service_name => <<"analytical-api">>,
+                service_name => <<"common-api">>,
                 resource_hierarchy => #{
                     invoices => #{payments => #{}},
                     party => #{}
@@ -114,7 +114,6 @@ issue_token(ACL, LifeTime, ExtraProperties) ->
 issue_token(PartyID, ACL, LifeTime, ExtraProperties) ->
     Claims = maps:merge(#{?STRING => ?STRING}, ExtraProperties),
     UniqueId = get_unique_id(),
-    logger:error("ACL: ~w", [ACL]),
     case uac_authorizer_jwt:issue(
         UniqueId,
         LifeTime,

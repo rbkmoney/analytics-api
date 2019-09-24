@@ -396,7 +396,7 @@ decode_digital_wallet_details(#merchstat_DigitalWallet{provider = qiwi, id = ID}
     }.
 
 mask_phone_number(PhoneNumber) ->
-    anapi_utils:redact(PhoneNumber, <<"^\\+\\d(\\d{1,10}?)\\d{2,4}$">>).
+    genlib_string:redact(PhoneNumber, <<"^\\+\\d(\\d{1,10}?)\\d{2,4}$">>).
 
 decode_geo_location_info(#geo_ip_LocationInfo{city_geo_id = CityID, country_geo_id = CountryID}) ->
     #{

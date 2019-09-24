@@ -29,12 +29,7 @@
 
 -spec map_to_base64url(map()) -> binary() | no_return().
 map_to_base64url(Map) when is_map(Map) ->
-    try base64url:encode(jsx:encode(Map))
-    catch
-        Class:Reason ->
-            _ = logger:debug("encoding map ~p to base64 failed with ~p:~p", [Map, Class, Reason]),
-            erlang:error(badarg)
-    end.
+    base64url:encode(jsx:encode(Map)).
 
 -spec to_universal_time(Timestamp :: binary()) -> TimestampUTC :: binary().
 to_universal_time(Timestamp) ->

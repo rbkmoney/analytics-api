@@ -80,10 +80,10 @@ start_anapi(Config) ->
         {service_type, real},
         {access_conf, #{
             jwt => #{
-                signee => anapi,
+                signee => capi,
                 keyset => #{
                     % TODO use crypto:generate_key here when move on 21 Erlang
-                    anapi => {pem_file, get_keysource("keys/local/private.pem", Config)}
+                    capi => {pem_file, get_keysource("keys/local/private.pem", Config)}
                 }
             },
             access => #{
@@ -135,7 +135,7 @@ issue_token(PartyID, ACL, LifeTime, ExtraProperties) ->
         LifeTime,
         {PartyID, uac_acl:from_list(ACL)},
         Claims,
-        anapi
+        capi
     ) of
         {ok, Token} ->
             {ok, Token};

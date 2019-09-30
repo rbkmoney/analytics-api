@@ -4,6 +4,7 @@
 -include_lib("stdlib/include/assert.hrl").
 
 -include_lib("dmsl/include/dmsl_merch_stat_thrift.hrl").
+-include_lib("reporter_proto/include/reporter_reports_thrift.hrl").
 -include_lib("anapi_dummy_data.hrl").
 
 -export([all/0]).
@@ -21,7 +22,11 @@
     search_invoices_ok_test/1,
     search_payments_ok_test/1,
     search_refunds_ok_test/1,
-    search_payouts_ok_test/1
+    search_payouts_ok_test/1,
+    get_report_ok_test/1,
+    get_reports_ok_test/1,
+    create_report_ok_test/1,
+    download_report_file_ok_test/1
 ]).
 
 -define(ANAPI_PORT                   , 8080).
@@ -222,3 +227,40 @@ search_payouts_ok_test(Config) ->
     ],
 
     {ok, _, _} = anapi_client_searches:search_payouts(?config(context, Config), Query).
+
+-spec get_reports_ok_test(config()) ->
+    _.
+get_reports_ok_test(Config) ->
+    anapi_ct_helper:mock_services([{reporting, fun('GetReports', _) -> {ok, [?REPORT]} end}], Config),
+    {ok, _} = anapi_client_reports:get_reports(?config(context, Config), ?STRING, ?TIMESTAMP, ?TIMESTAMP).
+
+-spec get_report_ok_test(config()) ->
+    _.
+get_report_ok_test(Config) ->
+    anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT} end}], Config),
+    {ok, _} = anapi_client_reports:get_report(?config(context, Config), ?STRING, ?INTEGER).
+
+-spec create_report_ok_test(config()) ->
+    _.
+create_report_ok_test(Config) ->
+    anapi_ct_helper:mock_services([
+        {reporting, fun
+                        ('GenerateReport', _)           -> {ok, ?INTEGER};
+                        ('GetReport', [_, _, ?INTEGER]) -> {ok, ?REPORT}
+                    end}
+    ], Config),
+    {ok, _} = anapi_client_reports:create_report(
+        ?config(context, Config),
+        ?STRING,
+        ?REPORT_TYPE,
+        ?TIMESTAMP,
+        ?TIMESTAMP
+    ).
+
+-spec download_report_file_ok_test(_) ->
+    _.
+download_report_file_ok_test(Config) ->
+    anapi_ct_helper:mock_services([
+        {reporting, fun('GetReport', _) -> {ok, ?REPORT}; ('GeneratePresignedUrl', _) -> {ok, ?STRING} end}
+    ], Config),
+    {ok, _} = anapi_client_reports:download_file(?config(context, Config), ?STRING, ?INTEGER, ?STRING).

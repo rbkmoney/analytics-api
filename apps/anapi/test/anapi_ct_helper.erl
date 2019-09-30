@@ -74,16 +74,15 @@ start_app(AppName, Env) ->
     [app_name()].
 
 start_anapi(Config) ->
-    CapiEnv = [
+    AnapiEnv = [
         {ip, ?ANAPI_IP},
         {port, ?ANAPI_PORT},
         {service_type, real},
         {access_conf, #{
             jwt => #{
-                signee => capi,
                 keyset => #{
                     % TODO use crypto:generate_key here when move on 21 Erlang
-                    capi => {pem_file, get_keysource("keys/local/private.pem", Config)}
+                    anapi => {pem_file, get_keysource("keys/local/private.pem", Config)}
                 }
             },
             access => #{
@@ -95,7 +94,7 @@ start_anapi(Config) ->
             }
         }}
     ],
-    start_app(anapi, CapiEnv).
+    start_app(anapi, AnapiEnv).
 
 -spec get_keysource(_, config()) ->
     _.
@@ -135,7 +134,7 @@ issue_token(PartyID, ACL, LifeTime, ExtraProperties) ->
         LifeTime,
         {PartyID, uac_acl:from_list(ACL)},
         Claims,
-        capi
+        anapi
     ) of
         {ok, Token} ->
             {ok, Token};

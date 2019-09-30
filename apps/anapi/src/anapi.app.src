@@ -41,5 +41,6 @@
         scoper,
         uac
     ]},
-    {env, []}
+    {env, []},
+    {licenses, ["Apache 2.0"]}
 ]}.

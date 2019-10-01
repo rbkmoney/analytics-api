@@ -1,3 +1,19 @@
+%%%
+%%% Copyright 2019 RBKmoney
+%%%
+%%% Licensed under the Apache License, Version 2.0 (the "License");
+%%% you may not use this file except in compliance with the License.
+%%% You may obtain a copy of the License at
+%%%
+%%%     http://www.apache.org/licenses/LICENSE-2.0
+%%%
+%%% Unless required by applicable law or agreed to in writing, software
+%%% distributed under the License is distributed on an "AS IS" BASIS,
+%%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+%%% See the License for the specific language governing permissions and
+%%% limitations under the License.
+%%%
+
 -module(anapi_utils).
 
 -export([map_to_base64url/1]).
@@ -7,35 +23,13 @@
 -export([to_universal_time/1]).
 -export([get_process_metadata/0]).
 
--export([redact/2]).
-
 -export([unwrap/1]).
 
 -define(MAX_DEADLINE_TIME, 5*60*1000). % 5 min
 
 -spec map_to_base64url(map()) -> binary() | no_return().
 map_to_base64url(Map) when is_map(Map) ->
-    try base64url:encode(jsx:encode(Map))
-    catch
-        Class:Reason ->
-            _ = logger:debug("encoding map ~p to base64 failed with ~p:~p", [Map, Class, Reason]),
-            erlang:error(badarg)
-    end.
-
--spec redact(Subject :: binary(), Pattern :: binary()) -> Redacted :: binary().
-redact(Subject, Pattern) ->
-    case re:run(Subject, Pattern, [global, {capture, all_but_first, index}]) of
-        {match, Captures} ->
-            lists:foldl(fun redact_match/2, Subject, Captures);
-        nomatch ->
-            Subject
-    end.
-
-redact_match({S, Len}, Subject) ->
-    <<Pre:S/binary, _:Len/binary, Rest/binary>> = Subject,
-    <<Pre/binary, (binary:copy(<<"*">>, Len))/binary, Rest/binary>>;
-redact_match([Capture], Message) ->
-    redact_match(Capture, Message).
+    base64url:encode(jsx:encode(Map)).
 
 -spec to_universal_time(Timestamp :: binary()) -> TimestampUTC :: binary().
 to_universal_time(Timestamp) ->
@@ -154,12 +148,6 @@ to_universal_time_test() ->
     ?assertEqual(<<"2017-04-19T13:56:07.530000Z">>, to_universal_time(<<"2017-04-19T13:56:07.53Z">>)),
     ?assertEqual(<<"2017-04-19T10:36:07.530000Z">>, to_universal_time(<<"2017-04-19T13:56:07.53+03:20">>)),
     ?assertEqual(<<"2017-04-19T17:16:07.530000Z">>, to_universal_time(<<"2017-04-19T13:56:07.53-03:20">>)).
-
--spec redact_test() -> _.
-redact_test() ->
-    P1 = <<"^\\+\\d(\\d{1,10}?)\\d{2,4}$">>,
-    ?assertEqual(<<"+7******3210">>, redact(<<"+79876543210">>, P1)),
-    ?assertEqual(       <<"+1*11">>, redact(<<"+1111">>, P1)).
 
 -spec parse_deadline_test() -> _.
 parse_deadline_test() ->

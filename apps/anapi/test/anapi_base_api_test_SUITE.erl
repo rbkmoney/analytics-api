@@ -241,14 +241,14 @@ get_reports_ok_test(Config) ->
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},
         {to_time, {{2016, 03, 22}, {6, 12, 27}}},
         {partyID, ?STRING},
-        {reportTypes, {?REPORT_TYPE}}
+        {report_types, <<?REPORT_TYPE/binary, <<",">>/binary, ?REPORT_TYPE_ALT/binary>>}
     ],
     {ok, _} = anapi_client_reports:get_reports(?config(context, Config), Query0),
     Query1 = [
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},
         {to_time, {{2016, 03, 22}, {6, 12, 27}}},
         {partyID, ?STRING},
-        {reportTypes, {?REPORT_TYPE}}
+        {report_types, ?REPORT_TYPE}
     ],
     {ok, _} = anapi_client_reports:get_reports(?config(context, Config), Query1).
 

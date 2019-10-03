@@ -87,6 +87,7 @@ prepare_reporting_param(Param) ->
         {from_time, P}      -> #{<<"fromTime">> => genlib_format:format_datetime_iso8601(P)};
         {to_time, P}        -> #{<<"toTime">> => genlib_format:format_datetime_iso8601(P)};
         {report_type, P}    -> #{<<"reportType">> => genlib:to_binary(P)};
+        {report_types, P}   -> #{<<"reportTypes">> => genlib:to_binary(P)};
         {reportID, P}       -> #{<<"reportID">> => genlib:to_binary(P)};
         {ParamName, P}      -> #{genlib:to_binary(ParamName) => P}
     end.

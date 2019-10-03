@@ -195,6 +195,7 @@
 }).
 
 -define(REPORT_TYPE, <<"paymentRegistry">>).
+-define(REPORT_TYPE_ALT, <<"provisionOfService">>).
 
 -define(REPORT, #reports_Report{
     report_id = ?INTEGER,

@@ -26,7 +26,7 @@ process_request('GetReports', Req, Context) ->
             to_time   = anapi_handler_utils:get_time('toTime'  , Req)
         }
     },
-    ReportTypes = maps:get(reportTypes, Req),
+    ReportTypes = [encode_report_type(F) || F <- maps:get(reportTypes, Req)],
     Call = {reporting, 'GetReports', [ReportRequest, ReportTypes]},
     case anapi_handler_utils:service_call(Call, Context) of
         {ok, Reports} ->
@@ -136,7 +136,9 @@ get_default_url_lifetime() ->
 %%
 
 encode_report_type(<<"provisionOfService">>) -> <<"provision_of_service">>;
-encode_report_type(<<"paymentRegistry">>) -> <<"payment_registry">>.
+encode_report_type(<<"paymentRegistry">>) -> <<"payment_registry">>;
+encode_report_type(provisionOfService) -> <<"provision_of_service">>;
+encode_report_type(paymentRegistry) -> <<"payment_registry">>.
 
 %%
 

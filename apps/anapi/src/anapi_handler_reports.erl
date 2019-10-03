@@ -60,21 +60,20 @@ process_request('GetReport', Req, Context) ->
 process_request('CreateReport', Req, Context) ->
     PartyId = maps:get(partyID, Req),
     ShopId = maps:get(shopID, Req),
-    ReportParams = maps:get('ReportParams', Req),
     ReportRequest = #reports_ReportRequest{
         party_id   = PartyId,
         shop_id    = ShopId,
         time_range =
         #reports_ReportTimeRange{
-            from_time = anapi_handler_utils:get_time(<<"fromTime">>, ReportParams),
-            to_time   = anapi_handler_utils:get_time(<<"toTime">>  , ReportParams)
+            from_time = anapi_handler_utils:get_time('fromTime', Req),
+            to_time   = anapi_handler_utils:get_time('toTime'  , Req)
         }
     },
-    ReportType = encode_report_type(maps:get(<<"reportType">>, ReportParams)),
+    ReportType = encode_report_type(maps:get(reportType, Req)),
     case anapi_handler_utils:service_call({reporting, 'CreateReport', [ReportRequest, ReportType]}, Context) of
         {ok, ReportId} ->
             {ok, Report} = anapi_handler_utils:service_call(
-                {reporting, 'GetReport', [PartyId, ShopId, ReportId]},
+                {reporting, 'GetReport', [ReportId]},
                 Context
             ),
             {ok, {201, #{}, decode_report(Report)}};
@@ -135,8 +134,6 @@ get_default_url_lifetime() ->
 
 %%
 
-encode_report_type(<<"provisionOfService">>) -> <<"provision_of_service">>;
-encode_report_type(<<"paymentRegistry">>) -> <<"payment_registry">>;
 encode_report_type(provisionOfService) -> <<"provision_of_service">>;
 encode_report_type(paymentRegistry) -> <<"payment_registry">>.
 

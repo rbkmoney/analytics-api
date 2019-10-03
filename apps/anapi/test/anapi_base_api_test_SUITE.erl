@@ -92,6 +92,7 @@ init_per_group(all_tests, Config) ->
     BasePermissions = [
         {[invoices], read},
         {[party], read},
+        {[party], write},
         {[invoices, payments], read}
     ],
     {ok, Token} = anapi_ct_helper:issue_token(BasePermissions, unlimited),
@@ -271,7 +272,7 @@ get_report_ok_test(Config) ->
 create_report_ok_test(Config) ->
     anapi_ct_helper:mock_services([
         {reporting, fun
-                        ('GenerateReport', _)     -> {ok, ?INTEGER};
+                        ('CreateReport', _)       -> {ok, ?INTEGER};
                         ('GetReport', [?INTEGER]) -> {ok, ?REPORT}
                     end}
     ], Config),

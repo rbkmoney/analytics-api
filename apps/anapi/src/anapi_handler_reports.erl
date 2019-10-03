@@ -18,7 +18,7 @@
 
 process_request('GetReports', Req, Context) ->
     ReportRequest = #reports_ReportRequest{
-        party_id   = anapi_handler_utils:get_party_id(Context),
+        party_id   = maps:get(partyID, Req),
         shop_id    = maps:get(shopID, Req),
         time_range =
         #reports_ReportTimeRange{
@@ -26,7 +26,7 @@ process_request('GetReports', Req, Context) ->
             to_time   = anapi_handler_utils:get_time('toTime'  , Req)
         }
     },
-    ReportTypes = [],
+    ReportTypes = maps:get(reportTypes, Req),
     Call = {reporting, 'GetReports', [ReportRequest, ReportTypes]},
     case anapi_handler_utils:service_call(Call, Context) of
         {ok, Reports} ->
@@ -42,19 +42,23 @@ process_request('GetReports', Req, Context) ->
     end;
 
 process_request('GetReport', Req, Context) ->
-%%    PartyId  = anapi_handler_utils:get_party_id(Context),
-%%    ShopId   = maps:get(shopID, Req),
+    PartyId  = maps:get(partyID, Req),
+    ShopId   = maps:get(shopID, Req),
     ReportId = maps:get(reportID, Req),
     Call = {reporting, 'GetReport', [ReportId]},
     case anapi_handler_utils:service_call(Call, Context) of
-        {ok, Report} ->
+        {ok, Report = #'reports_Report'{party_id = PartyId, shop_id = ShopId}} ->
             {ok, {200, #{}, decode_report(Report)}};
+        {ok, Report = #'reports_Report'{party_id = PartyId}} when ShopId =:= undefined ->
+            {ok, {200, #{}, decode_report(Report)}};
+        {ok, _WrongReport} ->
+            {ok, general_error(404, <<"Report not found">>)};
         {exception, #reports_ReportNotFound{}} ->
             {ok, general_error(404, <<"Report not found">>)}
     end;
 
 process_request('CreateReport', Req, Context) ->
-    PartyId = anapi_handler_utils:get_party_id(Context),
+    PartyId = maps:get(partyID, Req),
     ShopId = maps:get(shopID, Req),
     ReportParams = maps:get('ReportParams', Req),
     ReportRequest = #reports_ReportRequest{
@@ -139,15 +143,15 @@ encode_report_type(<<"paymentRegistry">>) -> <<"payment_registry">>.
 decode_report(Report) ->
     #reports_ReportTimeRange{from_time = FromTime, to_time = ToTime} = Report#reports_Report.time_range,
     #{
-        <<"id"       >> => Report#reports_Report.report_id,
-        <<"createdAt">> => Report#reports_Report.created_at,
-        <<"fromTime" >> => FromTime,
-        <<"toTime"   >> => ToTime,
-        <<"status"   >> => decode_report_status(Report#reports_Report.status),
-        <<"type"     >> => decode_report_type(Report#reports_Report.report_type),
-        <<"files"    >> => [decode_report_file(F) || F <- Report#reports_Report.files],
-        <<"partyID"  >> => Report#reports_Report.party_id,
-        <<"shopID"   >> => Report#reports_Report.shop_id
+        <<"id"        >> => Report#reports_Report.report_id,
+        <<"createdAt" >> => Report#reports_Report.created_at,
+        <<"fromTime"  >> => FromTime,
+        <<"toTime"    >> => ToTime,
+        <<"status"    >> => decode_report_status(Report#reports_Report.status),
+        <<"reportType">> => decode_report_type(Report#reports_Report.report_type),
+        <<"files"     >> => [decode_report_file(F) || F <- Report#reports_Report.files],
+        <<"partyID"   >> => Report#reports_Report.party_id,
+        <<"shopID"    >> => Report#reports_Report.shop_id
     }.
 
 decode_report_status(pending) -> <<"pending">>;

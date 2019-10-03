@@ -62,7 +62,11 @@ groups() ->
                 search_invoices_ok_test,
                 search_payments_ok_test,
                 search_refunds_ok_test,
-                search_payouts_ok_test
+                search_payouts_ok_test,
+                get_report_ok_test,
+                get_reports_ok_test,
+                create_report_ok_test,
+                download_report_file_ok_test
             ]
         }
     ].
@@ -232,30 +236,61 @@ search_payouts_ok_test(Config) ->
     _.
 get_reports_ok_test(Config) ->
     anapi_ct_helper:mock_services([{reporting, fun('GetReports', _) -> {ok, [?REPORT]} end}], Config),
-    {ok, _} = anapi_client_reports:get_reports(?config(context, Config), ?STRING, ?TIMESTAMP, ?TIMESTAMP).
+    Query0 = [
+        {shopID, ?STRING},
+        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {partyID, ?STRING},
+        {reportTypes, {?REPORT_TYPE}}
+    ],
+    {ok, _} = anapi_client_reports:get_reports(?config(context, Config), Query0),
+    Query1 = [
+        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {partyID, ?STRING},
+        {reportTypes, {?REPORT_TYPE}}
+    ],
+    {ok, _} = anapi_client_reports:get_reports(?config(context, Config), Query1).
 
 -spec get_report_ok_test(config()) ->
     _.
 get_report_ok_test(Config) ->
     anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT} end}], Config),
-    {ok, _} = anapi_client_reports:get_report(?config(context, Config), ?STRING, ?INTEGER).
+    Query0 = [
+        {partyID, ?STRING},
+        {shopID, ?STRING}
+    ],
+    {ok, _} = anapi_client_reports:get_report(?config(context, Config), ?INTEGER, Query0),
+    Query1 = [
+        {partyID, ?STRING}
+    ],
+    {ok, _} = anapi_client_reports:get_report(?config(context, Config), ?INTEGER, Query1).
 
 -spec create_report_ok_test(config()) ->
     _.
 create_report_ok_test(Config) ->
     anapi_ct_helper:mock_services([
         {reporting, fun
-                        ('GenerateReport', _)           -> {ok, ?INTEGER};
-                        ('GetReport', [_, _, ?INTEGER]) -> {ok, ?REPORT}
+                        ('GenerateReport', _)     -> {ok, ?INTEGER};
+                        ('GetReport', [?INTEGER]) -> {ok, ?REPORT}
                     end}
     ], Config),
-    {ok, _} = anapi_client_reports:create_report(
-        ?config(context, Config),
-        ?STRING,
-        ?REPORT_TYPE,
-        ?TIMESTAMP,
-        ?TIMESTAMP
-    ).
+    Query0 = [
+        {shopID, ?STRING},
+        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {partyID, ?STRING},
+        {reportType, ?REPORT_TYPE}
+    ],
+    {ok, _} = anapi_client_reports:create_report(?config(context, Config), Query0),
+    Query1 = [
+        {shopID, ?STRING},
+        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {partyID, ?STRING},
+        {reportType, ?REPORT_TYPE}
+    ],
+    {ok, _} = anapi_client_reports:create_report(?config(context, Config), Query1).
 
 -spec download_report_file_ok_test(_) ->
     _.
@@ -263,4 +298,4 @@ download_report_file_ok_test(Config) ->
     anapi_ct_helper:mock_services([
         {reporting, fun('GetReport', _) -> {ok, ?REPORT}; ('GeneratePresignedUrl', _) -> {ok, ?STRING} end}
     ], Config),
-    {ok, _} = anapi_client_reports:download_file(?config(context, Config), ?STRING, ?INTEGER, ?STRING).
+    {ok, _} = anapi_client_reports:download_file(?config(context, Config), ?INTEGER, ?STRING).

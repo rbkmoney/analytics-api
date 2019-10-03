@@ -58,7 +58,8 @@ authorize_api_key(OperationID, ApiKey, _HandlerOpts) ->
 
 get_handlers() ->
     [
-        anapi_handler_search
+        anapi_handler_search,
+        anapi_handler_reports
     ].
 
 get_verification_options() ->

@@ -11,6 +11,7 @@
         woody,
         anapi_woody_client,
         dmsl,
+        reporter_proto,
         swag_server,
         jose,
         cowboy_cors,

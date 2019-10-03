@@ -203,7 +203,7 @@
         to_time = ?TIMESTAMP
     },
     created_at = ?TIMESTAMP,
-    report_type = provision_of_service,
+    report_type = <<"provision_of_service">>,
     status = created,
     files = [
         #reports_FileMeta{
@@ -214,5 +214,7 @@
                 sha256 = ?SHA256
             }
         }
-    ]
+    ],
+    shop_id = ?STRING,
+    party_id = ?STRING
 }).

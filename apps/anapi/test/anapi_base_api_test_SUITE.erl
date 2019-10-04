@@ -251,21 +251,20 @@ get_reports_ok_test(Config) ->
         {partyID, ?STRING},
         {report_types, ?REPORT_TYPE}
     ],
-    {ok, _} = anapi_client_reports:get_reports(?config(context, Config), Query1).
+    {ok, _} = anapi_client_reports:get_reports(?config(context, Config), Query1),
+    Query2 = [
+        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {partyID, <<"WRONG_STRING">>},
+        {report_types, ?REPORT_TYPE}
+    ],
+    {error, {400, _}} = anapi_client_reports:get_reports(?config(context, Config), Query2).
 
 -spec get_report_ok_test(config()) ->
     _.
 get_report_ok_test(Config) ->
     anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT} end}], Config),
-    Query0 = [
-        {partyID, ?STRING},
-        {shopID, ?STRING}
-    ],
-    {ok, _} = anapi_client_reports:get_report(?config(context, Config), ?INTEGER, Query0),
-    Query1 = [
-        {partyID, ?STRING}
-    ],
-    {ok, _} = anapi_client_reports:get_report(?config(context, Config), ?INTEGER, Query1).
+    {ok, _} = anapi_client_reports:get_report(?config(context, Config), ?INTEGER).
 
 -spec create_report_ok_test(config()) ->
     _.
@@ -288,10 +287,10 @@ create_report_ok_test(Config) ->
         {shopID, ?STRING},
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},
         {to_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {partyID, ?STRING},
+        {partyID, <<"WRONG_STRING">>},
         {reportType, ?REPORT_TYPE}
     ],
-    {ok, _} = anapi_client_reports:create_report(?config(context, Config), Query1).
+    {error, {400, _}} = anapi_client_reports:create_report(?config(context, Config), Query1).
 
 -spec download_report_file_ok_test(_) ->
     _.

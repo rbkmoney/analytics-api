@@ -1,7 +1,7 @@
 -module(anapi_client_reports).
 
 -export([get_reports/2]).
--export([get_report/3]).
+-export([get_report/2]).
 -export([create_report/2]).
 -export([download_file/3]).
 
@@ -16,15 +16,9 @@ get_reports(Context, Query) ->
     Response = swag_client_reports_api:get_reports(Url, PreparedParams, Opts),
     anapi_client_lib:handle_response(Response).
 
--spec get_report(context(), binary(), reporting_query()) -> {ok, list()} | {error, term()}.
-get_report(Context, ReportID, Query) ->
-    Qs = anapi_client_lib:make_reporting_query_string(Query),
-    Params = #{
-        binding => #{
-            <<"reportID">> => ReportID
-        },
-        qs_val => Qs
-    },
+-spec get_report(context(), binary()) -> {ok, list()} | {error, term()}.
+get_report(Context, ReportID) ->
+    Params = #{ binding => #{ <<"reportID">> => ReportID } },
     {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
     Response = swag_client_reports_api:get_report(Url, PreparedParams, Opts),
     anapi_client_lib:handle_response(Response).

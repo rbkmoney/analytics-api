@@ -17,39 +17,42 @@
     {ok | error, anapi_handler:response() | noimpl}.
 
 process_request('GetReports', Req, Context) ->
-    ReportRequest = #reports_ReportRequest{
-        party_id   = maps:get(partyID, Req),
-        shop_id    = maps:get(shopID, Req),
-        time_range =
-        #reports_ReportTimeRange{
-            from_time = anapi_handler_utils:get_time('fromTime', Req),
-            to_time   = anapi_handler_utils:get_time('toTime'  , Req)
-        }
-    },
-    ReportTypes = [encode_report_type(F) || F <- maps:get(reportTypes, Req)],
-    Call = {reporting, 'GetReports', [ReportRequest, ReportTypes]},
-    case anapi_handler_utils:service_call(Call, Context) of
-        {ok, Reports} ->
-            {ok, {200, #{}, [decode_report(R) || R <- Reports]}};
-        {exception, Exception} ->
-            case Exception of
-                #'reporter_base_InvalidRequest'{errors = Errors} ->
-                    FormattedErrors = anapi_handler_utils:format_request_errors(Errors),
-                    {ok, logic_error(invalidRequest, FormattedErrors)};
-                #reports_DatasetTooBig{limit = Limit} ->
-                    {ok, logic_error(<<"limitExceeded">>, io_lib:format("Max limit: ~p", [Limit]))}
-            end
+    PartyId = anapi_handler_utils:get_party_id(Context),
+    case maps:get(partyID, Req) of
+        PartyId ->
+            ReportRequest = #reports_ReportRequest{
+                party_id   = maps:get(partyID, Req),
+                shop_id    = maps:get(shopID, Req),
+                time_range =
+                #reports_ReportTimeRange{
+                    from_time = anapi_handler_utils:get_time('fromTime', Req),
+                    to_time   = anapi_handler_utils:get_time('toTime'  , Req)
+                }
+            },
+            ReportTypes = [encode_report_type(F) || F <- maps:get(reportTypes, Req)],
+            Call = {reporting, 'GetReports', [ReportRequest, ReportTypes]},
+            case anapi_handler_utils:service_call(Call, Context) of
+                {ok, Reports} ->
+                    {ok, {200, #{}, [decode_report(R) || R <- Reports]}};
+                {exception, Exception} ->
+                    case Exception of
+                        #reporter_base_InvalidRequest{errors = Errors} ->
+                            FormattedErrors = anapi_handler_utils:format_request_errors(Errors),
+                            {ok, logic_error(invalidRequest, FormattedErrors)};
+                        #reports_DatasetTooBig{limit = Limit} ->
+                            {ok, logic_error(<<"limitExceeded">>, io_lib:format("Max limit: ~p", [Limit]))}
+                    end
+            end;
+        _WrongPartyId ->
+            {ok, logic_error(invalidRequest, <<"Party not found">>)}
     end;
 
 process_request('GetReport', Req, Context) ->
-    PartyId  = maps:get(partyID, Req),
-    ShopId   = maps:get(shopID, Req),
+    PartyId = anapi_handler_utils:get_party_id(Context),
     ReportId = maps:get(reportID, Req),
     Call = {reporting, 'GetReport', [ReportId]},
     case anapi_handler_utils:service_call(Call, Context) of
-        {ok, Report = #'reports_Report'{party_id = PartyId, shop_id = ShopId}} ->
-            {ok, {200, #{}, decode_report(Report)}};
-        {ok, Report = #'reports_Report'{party_id = PartyId}} when ShopId =:= undefined ->
+        {ok, Report = #'reports_Report'{party_id = PartyId}} ->
             {ok, {200, #{}, decode_report(Report)}};
         {ok, _WrongReport} ->
             {ok, general_error(404, <<"Report not found">>)};
@@ -58,33 +61,38 @@ process_request('GetReport', Req, Context) ->
     end;
 
 process_request('CreateReport', Req, Context) ->
-    PartyId = maps:get(partyID, Req),
-    ShopId = maps:get(shopID, Req),
-    ReportRequest = #reports_ReportRequest{
-        party_id   = PartyId,
-        shop_id    = ShopId,
-        time_range =
-        #reports_ReportTimeRange{
-            from_time = anapi_handler_utils:get_time('fromTime', Req),
-            to_time   = anapi_handler_utils:get_time('toTime'  , Req)
-        }
-    },
-    ReportType = encode_report_type(maps:get(reportType, Req)),
-    case anapi_handler_utils:service_call({reporting, 'CreateReport', [ReportRequest, ReportType]}, Context) of
-        {ok, ReportId} ->
-            {ok, Report} = anapi_handler_utils:service_call(
-                {reporting, 'GetReport', [ReportId]},
-                Context
-            ),
-            {ok, {201, #{}, decode_report(Report)}};
-        {exception, Exception} ->
-            case Exception of
-                #'reporter_base_InvalidRequest'{errors = Errors} ->
-                    FormattedErrors = anapi_handler_utils:format_request_errors(Errors),
-                    {ok, logic_error(invalidRequest, FormattedErrors)};
-                #reports_ShopNotFound{} ->
-                    {ok, logic_error(invalidShopID, <<"Shop not found">>)}
-            end
+    PartyId = anapi_handler_utils:get_party_id(Context),
+    case maps:get(partyID, Req) of
+        PartyId ->
+            ShopId = maps:get(shopID, Req),
+            ReportRequest = #reports_ReportRequest{
+                party_id   = PartyId,
+                shop_id    = ShopId,
+                time_range =
+                #reports_ReportTimeRange{
+                    from_time = anapi_handler_utils:get_time('fromTime', Req),
+                    to_time   = anapi_handler_utils:get_time('toTime'  , Req)
+                }
+            },
+            ReportType = encode_report_type(maps:get(reportType, Req)),
+            case anapi_handler_utils:service_call({reporting, 'CreateReport', [ReportRequest, ReportType]}, Context) of
+                {ok, ReportId} ->
+                    {ok, Report} = anapi_handler_utils:service_call(
+                        {reporting, 'GetReport', [ReportId]},
+                        Context
+                    ),
+                    {ok, {201, #{}, decode_report(Report)}};
+                {exception, Exception} ->
+                    case Exception of
+                        #reporter_base_InvalidRequest{errors = Errors} ->
+                            FormattedErrors = anapi_handler_utils:format_request_errors(Errors),
+                            {ok, logic_error(invalidRequest, FormattedErrors)};
+                        #reports_ShopNotFound{} ->
+                            {ok, logic_error(invalidShopID, <<"Shop not found">>)}
+                    end
+            end;
+        _WrongPartyId ->
+            {ok, logic_error(invalidRequest, <<"Party not found">>)}
     end;
 
 process_request('DownloadFile', Req, Context) ->
@@ -119,7 +127,7 @@ generate_report_presigned_url(FileID, Context) ->
             {ok, {200, #{}, #{<<"url">> => URL}}};
         {exception, Exception} ->
             case Exception of
-                #'reporter_base_InvalidRequest'{errors = Errors} ->
+                #reporter_base_InvalidRequest{errors = Errors} ->
                     FormattedErrors = anapi_handler_utils:format_request_errors(Errors),
                     {ok, logic_error(invalidRequest, FormattedErrors)};
                 #reports_FileNotFound{}->

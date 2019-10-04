@@ -21,7 +21,7 @@ process_request('GetReports', Req, Context) ->
     case maps:get(partyID, Req) of
         PartyId ->
             ReportRequest = #reports_ReportRequest{
-                party_id   = maps:get(partyID, Req),
+                party_id   = PartyId,
                 shop_id    = maps:get(shopID, Req),
                 time_range =
                 #reports_ReportTimeRange{

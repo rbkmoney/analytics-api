@@ -24,6 +24,7 @@
     search_refunds_ok_test/1,
     search_payouts_ok_test/1,
     get_report_ok_test/1,
+    get_report_not_found_test/1,
     get_reports_ok_test/1,
     get_reports_wrong_party_id/1,
     create_report_ok_test/1,
@@ -66,6 +67,7 @@ groups() ->
                 search_refunds_ok_test,
                 search_payouts_ok_test,
                 get_report_ok_test,
+                get_report_not_found_test,
                 get_reports_ok_test,
                 get_reports_wrong_party_id,
                 create_report_ok_test,
@@ -274,6 +276,13 @@ get_reports_wrong_party_id(Config) ->
 get_report_ok_test(Config) ->
     anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT} end}], Config),
     {ok, _} = anapi_client_reports:get_report(?config(context, Config), ?INTEGER).
+
+-spec get_report_not_found_test(config()) ->
+    _.
+get_report_not_found_test(Config) ->
+    anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT_ALT} end}], Config),
+    {error, {404,#{<<"message">> := <<"Report not found">>}}} =
+        anapi_client_reports:get_report(?config(context, Config), ?INTEGER).
 
 -spec create_report_ok_test(config()) ->
     _.

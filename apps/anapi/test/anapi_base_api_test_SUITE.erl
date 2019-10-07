@@ -281,7 +281,7 @@ get_report_ok_test(Config) ->
     _.
 get_report_not_found_test(Config) ->
     anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT_ALT} end}], Config),
-    {error, {404,#{<<"message">> := <<"Report not found">>}}} =
+    {error, {404, #{<<"message">> := <<"Report not found">>}}} =
         anapi_client_reports:get_report(?config(context, Config), ?INTEGER).
 
 -spec create_report_ok_test(config()) ->

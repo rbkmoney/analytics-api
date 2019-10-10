@@ -61,7 +61,7 @@ get_operation_access('SearchRefunds' , _) ->
     [{[invoices, payments], read}];
 get_operation_access('SearchPayouts' , _) ->
     [{[party], read}];
-get_operation_access('GetReports'    , _) ->
+get_operation_access('SearchReports' , _) ->
     [{[party], read}];
 get_operation_access('GetReport'     , _) ->
     [{[party], read}];

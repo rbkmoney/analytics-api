@@ -16,6 +16,7 @@
 
 -module(anapi_handler_utils).
 
+-export([general_error/2]).
 -export([logic_error/2]).
 -export([server_error/1]).
 -export([format_request_errors/1]).
@@ -32,6 +33,12 @@
 
 -type processing_context() :: anapi_handler:processing_context().
 -type response()           :: anapi_handler:response().
+
+-spec general_error(cowboy:http_status(), binary()) ->
+    response().
+
+general_error(Code, Message) ->
+    create_error_resp(Code, #{<<"message">> => genlib:to_binary(Message)}).
 
 -spec logic_error
     (term(), io_lib:chars() | binary()) -> response();

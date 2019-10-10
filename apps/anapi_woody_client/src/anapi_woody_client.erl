@@ -85,7 +85,9 @@ get_service_url(ServiceName) ->
 -spec get_service_modname(service_name()) -> woody:service().
 
 get_service_modname(merchant_stat) ->
-    {dmsl_merch_stat_thrift, 'MerchantStatistics'}.
+    {dmsl_merch_stat_thrift, 'MerchantStatistics'};
+get_service_modname(reporting) ->
+    {reporter_reports_thrift, 'Reporting'}.
 
 
 get_service_deadline(ServiceName) ->

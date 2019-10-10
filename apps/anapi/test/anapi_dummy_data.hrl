@@ -209,3 +209,52 @@
     operation_type = payment,
     count = ?INTEGER
 }).
+
+-define(REPORT_TYPE, <<"paymentRegistry">>).
+-define(REPORT_TYPE_ALT, <<"provisionOfService">>).
+
+-define(REPORT, #reports_Report{
+    report_id = ?INTEGER,
+    time_range = #reports_ReportTimeRange{
+        from_time = ?TIMESTAMP,
+        to_time = ?TIMESTAMP
+    },
+    created_at = ?TIMESTAMP,
+    report_type = <<"provision_of_service">>,
+    status = created,
+    files = [
+        #reports_FileMeta{
+            file_id = ?STRING,
+            filename = ?STRING,
+            signature = #reports_Signature{
+                md5 = ?MD5,
+                sha256 = ?SHA256
+            }
+        }
+    ],
+    shop_id = ?STRING,
+    party_id = ?STRING
+}).
+
+-define(REPORT_ALT, #reports_Report{
+    report_id = ?INTEGER,
+    time_range = #reports_ReportTimeRange{
+        from_time = ?TIMESTAMP,
+        to_time = ?TIMESTAMP
+    },
+    created_at = ?TIMESTAMP,
+    report_type = <<"provision_of_service">>,
+    status = created,
+    files = [
+        #reports_FileMeta{
+            file_id = ?STRING,
+            filename = ?STRING,
+            signature = #reports_Signature{
+                md5 = ?MD5,
+                sha256 = ?SHA256
+            }
+        }
+    ],
+    shop_id = ?STRING,
+    party_id = <<"ALT_PARTY_ID">>
+}).

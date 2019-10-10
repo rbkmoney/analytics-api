@@ -20,6 +20,7 @@
 -include_lib("stdlib/include/assert.hrl").
 
 -include_lib("dmsl/include/dmsl_merch_stat_thrift.hrl").
+-include_lib("reporter_proto/include/reporter_reports_thrift.hrl").
 -include_lib("anapi_dummy_data.hrl").
 
 -export([all/0]).
@@ -37,7 +38,14 @@
     search_invoices_ok_test/1,
     search_payments_ok_test/1,
     search_refunds_ok_test/1,
-    search_payouts_ok_test/1
+    search_payouts_ok_test/1,
+    get_report_ok_test/1,
+    get_report_not_found_test/1,
+    get_reports_ok_test/1,
+    get_reports_wrong_party_id/1,
+    create_report_ok_test/1,
+    create_report_wrong_party_test/1,
+    download_report_file_ok_test/1
 ]).
 
 -define(ANAPI_PORT                   , 8080).
@@ -73,7 +81,14 @@ groups() ->
                 search_invoices_ok_test,
                 search_payments_ok_test,
                 search_refunds_ok_test,
-                search_payouts_ok_test
+                search_payouts_ok_test,
+                get_report_ok_test,
+                get_report_not_found_test,
+                get_reports_ok_test,
+                get_reports_wrong_party_id,
+                create_report_ok_test,
+                create_report_wrong_party_test,
+                download_report_file_ok_test
             ]
         }
     ].
@@ -99,6 +114,7 @@ init_per_group(all_tests, Config) ->
     BasePermissions = [
         {[invoices], read},
         {[party], read},
+        {[party], write},
         {[invoices, payments], read}
     ],
     {ok, Token} = anapi_ct_helper:issue_token(BasePermissions, unlimited),
@@ -238,3 +254,87 @@ search_payouts_ok_test(Config) ->
     ],
 
     {ok, _, _} = anapi_client_searches:search_payouts(?config(context, Config), Query).
+
+-spec get_reports_ok_test(config()) ->
+    _.
+get_reports_ok_test(Config) ->
+    anapi_ct_helper:mock_services([{reporting, fun('GetReports', _) -> {ok, [?REPORT]} end}], Config),
+    Query0 = [
+        {shopID, ?STRING},
+        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {partyID, ?STRING},
+        {report_types, <<?REPORT_TYPE/binary, <<",">>/binary, ?REPORT_TYPE_ALT/binary>>}
+    ],
+    {ok, _} = anapi_client_reports:get_reports(?config(context, Config), Query0),
+    Query1 = [
+        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {partyID, ?STRING},
+        {report_types, ?REPORT_TYPE}
+    ],
+    {ok, _} = anapi_client_reports:get_reports(?config(context, Config), Query1).
+
+-spec get_reports_wrong_party_id(config()) ->
+    _.
+get_reports_wrong_party_id(Config) ->
+    Query2 = [
+        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {partyID, <<"WRONG_STRING">>},
+        {report_types, ?REPORT_TYPE}
+    ],
+    {error, {400, #{<<"code">> := <<"invalidRequest">>, <<"message">> := <<"Party not found">>}}} =
+        anapi_client_reports:get_reports(?config(context, Config), Query2).
+
+-spec get_report_ok_test(config()) ->
+    _.
+get_report_ok_test(Config) ->
+    anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT} end}], Config),
+    {ok, _} = anapi_client_reports:get_report(?config(context, Config), ?INTEGER).
+
+-spec get_report_not_found_test(config()) ->
+    _.
+get_report_not_found_test(Config) ->
+    anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT_ALT} end}], Config),
+    {error, {404, #{<<"message">> := <<"Report not found">>}}} =
+        anapi_client_reports:get_report(?config(context, Config), ?INTEGER).
+
+-spec create_report_ok_test(config()) ->
+    _.
+create_report_ok_test(Config) ->
+    anapi_ct_helper:mock_services([
+        {reporting, fun
+                        ('CreateReport', _)       -> {ok, ?INTEGER};
+                        ('GetReport', [?INTEGER]) -> {ok, ?REPORT}
+                    end}
+    ], Config),
+    Query0 = [
+        {shopID, ?STRING},
+        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {partyID, ?STRING},
+        {reportType, ?REPORT_TYPE}
+    ],
+    {ok, _} = anapi_client_reports:create_report(?config(context, Config), Query0).
+
+-spec create_report_wrong_party_test(config()) ->
+    _.
+create_report_wrong_party_test(Config) ->
+    Query1 = [
+        {shopID, ?STRING},
+        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {partyID, <<"WRONG_STRING">>},
+        {reportType, ?REPORT_TYPE}
+    ],
+    {error, {400, #{<<"code">> := <<"invalidRequest">>, <<"message">> := <<"Party not found">>}}} =
+        anapi_client_reports:create_report(?config(context, Config), Query1).
+
+-spec download_report_file_ok_test(_) ->
+    _.
+download_report_file_ok_test(Config) ->
+    anapi_ct_helper:mock_services([
+        {reporting, fun('GetReport', _) -> {ok, ?REPORT}; ('GeneratePresignedUrl', _) -> {ok, ?STRING} end}
+    ], Config),
+    {ok, _} = anapi_client_reports:download_file(?config(context, Config), ?INTEGER, ?STRING).

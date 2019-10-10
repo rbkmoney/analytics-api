@@ -24,6 +24,7 @@
 -export([make_request/2]).
 
 -export([make_search_query_string/1]).
+-export([make_reporting_query_string/1]).
 -export([default_event_handler/0]).
 
 -type context() :: #{
@@ -47,6 +48,9 @@
 -type search_query() :: list().
 -export_type([search_query/0]).
 
+-type reporting_query() :: list().
+-export_type([reporting_query/0]).
+
 -type query_string() :: map().
 -export_type([query_string/0]).
 
@@ -68,11 +72,15 @@ protocol_to_opt(ipv6) ->
 
 -spec make_search_query_string(search_query()) -> query_string().
 make_search_query_string(ParamList) ->
-    lists:foldl(fun(Elem, Acc) -> maps:merge(Acc, prepare_param(Elem)) end, #{}, ParamList).
+    lists:foldl(fun(Elem, Acc) -> maps:merge(Acc, prepare_search_param(Elem)) end, #{}, ParamList).
 
--spec prepare_param({atom(), term()}) ->
+-spec make_reporting_query_string(reporting_query()) -> query_string().
+make_reporting_query_string(ParamList) ->
+    lists:foldl(fun(Elem, Acc) -> maps:merge(Acc, prepare_reporting_param(Elem)) end, #{}, ParamList).
+
+-spec prepare_search_param({atom(), term()}) ->
     map().
-prepare_param(Param) ->
+prepare_search_param(Param) ->
     case Param of
         {shopID, P}         -> #{<<"shopID">> => genlib:to_binary(P)};
         {limit, P}          -> #{<<"limit">> => genlib:to_binary(P)};
@@ -83,6 +91,20 @@ prepare_param(Param) ->
         {split_unit, P}     -> #{<<"splitUnit">> => genlib:to_binary(P)};
         {split_size, P}     -> #{<<"splitSize">> => genlib:to_binary(P)};
         {payment_method, P} -> #{<<"paymentMethod">> => genlib:to_binary(P)};
+        {ParamName, P}      -> #{genlib:to_binary(ParamName) => P}
+    end.
+
+-spec prepare_reporting_param({atom(), term()}) ->
+    map().
+prepare_reporting_param(Param) ->
+    case Param of
+        {shopID, P}         -> #{<<"shopID">> => genlib:to_binary(P)};
+        {partyID, P}        -> #{<<"partyID">> => genlib:to_binary(P)};
+        {from_time, P}      -> #{<<"fromTime">> => genlib_format:format_datetime_iso8601(P)};
+        {to_time, P}        -> #{<<"toTime">> => genlib_format:format_datetime_iso8601(P)};
+        {report_type, P}    -> #{<<"reportType">> => genlib:to_binary(P)};
+        {report_types, P}   -> #{<<"reportTypes">> => genlib:to_binary(P)};
+        {reportID, P}       -> #{<<"reportID">> => genlib:to_binary(P)};
         {ParamName, P}      -> #{genlib:to_binary(ParamName) => P}
     end.
 

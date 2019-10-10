@@ -60,6 +60,14 @@ get_operation_access('SearchPayments', _) ->
 get_operation_access('SearchRefunds' , _) ->
     [{[invoices, payments], read}];
 get_operation_access('SearchPayouts' , _) ->
+    [{[party], read}];
+get_operation_access('GetReports'    , _) ->
+    [{[party], read}];
+get_operation_access('GetReport'     , _) ->
+    [{[party], read}];
+get_operation_access('CreateReport'  , _) ->
+    [{[party], write}];
+get_operation_access('DownloadFile'  , _) ->
     [{[party], read}].
 
 -spec get_consumer(uac:claims()) ->

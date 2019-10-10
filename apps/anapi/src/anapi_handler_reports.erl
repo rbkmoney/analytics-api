@@ -21,11 +21,11 @@ process_request('SearchReports', Req, Context) ->
     ReqPartyId = maps:get(partyID, Req),
     Params = #{
         party_id => PartyId,
-        shop_id => maps:get(shopID, Req),
-        from_time => anapi_handler_utils:get_time('fromTime', Req),
-        to_time => anapi_handler_utils:get_time('toTime', Req),
+        shop_id => genlib_map:get(shopID, Req),
+        from_time => anapi_handler_utils:get_time(fromTime, Req),
+        to_time => anapi_handler_utils:get_time(toTime, Req),
         report_types => [encode_report_type(F) || F <- maps:get(reportTypes, Req)],
-        continuation_token => maps:get('continuationToken', Req)
+        continuation_token => genlib_map:get(continuationToken, Req)
     },
     case ReqPartyId of
         PartyId ->
@@ -52,9 +52,9 @@ process_request('CreateReport', Req, Context) ->
     ReqPartyId = maps:get(partyID, Req),
     Params = #{
         party_id => PartyId,
-        shop_id => maps:get(shopID, Req),
-        from_time => anapi_handler_utils:get_time('fromTime', Req),
-        to_time => anapi_handler_utils:get_time('toTime', Req),
+        shop_id => genlib_map:get(shopID, Req),
+        from_time => anapi_handler_utils:get_time(fromTime, Req),
+        to_time => anapi_handler_utils:get_time(toTime, Req),
         report_type => encode_report_type(maps:get(reportType, Req))
     },
     case ReqPartyId of

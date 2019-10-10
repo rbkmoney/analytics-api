@@ -16,7 +16,7 @@
 ) ->
     {ok | error, anapi_handler:response() | noimpl}.
 
-process_request('GetReports', Req, Context) ->
+process_request('SearchReports', Req, Context) ->
     PartyId = anapi_handler_utils:get_party_id(Context),
     ReqPartyId = maps:get(partyID, Req),
     Params = #{
@@ -24,11 +24,12 @@ process_request('GetReports', Req, Context) ->
         shop_id => maps:get(shopID, Req),
         from_time => anapi_handler_utils:get_time('fromTime', Req),
         to_time => anapi_handler_utils:get_time('toTime', Req),
-        report_types => [encode_report_type(F) || F <- maps:get(reportTypes, Req)]
+        report_types => [encode_report_type(F) || F <- maps:get(reportTypes, Req)],
+        continuation_token => maps:get('continuationToken', Req)
     },
     case ReqPartyId of
         PartyId ->
-            process_get_reports(Params, Context);
+            process_search_reports(Params, Context);
         _WrongPartyId ->
             {ok, logic_error(invalidRequest, <<"Party not found">>)}
     end;
@@ -115,7 +116,7 @@ process_create_report(Params, Context) ->
             end
     end.
 
-process_get_reports(Params, Context) ->
+process_search_reports(Params, Context) ->
     ReportRequest = #reports_ReportRequest{
         party_id   = maps:get(party_id, Params),
         shop_id    = maps:get(shop_id, Params),
@@ -129,7 +130,11 @@ process_get_reports(Params, Context) ->
     Call = {reporting, 'GetReports', [ReportRequest, ReportTypes]},
     case anapi_handler_utils:service_call(Call, Context) of
         {ok, Reports} ->
-            {ok, {200, #{}, [decode_report(R) || R <- Reports]}};
+            Res = genlib_map:compact(#{
+                <<"result">> => [decode_report(R) || R <- Reports],
+                <<"continuationToken">> => maps:get(continuation_token, Params)
+            }),
+            {ok, {200, #{}, Res}};
         {exception, Exception} ->
             case Exception of
                 #reporter_base_InvalidRequest{errors = Errors} ->

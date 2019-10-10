@@ -41,8 +41,8 @@
     search_payouts_ok_test/1,
     get_report_ok_test/1,
     get_report_not_found_test/1,
-    get_reports_ok_test/1,
-    get_reports_wrong_party_id/1,
+    search_reports_ok_test/1,
+    search_reports_wrong_party_id/1,
     create_report_ok_test/1,
     create_report_wrong_party_test/1,
     download_report_file_ok_test/1
@@ -84,8 +84,8 @@ groups() ->
                 search_payouts_ok_test,
                 get_report_ok_test,
                 get_report_not_found_test,
-                get_reports_ok_test,
-                get_reports_wrong_party_id,
+                search_reports_ok_test,
+                search_reports_wrong_party_id,
                 create_report_ok_test,
                 create_report_wrong_party_test,
                 download_report_file_ok_test
@@ -255,9 +255,9 @@ search_payouts_ok_test(Config) ->
 
     {ok, _, _} = anapi_client_searches:search_payouts(?config(context, Config), Query).
 
--spec get_reports_ok_test(config()) ->
+-spec search_reports_ok_test(config()) ->
     _.
-get_reports_ok_test(Config) ->
+search_reports_ok_test(Config) ->
     anapi_ct_helper:mock_services([{reporting, fun('GetReports', _) -> {ok, [?REPORT]} end}], Config),
     Query0 = [
         {shopID, ?STRING},
@@ -266,18 +266,18 @@ get_reports_ok_test(Config) ->
         {partyID, ?STRING},
         {report_types, <<?REPORT_TYPE/binary, <<",">>/binary, ?REPORT_TYPE_ALT/binary>>}
     ],
-    {ok, _} = anapi_client_reports:get_reports(?config(context, Config), Query0),
+    {ok, _} = anapi_client_reports:search_reports(?config(context, Config), Query0),
     Query1 = [
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},
         {to_time, {{2016, 03, 22}, {6, 12, 27}}},
         {partyID, ?STRING},
         {report_types, ?REPORT_TYPE}
     ],
-    {ok, _} = anapi_client_reports:get_reports(?config(context, Config), Query1).
+    {ok, _} = anapi_client_reports:search_reports(?config(context, Config), Query1).
 
--spec get_reports_wrong_party_id(config()) ->
+-spec search_reports_wrong_party_id(config()) ->
     _.
-get_reports_wrong_party_id(Config) ->
+search_reports_wrong_party_id(Config) ->
     Query2 = [
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},
         {to_time, {{2016, 03, 22}, {6, 12, 27}}},
@@ -285,7 +285,7 @@ get_reports_wrong_party_id(Config) ->
         {report_types, ?REPORT_TYPE}
     ],
     {error, {400, #{<<"code">> := <<"invalidRequest">>, <<"message">> := <<"Party not found">>}}} =
-        anapi_client_reports:get_reports(?config(context, Config), Query2).
+        anapi_client_reports:search_reports(?config(context, Config), Query2).
 
 -spec get_report_ok_test(config()) ->
     _.

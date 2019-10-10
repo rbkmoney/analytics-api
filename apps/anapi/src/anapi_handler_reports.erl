@@ -131,8 +131,7 @@ process_search_reports(Params, Context) ->
     case anapi_handler_utils:service_call(Call, Context) of
         {ok, Reports} ->
             Res = genlib_map:compact(#{
-                <<"result">> => [decode_report(R) || R <- Reports],
-                <<"continuationToken">> => maps:get(continuation_token, Params)
+                <<"result">> => [decode_report(R) || R <- Reports]
             }),
             {ok, {200, #{}, Res}};
         {exception, Exception} ->

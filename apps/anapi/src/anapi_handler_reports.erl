@@ -174,7 +174,7 @@ encode_report_type(paymentRegistry) -> <<"payment_registry">>.
 
 decode_report(Report) ->
     #reports_ReportTimeRange{from_time = FromTime, to_time = ToTime} = Report#reports_Report.time_range,
-    #{
+    genlib_map:compact(#{
         <<"id"        >> => Report#reports_Report.report_id,
         <<"createdAt" >> => Report#reports_Report.created_at,
         <<"fromTime"  >> => FromTime,
@@ -184,7 +184,7 @@ decode_report(Report) ->
         <<"files"     >> => [decode_report_file(F) || F <- Report#reports_Report.files],
         <<"partyID"   >> => Report#reports_Report.party_id,
         <<"shopID"    >> => Report#reports_Report.shop_id
-    }.
+    }).
 
 decode_report_status(pending) -> <<"pending">>;
 decode_report_status(created) -> <<"created">>.

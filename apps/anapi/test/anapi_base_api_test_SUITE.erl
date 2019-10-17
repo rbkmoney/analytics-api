@@ -44,6 +44,7 @@
     search_reports_ok_test/1,
     search_reports_wrong_party_id/1,
     create_report_ok_test/1,
+    create_report_without_shop_id_ok_test/1,
     create_report_wrong_party_test/1,
     download_report_file_ok_test/1
 ]).
@@ -87,6 +88,7 @@ groups() ->
                 search_reports_ok_test,
                 search_reports_wrong_party_id,
                 create_report_ok_test,
+                create_report_without_shop_id_ok_test,
                 create_report_wrong_party_test,
                 download_report_file_ok_test
             ]
@@ -311,6 +313,23 @@ create_report_ok_test(Config) ->
     ], Config),
     Query0 = [
         {shopID, ?STRING},
+        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
+        {partyID, ?STRING},
+        {reportType, ?REPORT_TYPE}
+    ],
+    {ok, _} = anapi_client_reports:create_report(?config(context, Config), Query0).
+
+-spec create_report_without_shop_id_ok_test(config()) ->
+    _.
+create_report_without_shop_id_ok_test(Config) ->
+    anapi_ct_helper:mock_services([
+        {reporting, fun
+                        ('CreateReport', _)       -> {ok, ?INTEGER};
+                        ('GetReport', [?INTEGER]) -> {ok, ?REPORT_WITHOUT_SHOP_ID}
+                    end}
+    ], Config),
+    Query0 = [
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},
         {to_time, {{2016, 03, 22}, {6, 12, 27}}},
         {partyID, ?STRING},

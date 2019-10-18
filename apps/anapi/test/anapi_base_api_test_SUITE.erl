@@ -261,14 +261,15 @@ search_payouts_ok_test(Config) ->
     _.
 search_reports_ok_test(Config) ->
     anapi_ct_helper:mock_services([{reporting, fun('GetReports', _) -> {ok, [?REPORT]} end}], Config),
-    Query0 = [
-        {shopID, ?STRING},
-        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {partyID, ?STRING},
-        {report_types, <<?REPORT_TYPE/binary, <<",">>/binary, ?REPORT_TYPE_ALT/binary>>}
-    ],
-    {ok, _} = anapi_client_reports:search_reports(?config(context, Config), Query0),
+    %% Disabled, because ?REPORT_TYPE_ALT is not needed in report_types. Enable if it becomes needed again
+%%    Query0 = [
+%%        {shopID, ?STRING},
+%%        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
+%%        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
+%%        {partyID, ?STRING},
+%%        {report_types, <<?REPORT_TYPE/binary, <<",">>/binary, ?REPORT_TYPE_ALT/binary>>}
+%%    ],
+%%    {ok, _} = anapi_client_reports:search_reports(?config(context, Config), Query0),
     Query1 = [
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},
         {to_time, {{2016, 03, 22}, {6, 12, 27}}},

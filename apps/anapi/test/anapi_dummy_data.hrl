@@ -220,7 +220,7 @@
         to_time = ?TIMESTAMP
     },
     created_at = ?TIMESTAMP,
-    report_type = <<"provision_of_service">>,
+    report_type = <<"payment_registry">>,
     status = created,
     files = [
         #reports_FileMeta{
@@ -243,7 +243,7 @@
         to_time = ?TIMESTAMP
     },
     created_at = ?TIMESTAMP,
-    report_type = <<"provision_of_service">>,
+    report_type = <<"payment_registry">>,
     status = created,
     files = [
         #reports_FileMeta{
@@ -265,7 +265,7 @@
         to_time = ?TIMESTAMP
     },
     created_at = ?TIMESTAMP,
-    report_type = <<"provision_of_service">>,
+    report_type = <<"payment_registry">>,
     status = created,
     files = [
         #reports_FileMeta{

@@ -280,3 +280,7 @@
     shop_id = ?STRING,
     party_id = <<"ALT_PARTY_ID">>
 }).
+
+-define(FOUND_REPORTS, #'reports_StatReportResponse'{
+    reports = [?REPORT]
+}).

@@ -127,11 +127,18 @@ process_search_reports(Params, Context) ->
         }
     },
     ReportTypes = maps:get(report_types, Params),
-    Call = {reporting, 'GetReports', [ReportRequest, ReportTypes]},
+    ContinuationToken = maps:get(continuation_token, Params),
+    StatReportRequest = #reports_StatReportRequest{
+        request = ReportRequest,
+        continuation_token = ContinuationToken,
+        report_types = ReportTypes
+    },
+    Call = {reporting, 'GetReports', [StatReportRequest]},
     case anapi_handler_utils:service_call(Call, Context) of
-        {ok, Reports} ->
+        {ok, #reports_StatReportResponse{reports = Reports, continuation_token = CT}} ->
             Res = genlib_map:compact(#{
-                <<"result">> => [decode_report(R) || R <- Reports]
+                <<"result">> => [decode_report(R) || R <- Reports],
+                <<"continuationToken">> => CT
             }),
             {ok, {200, #{}, Res}};
         {exception, Exception} ->
@@ -139,6 +146,8 @@ process_search_reports(Params, Context) ->
                 #reporter_base_InvalidRequest{errors = Errors} ->
                     FormattedErrors = anapi_handler_utils:format_request_errors(Errors),
                     {ok, logic_error(invalidRequest, FormattedErrors)};
+                #reports_BadToken{} ->
+                    {ok, logic_error(invalidRequest, <<"Invalid token">>)};
                 #reports_DatasetTooBig{limit = Limit} ->
                     {ok, logic_error(<<"limitExceeded">>, io_lib:format("Max limit: ~p", [Limit]))}
             end

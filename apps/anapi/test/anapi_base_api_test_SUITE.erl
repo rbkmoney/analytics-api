@@ -42,10 +42,8 @@
     get_report_ok_test/1,
     get_report_not_found_test/1,
     search_reports_ok_test/1,
-    search_reports_wrong_party_id/1,
     create_report_ok_test/1,
     create_report_without_shop_id_ok_test/1,
-    create_report_wrong_party_test/1,
     download_report_file_ok_test/1
 ]).
 
@@ -86,10 +84,8 @@ groups() ->
                 get_report_ok_test,
                 get_report_not_found_test,
                 search_reports_ok_test,
-                search_reports_wrong_party_id,
                 create_report_ok_test,
                 create_report_without_shop_id_ok_test,
-                create_report_wrong_party_test,
                 download_report_file_ok_test
             ]
         }
@@ -265,29 +261,15 @@ search_reports_ok_test(Config) ->
         {shopID, ?STRING},
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},
         {to_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {partyID, ?STRING},
         {report_types, <<?REPORT_TYPE/binary, <<",">>/binary, ?REPORT_TYPE_ALT/binary>>}
     ],
     {ok, _} = anapi_client_reports:search_reports(?config(context, Config), Query0),
     Query1 = [
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},
         {to_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {partyID, ?STRING},
         {report_types, ?REPORT_TYPE}
     ],
     {ok, _} = anapi_client_reports:search_reports(?config(context, Config), Query1).
-
--spec search_reports_wrong_party_id(config()) ->
-    _.
-search_reports_wrong_party_id(Config) ->
-    Query2 = [
-        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {partyID, <<"WRONG_STRING">>},
-        {report_types, ?REPORT_TYPE}
-    ],
-    {error, {400, #{<<"code">> := <<"invalidRequest">>, <<"message">> := <<"Party not found">>}}} =
-        anapi_client_reports:search_reports(?config(context, Config), Query2).
 
 -spec get_report_ok_test(config()) ->
     _.
@@ -315,7 +297,6 @@ create_report_ok_test(Config) ->
         {shopID, ?STRING},
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},
         {to_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {partyID, ?STRING},
         {reportType, ?REPORT_TYPE}
     ],
     {ok, _} = anapi_client_reports:create_report(?config(context, Config), Query0).
@@ -332,23 +313,9 @@ create_report_without_shop_id_ok_test(Config) ->
     Query0 = [
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},
         {to_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {partyID, ?STRING},
         {reportType, ?REPORT_TYPE}
     ],
     {ok, _} = anapi_client_reports:create_report(?config(context, Config), Query0).
-
--spec create_report_wrong_party_test(config()) ->
-    _.
-create_report_wrong_party_test(Config) ->
-    Query1 = [
-        {shopID, ?STRING},
-        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {partyID, <<"WRONG_STRING">>},
-        {reportType, ?REPORT_TYPE}
-    ],
-    {error, {400, #{<<"code">> := <<"invalidRequest">>, <<"message">> := <<"Party not found">>}}} =
-        anapi_client_reports:create_report(?config(context, Config), Query1).
 
 -spec download_report_file_ok_test(_) ->
     _.

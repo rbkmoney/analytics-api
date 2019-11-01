@@ -17,22 +17,15 @@
     {ok | error, anapi_handler:response() | noimpl}.
 
 process_request('SearchReports', Req, Context) ->
-    PartyId = anapi_handler_utils:get_party_id(Context),
-    ReqPartyId = maps:get(partyID, Req),
     Params = #{
-        party_id => PartyId,
+        party_id => anapi_handler_utils:get_party_id(Context),
         shop_id => genlib_map:get(shopID, Req),
         from_time => anapi_handler_utils:get_time(fromTime, Req),
         to_time => anapi_handler_utils:get_time(toTime, Req),
         report_types => [encode_report_type(F) || F <- maps:get(reportTypes, Req)],
         continuation_token => genlib_map:get(continuationToken, Req)
     },
-    case ReqPartyId of
-        PartyId ->
-            process_search_reports(Params, Context);
-        _WrongPartyId ->
-            {ok, logic_error(invalidRequest, <<"Party not found">>)}
-    end;
+    process_search_reports(Params, Context);
 
 process_request('GetReport', Req, Context) ->
     PartyId = anapi_handler_utils:get_party_id(Context),
@@ -48,21 +41,14 @@ process_request('GetReport', Req, Context) ->
     end;
 
 process_request('CreateReport', Req, Context) ->
-    PartyId = anapi_handler_utils:get_party_id(Context),
-    ReqPartyId = maps:get(partyID, Req),
     Params = #{
-        party_id => PartyId,
+        party_id => anapi_handler_utils:get_party_id(Context),
         shop_id => genlib_map:get(shopID, Req),
         from_time => anapi_handler_utils:get_time(fromTime, Req),
         to_time => anapi_handler_utils:get_time(toTime, Req),
         report_type => encode_report_type(maps:get(reportType, Req))
     },
-    case ReqPartyId of
-        PartyId ->
-            process_create_report(Params, Context);
-        _WrongPartyId ->
-            {ok, logic_error(invalidRequest, <<"Party not found">>)}
-    end;
+    process_create_report(Params, Context);
 
 process_request('DownloadFile', Req, Context) ->
     Call = {

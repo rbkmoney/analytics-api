@@ -16,7 +16,7 @@
 
 -module(anapi_handler_search).
 
--include_lib("dmsl/include/dmsl_merch_stat_thrift.hrl").
+-include_lib("damsel/include/dmsl_merch_stat_thrift.hrl").
 
 -behaviour(anapi_handler).
 -export([process_request/3]).
@@ -324,7 +324,9 @@ decode_stat_payment_tool_token({payment_terminal, PaymentTerminal}) ->
 decode_stat_payment_tool_token({digital_wallet, DigitalWallet}) ->
     decode_digital_wallet(DigitalWallet);
 decode_stat_payment_tool_token({crypto_currency, CryptoCurrency}) ->
-    decode_crypto_wallet(CryptoCurrency).
+    decode_crypto_wallet(CryptoCurrency);
+decode_stat_payment_tool_token({mobile_commerce, MobileCommerce}) ->
+    decode_mobile_commerce(MobileCommerce).
 
 decode_bank_card(#merchstat_BankCard{
     'token'          = Token,
@@ -369,6 +371,21 @@ decode_crypto_wallet(CryptoCurrency) ->
         <<"crypto_currency">> => anapi_handler_decoder_utils:convert_crypto_currency_to_swag(CryptoCurrency)
     }).
 
+decode_mobile_commerce(MobileCommerce) ->
+    #merchstat_MobileCommerce{
+        operator = Operator,
+        phone = #merchstat_MobilePhone{
+            cc = Cc,
+            ctn = Ctn
+        }
+    } = MobileCommerce,
+    Phone = #{<<"cc">> => Cc, <<"ctn">> => Ctn},
+    anapi_utils:map_to_base64url(#{
+        <<"type">> => <<"mobile_commerce">>,
+        <<"phone">> => Phone,
+        <<"operator">> => atom_to_binary(Operator, utf8)
+    }).
+
 decode_stat_payment_tool_details({bank_card, V}) ->
     decode_bank_card_details(V, #{<<"detailsType">> => <<"PaymentToolDetailsBankCard">>});
 decode_stat_payment_tool_details({payment_terminal, V}) ->
@@ -379,6 +396,15 @@ decode_stat_payment_tool_details({crypto_currency, CryptoCurrency}) ->
     #{
         <<"detailsType">> => <<"PaymentToolDetailsCryptoWallet">>,
         <<"cryptoCurrency">> => anapi_handler_decoder_utils:convert_crypto_currency_to_swag(CryptoCurrency)
+    };
+decode_stat_payment_tool_details({mobile_commerce, MobileCommerce}) ->
+    #merchstat_MobileCommerce{
+        phone = Phone
+    } = MobileCommerce,
+    PhoneNumber = gen_phone_number(decode_mobile_phone(Phone)),
+    #{
+        <<"detailsType">> => <<"PaymentToolDetailsMobileCommerce">>,
+        <<"phoneNumber">> => mask_phone_number(PhoneNumber)
     }.
 
 decode_bank_card_details(BankCard, V) ->
@@ -551,6 +577,12 @@ decode_stat_refund_status({Status, StatusInfo}, Context) ->
         <<"status">> => genlib:to_binary(Status),
         <<"error" >> => Error
     }.
+
+decode_mobile_phone(#merchstat_MobilePhone{cc = Cc, ctn = Ctn}) ->
+    #{<<"cc">> => Cc, <<"ctn">> => Ctn}.
+
+gen_phone_number(#{<<"cc">> := Cc, <<"ctn">> := Ctn}) ->
+    <<"+", Cc/binary, Ctn/binary>>.
 
 construct_exclude(Req) ->
     % can be extended upon need

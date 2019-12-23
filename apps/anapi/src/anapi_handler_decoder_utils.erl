@@ -16,7 +16,7 @@
 
 -module(anapi_handler_decoder_utils).
 
--include_lib("dmsl/include/dmsl_merch_stat_thrift.hrl").
+-include_lib("damsel/include/dmsl_merch_stat_thrift.hrl").
 
 -export([decode_last_digits/1]).
 -export([decode_masked_pan/2]).

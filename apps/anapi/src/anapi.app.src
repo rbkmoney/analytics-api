@@ -26,7 +26,7 @@
         genlib,
         woody,
         anapi_woody_client,
-        dmsl,
+        damsel,
         reporter_proto,
         swag_server,
         jose,

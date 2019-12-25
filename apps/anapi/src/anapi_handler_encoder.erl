@@ -16,7 +16,7 @@
 
 -module(anapi_handler_encoder).
 
--include_lib("dmsl/include/dmsl_merch_stat_thrift.hrl").
+-include_lib("damsel/include/dmsl_merch_stat_thrift.hrl").
 
 -export([encode_stat_request/2]).
 

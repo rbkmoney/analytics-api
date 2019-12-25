@@ -16,7 +16,7 @@
 
 -module(anapi_handler_decoder_invoicing).
 
--include_lib("dmsl/include/dmsl_merch_stat_thrift.hrl").
+-include_lib("damsel/include/dmsl_merch_stat_thrift.hrl").
 
 -export([decode_invoice_cart/1]).
 -export([decode_payment_operation_failure/2]).

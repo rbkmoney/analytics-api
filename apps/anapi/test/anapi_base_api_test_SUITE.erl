@@ -150,27 +150,11 @@ search_invoices_ok_test(Config) ->
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}},
         {invoiceStatus, <<"fulfilled">>},
-        {payerEmail, <<"test@test.ru">>},
-        {payerIP, <<"192.168.0.1">>},
         {shopID, ?STRING},
-        {paymentStatus, <<"processed">>},
-        {paymentFlow, <<"instant">>},
-        {paymentMethod, <<"bankCard">>},
         {invoiceID, <<"testInvoiceID">>},
-        {paymentID, <<"testPaymentID">>},
-        {payerFingerprint, <<"blablablalbalbal">>},
-        % %%@FIXME cannot be used until getting the newest api client
-        % swag generates an invalid regex
-        % {pattern, "/^\\d{6,8}$/"} instead of
-        % {pattern, "^\\d{6,8}$"} for the api
-        % the handler is fine
-        %
-        % {first6, <<"424242">>},
-        % {last4, <<"2222">>},
-        % {rrn, <<"090909090909">>},
-        {bankCardTokenProvider, <<"applepay">>},
-        {bankCardPaymentSystem, <<"visa">>},
-        {paymentAmount, 10000},
+        {invoiceAmountFrom, 1},
+        {invoiceAmountTo, 20000},
+        {invoiceID, <<"testInvoiceID">>},
         {continuationToken, <<"come_back_next_time">>},
         {excludedShops, <<"shop1, shop2">>}
     ],
@@ -208,7 +192,8 @@ search_payments_ok_test(Config) ->
         % {approval_code, <<"808080">>},
         {bankCardTokenProvider, <<"applepay">>},
         {bankCardPaymentSystem, <<"visa">>},
-        {paymentAmount, 10000},
+        {paymentAmountFrom, 1},
+        {paymentAmountTo, 20000},
         {continuationToken, <<"come_back_next_time">>},
         {excludedShops, <<"shop1, shop2">>}
     ],

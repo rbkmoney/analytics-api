@@ -180,16 +180,10 @@ search_payments_ok_test(Config) ->
         {invoiceID, <<"testInvoiceID">>},
         {paymentID, <<"testPaymentID">>},
         {payerFingerprint, <<"blablablalbalbal">>},
-        % %%@FIXME cannot be used until getting the newest api client
-        % swag generates an invalid regex
-        % {pattern, "/^\\d{6,8}$/"} instead of
-        % {pattern, "^\\d{6,8}$"} for the api
-        % the handler is fine
-        %
-        % {first6, <<"424242">>},
-        % {last4, <<"2222">>},
-        % {rrn, <<"090909090909">>},
-        % {approval_code, <<"808080">>},
+        {first6, <<"424242">>},
+        {last4, <<"2222">>},
+        {rrn, <<"090909090909">>},
+        {approval_code, <<"808080">>},
         {bankCardTokenProvider, <<"applepay">>},
         {bankCardPaymentSystem, <<"visa">>},
         {paymentAmountFrom, 1},

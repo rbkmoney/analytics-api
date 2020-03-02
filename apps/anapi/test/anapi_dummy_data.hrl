@@ -14,6 +14,10 @@
 %%% limitations under the License.
 %%%
 
+-include_lib("damsel/include/dmsl_geo_ip_thrift.hrl").
+-include_lib("damsel/include/dmsl_merch_stat_thrift.hrl").
+-include_lib("reporter_proto/include/reporter_reports_thrift.hrl").
+
 -define(STRING, <<"TEST">>).
 -define(RUB, <<"RUB">>).
 -define(USD, <<"USD">>).
@@ -84,13 +88,38 @@
     created_at = ?TIMESTAMP,
     status = Status,
     amount = ?INTEGER,
-    flow = {instant, #merchstat_InvoicePaymentFlowInstant{}},
+    flow = ?INSTANT_INVOICE_PAYMENT_FLOW,
     fee = ?INTEGER,
     currency_symbolic_code = ?RUB,
     payer = Payer,
     context = ?CONTENT,
     domain_revision = ?INTEGER,
-    additional_transaction_info = ?TX_INFO
+    additional_transaction_info = ?TX_INFO,
+    location_info = ?LOCATION_INFO,
+    short_id = ?STRING,
+    make_recurrent = false,
+    cart = ?INVOICE_CART
+}).
+
+-define(INSTANT_INVOICE_PAYMENT_FLOW, {instant, #merchstat_InvoicePaymentFlowInstant{}}).
+
+-define(LOCATION_INFO, #geo_ip_LocationInfo{
+    city_geo_id = ?INTEGER,
+    country_geo_id = ?INTEGER,
+    raw_response = ?STRING
+}).
+
+-define(INVOICE_CART, #domain_InvoiceCart{
+    lines = []
+}).
+
+-define(CASH, #domain_Cash{
+    amount = ?INTEGER,
+    currency = ?CURRENCY
+}).
+
+-define(CURRENCY, #domain_CurrencyRef{
+    symbolic_code = ?RUB
 }).
 
 -define(TX_INFO, #domain_AdditionalTransactionInfo{

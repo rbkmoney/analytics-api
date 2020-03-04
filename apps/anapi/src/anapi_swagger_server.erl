@@ -70,8 +70,14 @@ squash_routes(Routes) ->
         Routes
     )).
 
+%% Ensure that environment contains routes to prevent
+%% possible crashes in runtime.
 mk_operation_id_getter(#{env := Env}) ->
-    fun (Req) ->
+    %% Ensure that request has host and path required for
+    %% cowboy_router:execute/2.
+    %% NOTE: Be careful when upgrade cowboy in this project
+    %% because cowboy_router:execute/2 call can change.
+    fun (Req=#{host := _Host, path := _Path}) ->
         case cowboy_router:execute(Req, Env) of
             {ok, _, #{handler_opts := {_Operations, _LogicHandler, _SwaggerHandlerOpts} = HandlerOpts}} ->
                 case swag_server_utils:get_operation_id(Req, HandlerOpts) of
@@ -82,5 +88,7 @@ mk_operation_id_getter(#{env := Env}) ->
                 end;
             _ ->
                 #{}
-        end
+        end;
+        (_Req) ->
+            #{}
     end.

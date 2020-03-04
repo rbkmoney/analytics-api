@@ -70,8 +70,6 @@ squash_routes(Routes) ->
         Routes
     )).
 
-%% Ensure that environment contains routes to prevent
-%% possible crashes in runtime.
 mk_operation_id_getter(#{env := Env}) ->
     %% Ensure that request has host and path required for
     %% cowboy_router:execute/2.

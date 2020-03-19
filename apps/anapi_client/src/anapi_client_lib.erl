@@ -25,6 +25,7 @@
 
 -export([make_search_query_string/1]).
 -export([make_reporting_query_string/1]).
+-export([make_analytics_query_string/1]).
 -export([default_event_handler/0]).
 
 -type context() :: #{
@@ -50,6 +51,9 @@
 
 -type reporting_query() :: list().
 -export_type([reporting_query/0]).
+
+-type analytics_query() :: list().
+-export_type([analytics_query/0]).
 
 -type query_string() :: map().
 -export_type([query_string/0]).
@@ -78,6 +82,10 @@ make_search_query_string(ParamList) ->
 make_reporting_query_string(ParamList) ->
     lists:foldl(fun(Elem, Acc) -> maps:merge(Acc, prepare_reporting_param(Elem)) end, #{}, ParamList).
 
+-spec make_analytics_query_string(analytics_query()) -> query_string().
+make_analytics_query_string(ParamList) ->
+    lists:foldl(fun(Elem, Acc) -> maps:merge(Acc, prepare_analytics_param(Elem)) end, #{}, ParamList).
+
 -spec prepare_search_param({atom(), term()}) ->
     map().
 prepare_search_param(Param) ->
@@ -105,6 +113,17 @@ prepare_reporting_param(Param) ->
         {report_type, P}    -> #{<<"reportType">> => genlib:to_binary(P)};
         {report_types, P}   -> #{<<"reportTypes">> => genlib:to_binary(P)};
         {reportID, P}       -> #{<<"reportID">> => genlib:to_binary(P)};
+        {ParamName, P}      -> #{genlib:to_binary(ParamName) => P}
+    end.
+
+-spec prepare_analytics_param({atom(), term()}) ->
+    map().
+prepare_analytics_param(Param) ->
+    case Param of
+        {shopIDs, P}        -> #{<<"shopIDs">> => P};
+        {from_time, P}      -> #{<<"fromTime">> => genlib_format:format_datetime_iso8601(P)};
+        {to_time, P}        -> #{<<"toTime">> => genlib_format:format_datetime_iso8601(P)};
+        {split_unit, P}     -> #{<<"splitUnit">> => genlib:to_binary(P)};
         {ParamName, P}      -> #{genlib:to_binary(ParamName) => P}
     end.
 

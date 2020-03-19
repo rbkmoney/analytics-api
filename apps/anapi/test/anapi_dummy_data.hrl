@@ -17,6 +17,7 @@
 -include_lib("damsel/include/dmsl_geo_ip_thrift.hrl").
 -include_lib("damsel/include/dmsl_merch_stat_thrift.hrl").
 -include_lib("reporter_proto/include/reporter_reports_thrift.hrl").
+-include_lib("analytics_proto/include/analytics_proto_analytics_thrift.hrl").
 
 -define(STRING, <<"TEST">>).
 -define(RUB, <<"RUB">>).
@@ -312,4 +313,72 @@
 
 -define(FOUND_REPORTS, #'reports_StatReportResponse'{
     reports = [?REPORT]
+}).
+
+-define(SPLIT_UNIT, minute).
+
+-define(ANALYTICS_PAYMENT_TOOL_DISTRIBUTION_RESP, #analytics_PaymentToolDistributionResponse{
+    payment_tools_distributions = [?ANALYTICS_NAMING_DISTRIBUTION, ?ANALYTICS_NAMING_DISTRIBUTION]
+}).
+
+-define(ANALYTICS_NAMING_DISTRIBUTION, #analytics_NamingDistribution{
+    name = ?STRING,
+    percents = ?INTEGER
+}).
+
+-define(ANALYTICS_AMOUNT_RESP, #analytics_AmountResponse{
+    groups_amount = [?ANALYTICS_CURRENCY_GROUPED_AMOUNT, ?ANALYTICS_CURRENCY_GROUPED_AMOUNT]
+}).
+
+-define(ANALYTICS_CURRENCY_GROUPED_AMOUNT, #analytics_CurrencyGroupedAmount{
+    amount = ?INTEGER,
+    currency = ?RUB
+}).
+
+-define(ANALYTICS_COUNT_RESP, #analytics_CountResponse{
+    groups_count = [?ANALYTICS_CURRENCY_GROUP_COUNT, ?ANALYTICS_CURRENCY_GROUP_COUNT]
+}).
+
+-define(ANALYTICS_CURRENCY_GROUP_COUNT, #analytics_CurrecyGroupCount{
+    currency = ?RUB,
+    count = ?INTEGER
+}).
+
+-define(ANALYTICS_ERROR_DISTRIBUTION_RESP, #analytics_ErrorDistributionsResponse{
+    error_distributions = [?ANALYTICS_NAMING_DISTRIBUTION, ?ANALYTICS_NAMING_DISTRIBUTION]
+}).
+
+-define(ANALYTICS_SPLIT_AMOUNT_RESP, #analytics_SplitAmountResponse{
+    result_split_unit = ?SPLIT_UNIT,
+    grouped_currency_amounts = [?ANALYTICS_GROUPED_CURRENCY_OFFSET_AMOUNT, ?ANALYTICS_GROUPED_CURRENCY_OFFSET_AMOUNT]
+}).
+
+-define(ANALYTICS_GROUPED_CURRENCY_OFFSET_AMOUNT, #analytics_GroupedCurrencyOffsetAmount{
+    currency = ?RUB,
+    offset_amounts = [?ANALYTICS_OFFSET_AMOUNT, ?ANALYTICS_OFFSET_AMOUNT]
+}).
+
+-define(ANALYTICS_OFFSET_AMOUNT, #analytics_OffsetAmount{
+    amount = ?INTEGER,
+    offset = ?INTEGER
+}).
+
+-define(ANALYTICS_SPLIT_COUNT_RESP, #analytics_SplitCountResponse{
+    result_split_unit = ?SPLIT_UNIT,
+    payment_tools_destrobutions = [?ANALYTICS_GROUPED_CURRENCY_OFFSET_COUNT, ?ANALYTICS_GROUPED_CURRENCY_OFFSET_COUNT]
+}).
+
+-define(ANALYTICS_GROUPED_CURRENCY_OFFSET_COUNT, #analytics_GroupedCurrencyOffsetCount{
+    currency = ?RUB,
+    offset_amounts = [?ANALYTICS_GROUPED_STATUS_OFFSET_COUNT, ?ANALYTICS_GROUPED_STATUS_OFFSET_COUNT]
+}).
+
+-define(ANALYTICS_GROUPED_STATUS_OFFSET_COUNT, #analytics_GroupedStatusOffsetCount{
+    status = pending,
+    offsetCounts = [?ANALYTICS_OFFSET_COUNT, ?ANALYTICS_OFFSET_COUNT]
+}).
+
+-define(ANALYTICS_OFFSET_COUNT, #analytics_OffsetCount{
+    count = ?INTEGER,
+    offset = ?INTEGER
 }).

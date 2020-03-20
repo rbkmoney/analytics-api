@@ -29,12 +29,7 @@
     {ok | error, anapi_handler:response() | noimpl}.
 
 process_request('GetPaymentsToolDistribution', Req, Context) ->
-    Query = #{
-        party_id  => anapi_handler_utils:get_party_id(Context),
-        shop_ids  => genlib_map:get('shopIDs', Req),
-        from_time => anapi_handler_utils:get_time('fromTime', Req),
-        to_time   => anapi_handler_utils:get_time('toTime', Req)
-    },
+    Query = make_query(Req, Context),
     Opts = #{
         thrift_fun => 'GetPaymentsToolDistribution',
         decode_fun => fun decode_payment_tool_distribution_response/1
@@ -42,12 +37,7 @@ process_request('GetPaymentsToolDistribution', Req, Context) ->
     process_analytics_request(filter_request, Query, Context, Opts);
 
 process_request('GetPaymentsAmount', Req, Context) ->
-    Query = #{
-        party_id  => anapi_handler_utils:get_party_id(Context),
-        shop_ids  => genlib_map:get('shopIDs', Req),
-        from_time => anapi_handler_utils:get_time('fromTime', Req),
-        to_time   => anapi_handler_utils:get_time('toTime', Req)
-    },
+    Query = make_query(Req, Context),
     Opts = #{
         thrift_fun => 'GetPaymentsAmount',
         decode_fun => fun decode_amount_response/1
@@ -55,12 +45,7 @@ process_request('GetPaymentsAmount', Req, Context) ->
     process_analytics_request(filter_request, Query, Context, Opts);
 
 process_request('GetAveragePayment', Req, Context) ->
-    Query = #{
-        party_id  => anapi_handler_utils:get_party_id(Context),
-        shop_ids  => genlib_map:get('shopIDs', Req),
-        from_time => anapi_handler_utils:get_time('fromTime', Req),
-        to_time   => anapi_handler_utils:get_time('toTime', Req)
-    },
+    Query = make_query(Req, Context),
     Opts = #{
         thrift_fun => 'GetAveragePayment',
         decode_fun => fun decode_amount_response/1
@@ -68,12 +53,7 @@ process_request('GetAveragePayment', Req, Context) ->
     process_analytics_request(filter_request, Query, Context, Opts);
 
 process_request('GetPaymentsCount', Req, Context) ->
-    Query = #{
-        party_id  => anapi_handler_utils:get_party_id(Context),
-        shop_ids  => genlib_map:get('shopIDs', Req),
-        from_time => anapi_handler_utils:get_time('fromTime', Req),
-        to_time   => anapi_handler_utils:get_time('toTime', Req)
-    },
+    Query = make_query(Req, Context),
     Opts = #{
         thrift_fun => 'GetPaymentsCount',
         decode_fun => fun decode_count_response/1
@@ -81,12 +61,7 @@ process_request('GetPaymentsCount', Req, Context) ->
     process_analytics_request(filter_request, Query, Context, Opts);
 
 process_request('GetPaymentsErrorDistribution', Req, Context) ->
-    Query = #{
-        party_id  => anapi_handler_utils:get_party_id(Context),
-        shop_ids  => genlib_map:get('shopIDs', Req),
-        from_time => anapi_handler_utils:get_time('fromTime', Req),
-        to_time   => anapi_handler_utils:get_time('toTime', Req)
-    },
+    Query = make_query(Req, Context),
     Opts = #{
         thrift_fun => 'GetPaymentsErrorDistribution',
         decode_fun => fun decode_error_distributions_response/1
@@ -94,13 +69,7 @@ process_request('GetPaymentsErrorDistribution', Req, Context) ->
     process_analytics_request(filter_request, Query, Context, Opts);
 
 process_request('GetPaymentsSplitAmount', Req, Context) ->
-    Query = #{
-        party_id   => anapi_handler_utils:get_party_id(Context),
-        shop_ids   => genlib_map:get('shopIDs', Req),
-        from_time  => anapi_handler_utils:get_time('fromTime', Req),
-        to_time    => anapi_handler_utils:get_time('toTime', Req),
-        split_unit => maps:get('splitUnit', Req)
-    },
+    Query = make_query(Req, Context),
     Opts = #{
         thrift_fun => 'GetPaymentsSplitAmount',
         decode_fun => fun decode_split_amount_response/1
@@ -108,13 +77,7 @@ process_request('GetPaymentsSplitAmount', Req, Context) ->
     process_analytics_request(split_filter_request, Query, Context, Opts);
 
 process_request('GetPaymentsSplitCount', Req, Context) ->
-    Query = #{
-        party_id   => anapi_handler_utils:get_party_id(Context),
-        shop_ids   => genlib_map:get('shopIDs', Req),
-        from_time  => anapi_handler_utils:get_time('fromTime', Req),
-        to_time    => anapi_handler_utils:get_time('toTime', Req),
-        split_unit => maps:get('splitUnit', Req)
-    },
+    Query = make_query(Req, Context),
     Opts = #{
         thrift_fun => 'GetPaymentsSplitCount',
         decode_fun => fun decode_split_count_response/1
@@ -122,12 +85,7 @@ process_request('GetPaymentsSplitCount', Req, Context) ->
     process_analytics_request(split_filter_request, Query, Context, Opts);
 
 process_request('GetRefundsAmount', Req, Context) ->
-    Query = #{
-        party_id  => anapi_handler_utils:get_party_id(Context),
-        shop_ids  => genlib_map:get('shopIDs', Req),
-        from_time => anapi_handler_utils:get_time('fromTime', Req),
-        to_time   => anapi_handler_utils:get_time('toTime', Req)
-    },
+    Query = make_query(Req, Context),
     Opts = #{
         thrift_fun => 'GetRefundsAmount',
         decode_fun => fun decode_amount_response/1
@@ -158,6 +116,17 @@ process_analytics_request_result(Result, #{decode_fun := DecodeFun}) ->
             },
             {ok, {200, #{}, Resp}}
     end.
+
+%%
+
+make_query(Req, Context) ->
+    #{
+        party_id   => anapi_handler_utils:get_party_id(Context),
+        shop_ids   => genlib_map:get('shopIDs', Req),
+        from_time  => anapi_handler_utils:get_time('fromTime', Req),
+        to_time    => anapi_handler_utils:get_time('toTime', Req),
+        split_unit => genlib_map:get('splitUnit', Req)
+    }.
 
 %%
 

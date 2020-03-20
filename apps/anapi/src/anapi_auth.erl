@@ -63,11 +63,29 @@ get_operation_access('SearchPayouts' , _) ->
     [{[party], read}];
 get_operation_access('SearchReports' , _) ->
     [{[party], read}];
+
 get_operation_access('GetReport'     , _) ->
     [{[party], read}];
 get_operation_access('CreateReport'  , _) ->
     [{[party], write}];
 get_operation_access('DownloadFile'  , _) ->
+    [{[party], read}];
+
+get_operation_access('GetPaymentsToolDistribution'  , _) ->
+    [{[party], read}];
+get_operation_access('GetPaymentsAmount'  , _) ->
+    [{[party], read}];
+get_operation_access('GetAveragePayment'  , _) ->
+    [{[party], read}];
+get_operation_access('GetPaymentsCount'  , _) ->
+    [{[party], read}];
+get_operation_access('GetPaymentsErrorDistribution'  , _) ->
+    [{[party], read}];
+get_operation_access('GetPaymentsSplitAmount'  , _) ->
+    [{[party], read}];
+get_operation_access('GetPaymentsSplitCount'  , _) ->
+    [{[party], read}];
+get_operation_access('GetRefundsAmount'  , _) ->
     [{[party], read}].
 
 -spec get_consumer(uac:claims()) ->

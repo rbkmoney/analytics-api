@@ -89,7 +89,9 @@ get_service_url(ServiceName) ->
 get_service_modname(merchant_stat) ->
     {dmsl_merch_stat_thrift, 'MerchantStatistics'};
 get_service_modname(reporting) ->
-    {reporter_reports_thrift, 'Reporting'}.
+    {reporter_reports_thrift, 'Reporting'};
+get_service_modname(analytics) ->
+    {analytics_proto_analytics_thrift, 'AnalyticsService'}.
 
 
 get_service_deadline(ServiceName) ->

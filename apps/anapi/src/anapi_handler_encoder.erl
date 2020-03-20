@@ -17,12 +17,17 @@
 -module(anapi_handler_encoder).
 
 -include_lib("damsel/include/dmsl_merch_stat_thrift.hrl").
+-include_lib("analytics_proto/include/analytics_proto_analytics_thrift.hrl").
 
 -export([encode_stat_request/2]).
+-export([encode_analytics_request/2]).
 
 -export_type([encode_data/0]).
 
 -type encode_data()  :: tuple().
+-type filter_request() :: #analytics_FilterRequest{}.
+-type split_filter_request() :: #analytics_SplitFilterRequest{}.
+-type analytics_request_type() :: filter_request | split_filter_request.
 
 -spec encode_stat_request(map() | binary(), binary() | undefined) ->
     encode_data().
@@ -34,4 +39,29 @@ encode_stat_request(Dsl, ContinuationToken) when is_binary(Dsl) ->
     #merchstat_StatRequest{
         dsl = Dsl,
         continuation_token = ContinuationToken
+    }.
+
+-spec encode_analytics_request(analytics_request_type(), map()) ->
+    filter_request() | split_filter_request().
+
+encode_analytics_request(filter_request, #{
+    party_id  := PartyID,
+    shop_ids  := ShopIDs,
+    from_time := FromTime,
+    to_time   := ToTime
+}) ->
+    #analytics_FilterRequest{
+        merchant_filter = #analytics_MerchantFilter{
+            party_id = PartyID,
+            shop_ids = ShopIDs
+        },
+        time_filter = #analytics_TimeFilter{
+            from_time = FromTime,
+            to_time = ToTime
+        }
+    };
+encode_analytics_request(split_filter_request, #{split_unit := SplitUnit} = Query) ->
+    #analytics_SplitFilterRequest{
+        filter_request = encode_analytics_request(filter_request, Query),
+        split_unit = SplitUnit
     }.

@@ -28,6 +28,7 @@
         anapi_woody_client,
         damsel,
         reporter_proto,
+        analytics_proto,
         swag_server,
         jose,
         cowboy_cors,

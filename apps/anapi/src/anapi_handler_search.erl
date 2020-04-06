@@ -33,6 +33,7 @@ process_request('SearchInvoices', Req, Context) ->
     Query = #{
         <<"merchant_id"              >> => anapi_handler_utils:get_party_id(Context),
         <<"shop_id"                  >> => genlib_map:get('shopID', Req),
+        <<"shop_ids"                 >> => genlib_map:get('shopIDs', Req),
         <<"invoice_id"               >> => genlib_map:get('invoiceID', Req),
         <<"from_time"                >> => anapi_handler_utils:get_time('fromTime', Req),
         <<"to_time"                  >> => anapi_handler_utils:get_time('toTime', Req),
@@ -51,6 +52,7 @@ process_request('SearchPayments', Req, Context) ->
     Query = #{
         <<"merchant_id"              >> => anapi_handler_utils:get_party_id(Context),
         <<"shop_id"                  >> => genlib_map:get('shopID', Req),
+        <<"shop_ids"                 >> => genlib_map:get('shopIDs', Req),
         <<"invoice_id"               >> => genlib_map:get('invoiceID', Req),
         <<"from_time"                >> => anapi_handler_utils:get_time('fromTime', Req),
         <<"to_time"                  >> => anapi_handler_utils:get_time('toTime', Req),
@@ -83,6 +85,7 @@ process_request('SearchPayouts', Req, Context) ->
     Query = #{
         <<"merchant_id"    >> => anapi_handler_utils:get_party_id(Context),
         <<"shop_id"        >> => genlib_map:get('shopID', Req),
+        <<"shop_ids"       >> => genlib_map:get('shopIDs', Req),
         <<"from_time"      >> => anapi_handler_utils:get_time('fromTime', Req),
         <<"to_time"        >> => anapi_handler_utils:get_time('toTime', Req),
         <<"payout_statuses">> => [<<"confirmed">>, <<"paid">>],
@@ -100,6 +103,7 @@ process_request('SearchRefunds', Req, Context) ->
     Query = #{
         <<"merchant_id"              >> => anapi_handler_utils:get_party_id(Context),
         <<"shop_id"                  >> => genlib_map:get('shopID', Req),
+        <<"shop_ids"                 >> => genlib_map:get('shopIDs', Req),
         <<"invoice_id"               >> => genlib_map:get('invoiceID', Req),
         <<"payment_id"               >> => genlib_map:get('paymentID', Req),
         <<"refund_id"                >> => genlib_map:get('refundID', Req),

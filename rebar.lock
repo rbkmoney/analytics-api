@@ -71,7 +71,7 @@
  {<<"ranch">>,{pkg,<<"ranch">>,<<"1.7.1">>},1},
  {<<"reporter_proto">>,
   {git,"git@github.com:rbkmoney/reporter-proto.git",
-       {ref,"c5ac89c368c4d3de5f1cd96062d57a3c4a120113"}},
+       {ref,"c08071face20dff9562f5bcba8d54430eaf0ee78"}},
   0},
  {<<"rfc3339">>,{pkg,<<"rfc3339">>,<<"0.2.2">>},0},
  {<<"scoper">>,

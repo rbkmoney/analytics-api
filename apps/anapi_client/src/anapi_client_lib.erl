@@ -91,6 +91,7 @@ make_analytics_query_string(ParamList) ->
 prepare_search_param(Param) ->
     case Param of
         {shopID, P}         -> #{<<"shopID">> => genlib:to_binary(P)};
+        {shopIDs, P}        -> #{<<"shopIDs">> => genlib:to_binary(P)};
         {limit, P}          -> #{<<"limit">> => genlib:to_binary(P)};
         {offset, P}         -> #{<<"offset">> => genlib:to_binary(P)};
         {from_time, P}      -> #{<<"fromTime">> => genlib_format:format_datetime_iso8601(P)};
@@ -107,6 +108,7 @@ prepare_search_param(Param) ->
 prepare_reporting_param(Param) ->
     case Param of
         {shopID, P}         -> #{<<"shopID">> => genlib:to_binary(P)};
+        {shopIDs, P}        -> #{<<"shopIDs">> => genlib:to_binary(P)};
         {partyID, P}        -> #{<<"partyID">> => genlib:to_binary(P)};
         {from_time, P}      -> #{<<"fromTime">> => genlib_format:format_datetime_iso8601(P)};
         {to_time, P}        -> #{<<"toTime">> => genlib_format:format_datetime_iso8601(P)};

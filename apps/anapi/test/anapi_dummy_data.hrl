@@ -27,6 +27,7 @@
 -define(WALLET_TOOL, <<"TOOL">>).
 -define(JSON, <<"{}">>).
 -define(INTEGER, 10000).
+-define(PERCENT, 99.0).
 -define(INTEGER_BINARY, <<"10000">>).
 -define(TIMESTAMP, <<"2016-03-22T06:12:27Z">>).
 -define(MD5, <<"033BD94B1168D7E4F0D644C3C95E35BF">>).
@@ -323,7 +324,7 @@
 
 -define(ANALYTICS_NAMING_DISTRIBUTION, #analytics_NamingDistribution{
     name = ?STRING,
-    percents = ?INTEGER
+    percents = ?PERCENT
 }).
 
 -define(ANALYTICS_AMOUNT_RESP, #analytics_AmountResponse{

@@ -60,7 +60,7 @@
  {<<"jsx">>,{pkg,<<"jsx">>,<<"2.8.2">>},0},
  {<<"logger_logstash_formatter">>,
   {git,"git@github.com:rbkmoney/logger_logstash_formatter.git",
-       {ref,"b53af86014ba5748d8704cdb23867a590e8a7ae0"}},
+       {ref,"41e8e3cc3ba6d1f53f1f0a0c9eb07c32f0868205"}},
   0},
  {<<"metrics">>,{pkg,<<"metrics">>,<<"1.0.1">>},1},
  {<<"mimerl">>,{pkg,<<"mimerl">>,<<"1.2.0">>},1},

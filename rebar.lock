@@ -84,7 +84,7 @@
   0},
  {<<"snowflake">>,
   {git,"https://github.com/rbkmoney/snowflake.git",
-       {ref,"0a598108f6582affe3b4ae550fc5b9f2062e318a"}},
+       {ref,"c34a962e17539e63a53f721cbf4ddcffeb0032a4"}},
   1},
  {<<"ssl_verify_fun">>,{pkg,<<"ssl_verify_fun">>,<<"1.1.4">>},1},
  {<<"thrift">>,

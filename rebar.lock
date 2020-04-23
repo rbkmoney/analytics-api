@@ -77,7 +77,6 @@
   {git,"git@github.com:rbkmoney/reporter-proto.git",
        {ref,"c08071face20dff9562f5bcba8d54430eaf0ee78"}},
   0},
- {<<"rfc3339">>,{pkg,<<"rfc3339">>,<<"0.2.2">>},1},
  {<<"scoper">>,
   {git,"git@github.com:rbkmoney/scoper.git",
        {ref,"95643f40dd628c77f33f12be96cf1c39dccc9683"}},
@@ -93,7 +92,7 @@
   1},
  {<<"uac">>,
   {git,"git@github.com:rbkmoney/erlang_uac.git",
-       {ref,"acd2603163bd5d7052320694a1c892c67c0771d0"}},
+       {ref,"dfeb52c2432864a0f4522f35405bb5361155f3e2"}},
   0},
  {<<"unicode_util_compat">>,{pkg,<<"unicode_util_compat">>,<<"0.4.1">>},2},
  {<<"woody">>,
@@ -120,7 +119,6 @@
  {<<"metrics">>, <<"25F094DEA2CDA98213CECC3AEFF09E940299D950904393B2A29D191C346A8486">>},
  {<<"mimerl">>, <<"67E2D3F571088D5CFD3E550C383094B47159F3EEE8FFA08E64106CDF5E981BE3">>},
  {<<"ranch">>, <<"6B1FAB51B49196860B733A49C07604465A47BDB78AA10C1C16A3D199F7F8C881">>},
- {<<"rfc3339">>, <<"1552DF616ACA368D982E9F085A0E933B6688A3F4938A671798978EC2C0C58730">>},
  {<<"ssl_verify_fun">>, <<"F0EAFFF810D2041E93F915EF59899C923F4568F4585904D010387ED74988E77B">>},
  {<<"unicode_util_compat">>, <<"D869E4C68901DD9531385BB0C8C40444EBF624E60B6962D95952775CAC5E90CD">>}]}
 ].

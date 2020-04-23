@@ -45,7 +45,7 @@ init([]) ->
     HealthRoutes = [{'_', [erl_health_handle:get_route(HealthCheck)]}],
     SwaggerHandlerOpts = genlib_app:env(?APP, swagger_handler_opts, #{}),
     SwaggerSpec = anapi_swagger_server:child_spec({HealthRoutes, LogicHandler, SwaggerHandlerOpts}),
-    UacConf = genlib_app:env(anapi, access_conf),
+    UacConf = get_uac_config(),
     ok = uac:configure(UacConf),
     {ok, {
         {one_for_all, 0, 1},
@@ -68,3 +68,17 @@ get_logic_handler_info() ->
 enable_health_logging(Check) ->
     EvHandler = {erl_health_event_handler, []},
     maps:map(fun (_, V = {_, _, _}) -> #{runner => V, event_handler => EvHandler} end, Check).
+
+get_uac_config() ->
+    maps:merge(
+        get_authorization_config(),
+        #{access => anapi_auth:get_access_config()}
+    ).
+
+get_authorization_config() ->
+    case genlib_app:env(anapi, access_conf) of
+        undefined ->
+            exit(undefined_access_configuration);
+        Config ->
+            Config
+    end.

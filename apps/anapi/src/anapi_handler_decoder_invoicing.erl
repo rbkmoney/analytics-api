@@ -32,7 +32,7 @@
 decode_payment_operation_failure({operation_timeout, _}, _) ->
     payment_error(<<"timeout">>);
 decode_payment_operation_failure({failure, Failure}, Context) ->
-    case anapi_auth:get_consumer(anapi_auth:get_claims(anapi_handler_utils:get_auth_context(Context))) of
+    case anapi_auth:get_consumer(uac_authorizer_jwt:get_claims(anapi_handler_utils:get_auth_context(Context))) of
         merchant ->
             % чтобы не городить ещё один обход дерева как в payproc_errors проще отформатировать в текст,
             % а потом уже в json

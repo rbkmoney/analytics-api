@@ -83,7 +83,7 @@ get_auth_context(#{swagger_context := #{auth_context := AuthContext}}) ->
     binary().
 
 get_party_id(Context) ->
-    anapi_auth:get_subject_id(get_auth_context(Context)).
+    uac_authorizer_jwt:get_subject_id(get_auth_context(Context)).
 
 -spec merge_and_compact(map(), map()) ->
     map().

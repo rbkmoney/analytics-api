@@ -94,14 +94,18 @@ prepare_search_param(Param) ->
         {shopIDs, P}        -> #{<<"shopIDs">> => genlib:to_binary(P)};
         {limit, P}          -> #{<<"limit">> => genlib:to_binary(P)};
         {offset, P}         -> #{<<"offset">> => genlib:to_binary(P)};
-        {from_time, P}      -> #{<<"fromTime">> => genlib_format:format_datetime_iso8601(P)};
-        {to_time, P}        -> #{<<"toTime">> => genlib_format:format_datetime_iso8601(P)};
+        {from_time, P}      -> #{<<"fromTime">> => format_date_time(P)};
+        {to_time, P}        -> #{<<"toTime">> => format_date_time(P)};
         {status, P}         -> #{<<"status">> => genlib:to_binary(P)};
         {split_unit, P}     -> #{<<"splitUnit">> => genlib:to_binary(P)};
         {split_size, P}     -> #{<<"splitSize">> => genlib:to_binary(P)};
         {payment_method, P} -> #{<<"paymentMethod">> => genlib:to_binary(P)};
         {ParamName, P}      -> #{genlib:to_binary(ParamName) => P}
     end.
+
+format_date_time(P) ->
+    Seconds = genlib_time:daytime_to_unixtime(P),
+    genlib_rfc3339:format_relaxed(Seconds, second).
 
 -spec prepare_reporting_param({atom(), term()}) ->
     map().
@@ -110,8 +114,8 @@ prepare_reporting_param(Param) ->
         {shopID, P}         -> #{<<"shopID">> => genlib:to_binary(P)};
         {shopIDs, P}        -> #{<<"shopIDs">> => genlib:to_binary(P)};
         {partyID, P}        -> #{<<"partyID">> => genlib:to_binary(P)};
-        {from_time, P}      -> #{<<"fromTime">> => genlib_format:format_datetime_iso8601(P)};
-        {to_time, P}        -> #{<<"toTime">> => genlib_format:format_datetime_iso8601(P)};
+        {from_time, P}      -> #{<<"fromTime">> => format_date_time(P)};
+        {to_time, P}        -> #{<<"toTime">> => format_date_time(P)};
         {report_type, P}    -> #{<<"reportType">> => genlib:to_binary(P)};
         {report_types, P}   -> #{<<"reportTypes">> => genlib:to_binary(P)};
         {reportID, P}       -> #{<<"reportID">> => genlib:to_binary(P)};
@@ -123,8 +127,8 @@ prepare_reporting_param(Param) ->
 prepare_analytics_param(Param) ->
     case Param of
         {shopIDs, P}        -> #{<<"shopIDs">> => P};
-        {from_time, P}      -> #{<<"fromTime">> => genlib_format:format_datetime_iso8601(P)};
-        {to_time, P}        -> #{<<"toTime">> => genlib_format:format_datetime_iso8601(P)};
+        {from_time, P}      -> #{<<"fromTime">> => format_date_time(P)};
+        {to_time, P}        -> #{<<"toTime">> => format_date_time(P)};
         {split_unit, P}     -> #{<<"splitUnit">> => genlib:to_binary(P)};
         {ParamName, P}      -> #{genlib:to_binary(ParamName) => P}
     end.

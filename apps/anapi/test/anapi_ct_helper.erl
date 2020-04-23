@@ -84,13 +84,6 @@ start_anapi(Config) ->
                     % TODO use crypto:generate_key here when move on 21 Erlang
                     anapi => {pem_file, get_keysource("keys/local/private.pem", Config)}
                 }
-            },
-            access => #{
-                service_name => <<"common-api">>,
-                resource_hierarchy => #{
-                    invoices => #{payments => #{}},
-                    party => #{}
-                }
             }
         }}
     ],
@@ -127,12 +120,17 @@ issue_token(ACL, LifeTime, ExtraProperties) ->
     }.
 
 issue_token(PartyID, ACL, LifeTime, ExtraProperties) ->
-    Claims = maps:merge(#{?STRING => ?STRING}, ExtraProperties),
+    Claims = maps:merge(#{
+        ?STRING => ?STRING,
+        <<"exp">> => LifeTime,
+        <<"resource_access">> => #{
+            <<"common-api">> => uac_acl:from_list(ACL)
+        }
+    }, ExtraProperties),
     UniqueId = get_unique_id(),
     case uac_authorizer_jwt:issue(
         UniqueId,
-        LifeTime,
-        {PartyID, uac_acl:from_list(ACL)},
+        PartyID,
         Claims,
         anapi
     ) of

@@ -98,11 +98,11 @@
  {<<"unicode_util_compat">>,{pkg,<<"unicode_util_compat">>,<<"0.4.1">>},2},
  {<<"woody">>,
   {git,"git@github.com:rbkmoney/woody_erlang.git",
-       {ref,"f2e56d8affcb57bdb603802362dc9d9058e2bddb"}},
+       {ref,"8543878a5560a7828c71629d1f81270e5dcfd811"}},
   0},
  {<<"woody_user_identity">>,
   {git,"git@github.com:rbkmoney/woody_erlang_user_identity.git",
-       {ref,"6eca18a62ccd7f0b3b62f9b2119b328b1798859d"}},
+       {ref,"0feebda4f7b4a9b5ee93cfe7b28d824a3dc2d8dc"}},
   0}]}.
 [
 {pkg_hash,[

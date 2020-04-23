@@ -157,10 +157,10 @@ create_woody_context(#{'X-Request-ID' := RequestID}, AuthContext) ->
 
 collect_user_identity(AuthContext) ->
     genlib_map:compact(#{
-        id       => anapi_auth:get_subject_id(AuthContext),
+        id       => uac_authorizer_jwt:get_subject_id(AuthContext),
         realm    => ?REALM,
-        email    => anapi_auth:get_claim(<<"email">>, AuthContext, undefined),
-        username => anapi_auth:get_claim(<<"name">> , AuthContext, undefined)
+        email    => uac_authorizer_jwt:get_claim(<<"email">>, AuthContext, undefined),
+        username => uac_authorizer_jwt:get_claim(<<"name">> , AuthContext, undefined)
     }).
 
 attach_deadline(#{'X-Request-Deadline' := undefined}, Context) ->

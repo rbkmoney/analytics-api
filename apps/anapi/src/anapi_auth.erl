@@ -18,6 +18,7 @@
 
 -export([get_operation_access/2]).
 -export([get_consumer/1]).
+-export([get_access_config/0]).
 
 -type consumer() :: client | merchant | provider.
 
@@ -71,3 +72,20 @@ get_consumer(Claims) ->
         <<"client"  >> -> client;
         <<"provider">> -> provider
     end.
+
+-spec get_access_config() -> map().
+
+get_access_config() ->
+    #{
+        domain_name => <<"common-api">>,
+        resource_hierarchy => get_resource_hierarchy()
+    }.
+
+get_resource_hierarchy() ->
+    #{
+        invoices => #{
+            payments => #{}
+        },
+        payments => #{},
+        party => #{}
+    }.

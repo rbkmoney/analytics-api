@@ -44,6 +44,8 @@
 
 -define(SWAG_HANDLER_SCOPE, swag_handler).
 
+-define(DOMAIN, <<"common-api">>).
+
 -spec authorize_api_key(swag_server:operation_id(), swag_server:api_key(), handler_opts()) ->
     Result :: false | {true, uac:context()}.
 
@@ -80,7 +82,9 @@ get_handlers() ->
     ].
 
 get_verification_options() ->
-    #{}.
+    #{
+        domains_to_decode => [?DOMAIN]
+    }.
 
 -spec handle_request(
     OperationID :: operation_id(),

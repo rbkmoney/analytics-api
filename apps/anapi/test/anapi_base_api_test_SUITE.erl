@@ -168,12 +168,11 @@ search_payments_ok_test(Config) ->
     anapi_ct_helper:mock_services(
         [{merchant_stat, fun('GetPayments', _) -> {ok, ?STAT_RESPONSE_PAYMENTS} end}],
         Config),
-    Query = [
+    Params = [
         {limit, 2},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}},
         {payerEmail, <<"test@test.ru">>},
-        {payerIP, <<"192.168.0.1">>},
         {shopID, ?STRING},
         {shopIDs, <<?STRING/binary, ",", ?STRING/binary>>},
         {paymentStatus, <<"processed">>},
@@ -193,8 +192,13 @@ search_payments_ok_test(Config) ->
         {continuationToken, <<"come_back_next_time">>},
         {excludedShops, <<"shop1, shop2">>}
     ],
-
-    {ok, _, _} = anapi_client_searches:search_payments(?config(context, Config), Query).
+    Query1 = [{payerIP, <<"192.168.0.1">>} | Params],
+    Query2 = [{payerIP, <<"992.168.0.1">>} | Params],
+    {ok, _, _} = anapi_client_searches:search_payments(?config(context, Config), Query1),
+    {error, {400,
+        #{<<"code">> := <<"invalidRequest">>,
+        <<"message">> := <<"payerIP wrong_format ">>
+    }}} = anapi_client_searches:search_payments(?config(context, Config), Query2).
 
 -spec search_refunds_ok_test(config()) ->
     _.

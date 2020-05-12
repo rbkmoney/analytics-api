@@ -18,9 +18,12 @@
 
 -behaviour(swag_server_logic_handler).
 
+-type error_type() :: swag_server_logic_handler:error_type().
+
 %% API callbacks
 -export([authorize_api_key/3]).
 -export([handle_request/4]).
+-export([map_error/2]).
 
 %% Handler behaviour
 
@@ -60,6 +63,19 @@ authorize_api_key(OperationID, ApiKey, _HandlerOpts) ->
                     false
             end
         end).
+
+-spec map_error(error_type(), swag_server_validation:error()) ->
+    swag_server:error_reason().
+
+map_error(validation_error, Error) ->
+    Description = genlib:to_binary(maps:get(description, Error, <<>>)),
+    Type = genlib:to_binary(maps:get(type, Error)),
+    Name = genlib:to_binary(maps:get(param_name, Error)),
+    Message = <<Name/binary, " ", Type/binary, " ", Description/binary>>,
+    jsx:encode(#{
+        <<"code">> => <<"invalidRequest">>,
+        <<"message">> => Message
+    }).
 
 -type request_data()        :: #{atom() | binary() => term()}.
 

@@ -197,7 +197,7 @@ search_payments_ok_test(Config) ->
     {ok, _, _} = anapi_client_searches:search_payments(?config(context, Config), Query1),
     {error, {400,
         #{<<"code">> := <<"invalidRequest">>,
-        <<"message">> := <<"payerIP wrong_format ">>
+        <<"message">> := <<"Request parameter: payerIP, error: wrong_format ">>
     }}} = anapi_client_searches:search_payments(?config(context, Config), Query2).
 
 -spec search_refunds_ok_test(config()) ->

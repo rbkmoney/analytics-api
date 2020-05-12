@@ -25,9 +25,11 @@
 -export_type([encode_data/0]).
 
 -type encode_data()  :: tuple().
+-type merchant_filter() :: #analytics_MerchantFilter{}.
+-type time_filter() :: #analytics_TimeFilter{}.
 -type filter_request() :: #analytics_FilterRequest{}.
 -type split_filter_request() :: #analytics_SplitFilterRequest{}.
--type analytics_request_type() :: filter_request | split_filter_request.
+-type analytics_request_type() :: merchant_filter | time_filter | filter_request | split_filter_request.
 
 -spec encode_stat_request(map() | binary(), binary() | undefined) ->
     encode_data().
@@ -42,23 +44,28 @@ encode_stat_request(Dsl, ContinuationToken) when is_binary(Dsl) ->
     }.
 
 -spec encode_analytics_request(analytics_request_type(), map()) ->
-    filter_request() | split_filter_request().
+    merchant_filter() | time_filter() | filter_request() | split_filter_request().
 
-encode_analytics_request(filter_request, #{
+encode_analytics_request(merchant_filter, #{
     party_id  := PartyID,
-    shop_ids  := ShopIDs,
+    shop_ids  := ShopIDs
+}) ->
+    #analytics_MerchantFilter{
+        party_id = PartyID,
+        shop_ids = ShopIDs
+    };
+encode_analytics_request(time_filter, #{
     from_time := FromTime,
     to_time   := ToTime
 }) ->
+    #analytics_TimeFilter{
+        from_time = FromTime,
+        to_time = ToTime
+    };
+encode_analytics_request(filter_request, Query) ->
     #analytics_FilterRequest{
-        merchant_filter = #analytics_MerchantFilter{
-            party_id = PartyID,
-            shop_ids = ShopIDs
-        },
-        time_filter = #analytics_TimeFilter{
-            from_time = FromTime,
-            to_time = ToTime
-        }
+        merchant_filter = encode_analytics_request(merchant_filter, Query),
+        time_filter = encode_analytics_request(time_filter, Query)
     };
 encode_analytics_request(split_filter_request, #{split_unit := SplitUnit} = Query) ->
     #analytics_SplitFilterRequest{

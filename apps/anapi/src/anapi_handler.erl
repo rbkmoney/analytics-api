@@ -72,10 +72,12 @@ map_error(validation_error, Error) ->
     Name = genlib:to_binary(maps:get(param_name, Error)),
     Message = case maps:get(description, Error, undefined) of
         undefined ->
-            <<"Request parameter: ", Name/binary, ", error reason: ", Type/binary>>;
+            <<"Request parameter: ", Name/binary, ", error type: ", Type/binary>>;
         Description ->
-            DescriptionBin =  genlib:to_binary(Description),
-            <<"Request parameter: ", Name/binary, ", error reason: ", Type/binary, ", description: ", DescriptionBin/binary>>
+            DescriptionBin = genlib:to_binary(Description),
+            <<"Request parameter: ", Name/binary,
+            ", error type: ", Type/binary,
+            ", description: ", DescriptionBin/binary>>
     end,
     jsx:encode(#{
         <<"code">> => <<"invalidRequest">>,

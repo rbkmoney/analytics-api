@@ -70,11 +70,12 @@ authorize_api_key(OperationID, ApiKey, _HandlerOpts) ->
 map_error(validation_error, Error) ->
     Type = genlib:to_binary(maps:get(type, Error)),
     Name = genlib:to_binary(maps:get(param_name, Error)),
-    Message = case genlib:to_binary(maps:get(description, Error, undefined)) of
+    Message = case maps:get(description, Error, undefined) of
         undefined ->
             <<"Request parameter ", Name/binary, " error ", Type/binary>>;
         Description ->
-            <<"Request parameter ", Name/binary, " error: ", Type/binary, ", description: ", Description/binary>>
+            DescriptionBin =  genlib:to_binary(Description),
+            <<"Request parameter ", Name/binary, " error: ", Type/binary, ", description: ", DescriptionBin/binary>>
     end,
     jsx:encode(#{
         <<"code">> => <<"invalidRequest">>,

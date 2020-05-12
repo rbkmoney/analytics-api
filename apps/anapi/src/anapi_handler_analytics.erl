@@ -98,7 +98,7 @@ process_request('GetCurrentBalances', Req, Context) ->
         thrift_fun => 'GetCurrentBalances',
         decode_fun => fun decode_amount_response/1
     },
-    process_analytics_request(filter_request, Query, Context, Opts);
+    process_analytics_request(merchant_filter, Query, Context, Opts);
 
 %%
 

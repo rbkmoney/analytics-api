@@ -256,9 +256,7 @@ get_current_balances_ok_test(Config) ->
         [{analytics, fun('GetCurrentBalances', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end}],
         Config),
     Query = [
-        {shopIDs, <<"asdf,asdf2">>},
-        {from_time, {{2015, 08, 11}, {19, 42, 35}}},
-        {to_time, {{2020, 08, 11}, {19, 42, 35}}}
+        {shopIDs, <<"asdf,asdf2">>}
     ],
 
-    {ok, _} = anapi_client_analytics:get_refunds_amount(?config(context, Config), Query).
+    {ok, _} = anapi_client_analytics:get_current_balances(?config(context, Config), Query).

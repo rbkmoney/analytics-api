@@ -42,7 +42,8 @@
     get_payments_error_distribution_ok_test/1,
     get_payments_split_amount_ok_test/1,
     get_payments_split_count_ok_test/1,
-    get_refunds_amount_ok_test/1
+    get_refunds_amount_ok_test/1,
+    get_current_balances_ok_test/1
 ]).
 
 -define(ANAPI_PORT                   , 8080).
@@ -82,7 +83,8 @@ groups() ->
                 get_payments_error_distribution_ok_test,
                 get_payments_split_amount_ok_test,
                 get_payments_split_count_ok_test,
-                get_refunds_amount_ok_test
+                get_refunds_amount_ok_test,
+                get_current_balances_ok_test
             ]
         }
     ].
@@ -238,6 +240,20 @@ get_payments_split_count_ok_test(Config) ->
 get_refunds_amount_ok_test(Config) ->
     anapi_ct_helper:mock_services(
         [{analytics, fun('GetRefundsAmount', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end}],
+        Config),
+    Query = [
+        {shopIDs, <<"asdf,asdf2">>},
+        {from_time, {{2015, 08, 11}, {19, 42, 35}}},
+        {to_time, {{2020, 08, 11}, {19, 42, 35}}}
+    ],
+
+    {ok, _} = anapi_client_analytics:get_refunds_amount(?config(context, Config), Query).
+
+-spec get_current_balances_ok_test(config()) ->
+    _.
+get_current_balances_ok_test(Config) ->
+    anapi_ct_helper:mock_services(
+        [{analytics, fun('GetCurrentBalances', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end}],
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},

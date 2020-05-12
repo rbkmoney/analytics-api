@@ -92,6 +92,14 @@ process_request('GetRefundsAmount', Req, Context) ->
     },
     process_analytics_request(filter_request, Query, Context, Opts);
 
+process_request('GetCurrentBalances', Req, Context) ->
+    Query = make_query(Req, Context),
+    Opts = #{
+        thrift_fun => 'GetCurrentBalances',
+        decode_fun => fun decode_amount_response/1
+    },
+    process_analytics_request(filter_request, Query, Context, Opts);
+
 %%
 
 process_request(_OperationID, _Req, _Context) ->

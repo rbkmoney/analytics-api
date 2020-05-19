@@ -551,7 +551,8 @@ decode_stat_refund(Refund, Context) ->
             <<"createdAt">> => Refund#merchstat_StatRefund.created_at,
             <<"amount">>    => Refund#merchstat_StatRefund.amount,
             <<"currency">>  => Refund#merchstat_StatRefund.currency_symbolic_code,
-            <<"reason">>    => Refund#merchstat_StatRefund.reason
+            <<"reason">>    => Refund#merchstat_StatRefund.reason,
+            <<"shopID">>    => Refund#merchstat_StatRefund.shop_id
         },
         decode_stat_refund_status(Refund#merchstat_StatRefund.status, Context)
     ).

@@ -43,7 +43,8 @@
     get_payments_split_amount_ok_test/1,
     get_payments_split_count_ok_test/1,
     get_refunds_amount_ok_test/1,
-    get_current_balances_ok_test/1
+    get_current_balances_ok_test/1,
+    get_payments_sub_error_distribution_ok_test/1
 ]).
 
 -define(ANAPI_PORT                   , 8080).
@@ -84,7 +85,8 @@ groups() ->
                 get_payments_split_amount_ok_test,
                 get_payments_split_count_ok_test,
                 get_refunds_amount_ok_test,
-                get_current_balances_ok_test
+                get_current_balances_ok_test,
+                get_payments_sub_error_distribution_ok_test
             ]
         }
     ].
@@ -260,3 +262,17 @@ get_current_balances_ok_test(Config) ->
     ],
 
     {ok, _} = anapi_client_analytics:get_current_balances(?config(context, Config), Query).
+
+-spec get_payments_sub_error_distribution_ok_test(config()) ->
+    _.
+get_payments_sub_error_distribution_ok_test(Config) ->
+    anapi_ct_helper:mock_services(
+        [{analytics, fun('GetPaymentsSubErrorDistribution', _) -> {ok, ?ANALYTICS_SUB_ERROR_DISTRIBUTION_RESP} end}],
+        Config),
+    Query = [
+        {shopIDs, <<"asdf,asdf2">>},
+        {from_time, {{2015, 08, 11}, {19, 42, 35}}},
+        {to_time, {{2020, 08, 11}, {19, 42, 35}}}
+    ],
+
+    {ok, _} = anapi_client_analytics:get_payments_sub_error_distribution(?config(context, Config), Query).

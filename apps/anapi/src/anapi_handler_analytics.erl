@@ -100,6 +100,14 @@ process_request('GetCurrentBalances', Req, Context) ->
     },
     process_analytics_request(merchant_filter, Query, Context, Opts);
 
+process_request('GetPaymentsSubErrorDistribution', Req, Context) ->
+    Query = make_query(Req, Context),
+    Opts = #{
+        thrift_fun => 'GetPaymentsSubErrorDistribution',
+        decode_fun => fun decode_sub_error_distributions_response/1
+    },
+    process_analytics_request(filter_request, Query, Context, Opts);
+
 %%
 
 process_request(_OperationID, _Req, _Context) ->
@@ -173,6 +181,26 @@ decode_error_distributions_response(ErrorDistributions) ->
         name = Name,
         percents = Percents
     } <- ErrorDistributions#analytics_ErrorDistributionsResponse.error_distributions].
+
+decode_sub_error_distributions_response(ErrorDistributions) ->
+    [#{
+        <<"error">> => decode_sub_error(SubError),
+        <<"percents">> => Percents
+    } || #analytics_ErrorDistribution{
+        error = SubError,
+        percents = Percents
+    } <- ErrorDistributions#analytics_SubErrorDistributionsResponse.error_distributions].
+
+decode_sub_error(undefined) ->
+    undefined;
+decode_sub_error(#analytics_SubError{
+    code = Code,
+    sub_error = SubError
+}) ->
+    genlib_map:compact(#{
+        <<"code">> => Code,
+        <<"subError">> => decode_sub_error(SubError)
+    }).
 
 decode_split_amount_response(SplitAmounts) ->
     SplitUnit = decode_split_unit(SplitAmounts#analytics_SplitAmountResponse.result_split_unit),

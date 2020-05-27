@@ -327,6 +327,20 @@
     percents = ?PERCENT
 }).
 
+-define(ANALYTICS_SUB_ERROR, #analytics_SubError{
+    code = ?STRING,
+    sub_error = ?ANALYTICS_SUB_ERROR_SECOND
+}).
+
+-define(ANALYTICS_SUB_ERROR_SECOND, #analytics_SubError{
+    code = ?STRING
+}).
+
+-define(ANALYTICS_ERROR_DISTRIBUTION, #analytics_ErrorDistribution{
+    error = ?ANALYTICS_SUB_ERROR,
+    percents = ?PERCENT
+}).
+
 -define(ANALYTICS_AMOUNT_RESP, #analytics_AmountResponse{
     groups_amount = [?ANALYTICS_CURRENCY_GROUPED_AMOUNT, ?ANALYTICS_CURRENCY_GROUPED_AMOUNT]
 }).
@@ -347,6 +361,10 @@
 
 -define(ANALYTICS_ERROR_DISTRIBUTION_RESP, #analytics_ErrorDistributionsResponse{
     error_distributions = [?ANALYTICS_NAMING_DISTRIBUTION, ?ANALYTICS_NAMING_DISTRIBUTION]
+}).
+
+-define(ANALYTICS_SUB_ERROR_DISTRIBUTION_RESP, #analytics_SubErrorDistributionsResponse{
+    error_distributions = [?ANALYTICS_ERROR_DISTRIBUTION, ?ANALYTICS_ERROR_DISTRIBUTION]
 }).
 
 -define(ANALYTICS_SPLIT_AMOUNT_RESP, #analytics_SplitAmountResponse{

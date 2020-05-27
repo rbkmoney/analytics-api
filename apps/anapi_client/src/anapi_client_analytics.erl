@@ -21,6 +21,7 @@
 -export([get_average_payment/2]).
 -export([get_payments_count/2]).
 -export([get_payments_error_distribution/2]).
+-export([get_payments_sub_error_distribution/2]).
 -export([get_payments_split_amount/2]).
 -export([get_payments_split_count/2]).
 -export([get_refunds_amount/2]).
@@ -83,6 +84,18 @@ get_payments_error_distribution(Context, Query) ->
     Params = #{ qs_val => Qs },
     {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
     Response = swag_client_analytics_api:get_payments_error_distribution(Url, PreparedParams, Opts),
+    case anapi_client_lib:handle_response(Response) of
+        {ok, #{<<"result">> := PaymentErrorDistribution}} ->
+            {ok, PaymentErrorDistribution};
+        {error, Error} -> {error, Error}
+    end.
+
+-spec get_payments_sub_error_distribution(context(), analytics_query()) -> {ok, term(), term()} | {error, term()}.
+get_payments_sub_error_distribution(Context, Query) ->
+    Qs = anapi_client_lib:make_analytics_query_string(Query),
+    Params = #{ qs_val => Qs },
+    {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
+    Response = swag_client_analytics_api:get_payments_sub_error_distribution(Url, PreparedParams, Opts),
     case anapi_client_lib:handle_response(Response) of
         {ok, #{<<"result">> := PaymentErrorDistribution}} ->
             {ok, PaymentErrorDistribution};

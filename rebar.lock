@@ -1,7 +1,7 @@
 {"1.1.0",
 [{<<"analytics_proto">>,
   {git,"git@github.com:rbkmoney/analytics-proto.git",
-       {ref,"7ad720eea4715edb1b84d0cb35d98edc443e1ee3"}},
+       {ref,"692755b68273105954584419e214b3c8ed8dfb04"}},
   0},
  {<<"base64url">>,{pkg,<<"base64url">>,<<"0.0.1">>},0},
  {<<"bear">>,{pkg,<<"bear">>,<<"0.8.7">>},2},

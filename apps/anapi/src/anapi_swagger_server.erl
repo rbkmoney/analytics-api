@@ -39,7 +39,7 @@ child_spec({HealthRoutes, LogicHandler, SwaggerHandlerOpts}) ->
             #{strategy => one_for_all},
             [
                 ranch:child_spec(?RANCH_REF, Transport, TransportOpts, cowboy_clear, CowboyOpts),
-                capi_drainer:child_spec(#{ranch_ref => ?RANCH_REF, shutdown => GsTimeout})
+                anapi_drainer:child_spec(#{ranch_ref => ?RANCH_REF, shutdown => GsTimeout})
             ]
         ]}
     }.

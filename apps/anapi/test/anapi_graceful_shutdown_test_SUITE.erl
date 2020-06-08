@@ -118,8 +118,16 @@ init_per_testcase(_Name, C) ->
 -spec end_per_testcase(test_case_name(), config()) ->
     config().
 end_per_testcase(_Name, C) ->
+    _ = application:start(anapi),
     anapi_ct_helper:stop_mocked_service_sup(?config(test_sup, C)),
     ok.
+
+-define(QUERY, [
+    {shopID, ?STRING},
+    {from_time, {{2016, 03, 22}, {6, 12, 27}}},
+    {to_time, {{2016, 03, 22}, {6, 12, 27}}},
+    {reportType, ?REPORT_TYPE}
+]).
 
 %%% Tests
 
@@ -127,21 +135,14 @@ end_per_testcase(_Name, C) ->
     _.
 shutdown_test(Config) ->
     anapi_ct_helper:mock_services([
-        {reporting, fun
-                        ('CreateReport', _)       -> ok = timer:sleep(2000), {ok, ?INTEGER};
-                        ('GetReport', [?INTEGER]) -> {ok, ?REPORT}
+        {reporting, fun ('CreateReport', _)       -> ok = timer:sleep(2000), {ok, ?INTEGER}
+                      ; ('GetReport', [?INTEGER]) -> {ok, ?REPORT}
                     end}
     ], Config),
-    Query0 = [
-        {shopID, ?STRING},
-        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {reportType, ?REPORT_TYPE}
-    ],
-    {ok, _} = anapi_client_reports:create_report(?config(context, Config), Query0),
+    {ok, _} = anapi_client_reports:create_report(?config(context, Config), ?QUERY),
     ok = spawn_workers(Context, self(), ?NUMBER_OF_WORKERS),
     ok = timer:sleep(1000),
-    ok = application:stop(wapi),
+    ok = application:stop(anapi),
     ok = receive_loop(fun(Result) -> {ok, _} = Result end, ?NUMBER_OF_WORKERS, timer:seconds(20)),
     ok = spawn_workers(Context, self(), ?NUMBER_OF_WORKERS),
     ok = receive_loop(fun(Result) -> {error, econnrefused} = Result end, ?NUMBER_OF_WORKERS, timer:seconds(20)).
@@ -155,18 +156,12 @@ request_interrupt_test(Config) ->
                         ('GetReport', [?INTEGER]) -> {ok, ?REPORT}
                     end}
     ], Config),
-    Query0 = [
-        {shopID, ?STRING},
-        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {reportType, ?REPORT_TYPE}
-    ],
-    {ok, _} = anapi_client_reports:create_report(?config(context, Config), Query0),
+    {ok, _} = anapi_client_reports:create_report(?config(context, Config), ?QUERY),
     }} = wapi_client_payres:store_bank_card(Context, ?STORE_BANK_CARD_REQUEST(CardNumber)),
     ok = spawn_workers(Context, self(), ?NUMBER_OF_WORKERS),
     ok = timer:sleep(1000),
-    ok = application:stop(wapi),
-    ok = receive_loop(fun(Result) -> {ok, _} = Result end, ?NUMBER_OF_WORKERS, timer:seconds(20)),
+    ok = application:stop(anapi),
+    ok = receive_loop(fun({error, closed}) -> ok end, ?NUMBER_OF_WORKERS, timer:seconds(20)),
     ok = spawn_workers(Context, self(), ?NUMBER_OF_WORKERS),
     ok = receive_loop(fun(Result) -> {error, econnrefused} = Result end, ?NUMBER_OF_WORKERS, timer:seconds(20)).
 
@@ -196,5 +191,5 @@ worker(Context, ParentPID) ->
         {to_time, {{2016, 03, 22}, {6, 12, 27}}},
         {reportType, ?REPORT_TYPE}
     ],
-    Result = anapi_client_reports:create_report(?config(context, Config), Query0),
+    Result = anapi_client_reports:create_report(?config(context, Config), ?QUERY),
     ParentPID ! {result, Result}.

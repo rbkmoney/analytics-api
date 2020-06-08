@@ -14,7 +14,7 @@
 %%% limitations under the License.
 %%%
 
--module(anapi_graceful_shutdown_test_suite).
+-module(anapi_graceful_shutdown_SUITE).
 
 -include_lib("common_test/include/ct.hrl").
 -include_lib("stdlib/include/assert.hrl").
@@ -33,12 +33,12 @@
 -export([end_per_testcase/2]).
 
 -export([init/1]).
--define(NUMBER_OF_WORKERS, 10).
-
 -export([
     shutdown_test/1,
     request_interrupt_test/1
 ]).
+
+-define(NUMBER_OF_WORKERS, 10).
 
 -define(ANAPI_PORT                   , 8080).
 -define(ANAPI_HOST_NAME              , "localhost").
@@ -70,7 +70,8 @@ groups() ->
     [
         {all_tests, [],
             [
-                create_report_ok_test
+                shutdown_test,
+                request_interrupt_test
             ]
         }
     ].
@@ -113,23 +114,16 @@ end_per_group(_Group, _C) ->
 -spec init_per_testcase(test_case_name(), config()) ->
     config().
 init_per_testcase(_Name, C) ->
+    _ = application:start(anapi),
     [{test_sup, anapi_ct_helper:start_mocked_service_sup(?MODULE)} | C].
 
 -spec end_per_testcase(test_case_name(), config()) ->
     config().
 end_per_testcase(_Name, C) ->
-    _ = application:start(anapi),
     anapi_ct_helper:stop_mocked_service_sup(?config(test_sup, C)),
     ok.
 
--define(QUERY, [
-    {shopID, ?STRING},
-    {from_time, {{2016, 03, 22}, {6, 12, 27}}},
-    {to_time, {{2016, 03, 22}, {6, 12, 27}}},
-    {reportType, ?REPORT_TYPE}
-]).
-
-%%% Tests
+%% Tests
 
 -spec shutdown_test(config()) ->
     _.
@@ -139,12 +133,12 @@ shutdown_test(Config) ->
                       ; ('GetReport', [?INTEGER]) -> {ok, ?REPORT}
                     end}
     ], Config),
-    {ok, _} = anapi_client_reports:create_report(?config(context, Config), ?QUERY),
-    ok = spawn_workers(Context, self(), ?NUMBER_OF_WORKERS),
+    Token = get_token(),
+    ok = spawn_workers(Token, self(), ?NUMBER_OF_WORKERS),
     ok = timer:sleep(1000),
     ok = application:stop(anapi),
     ok = receive_loop(fun(Result) -> {ok, _} = Result end, ?NUMBER_OF_WORKERS, timer:seconds(20)),
-    ok = spawn_workers(Context, self(), ?NUMBER_OF_WORKERS),
+    ok = spawn_workers(Token, self(), ?NUMBER_OF_WORKERS),
     ok = receive_loop(fun(Result) -> {error, econnrefused} = Result end, ?NUMBER_OF_WORKERS, timer:seconds(20)).
 
 -spec request_interrupt_test(config()) ->
@@ -152,20 +146,27 @@ shutdown_test(Config) ->
 request_interrupt_test(Config) ->
     anapi_ct_helper:mock_services([
         {reporting, fun
-                        ('CreateReport', _)       -> ok = timer:sleep(2000), {ok, ?INTEGER};
+                        ('CreateReport', _)       -> ok = timer:sleep(20000), {ok, ?INTEGER};
                         ('GetReport', [?INTEGER]) -> {ok, ?REPORT}
                     end}
     ], Config),
-    {ok, _} = anapi_client_reports:create_report(?config(context, Config), ?QUERY),
-    }} = wapi_client_payres:store_bank_card(Context, ?STORE_BANK_CARD_REQUEST(CardNumber)),
-    ok = spawn_workers(Context, self(), ?NUMBER_OF_WORKERS),
+    Token = get_token(),
+    ok = spawn_workers(Token, self(), ?NUMBER_OF_WORKERS),
     ok = timer:sleep(1000),
     ok = application:stop(anapi),
-    ok = receive_loop(fun({error, closed}) -> ok end, ?NUMBER_OF_WORKERS, timer:seconds(20)),
-    ok = spawn_workers(Context, self(), ?NUMBER_OF_WORKERS),
+    % the same receive loop matches on {error, closed} in capi, should it do so
+    % here as well? 504 seems moderately reasonable in this context, but hey
+    ok = receive_loop(fun({error, {invalid_response_code, 504}}) -> ok end, ?NUMBER_OF_WORKERS, timer:seconds(20)),
+    ok = spawn_workers(Token, self(), ?NUMBER_OF_WORKERS),
     ok = receive_loop(fun(Result) -> {error, econnrefused} = Result end, ?NUMBER_OF_WORKERS, timer:seconds(20)).
 
-%%%
+%%
+
+-define(QUERY, [
+    {shopID, ?STRING},
+    {from_time, {{2016, 03, 22}, {6, 12, 27}}},
+    {to_time, {{2016, 03, 22}, {6, 12, 27}}},
+    {reportType, ?REPORT_TYPE}]).
 
 receive_loop(_, N, _Timeout) when N =< 0 ->
     ok;
@@ -180,16 +181,28 @@ receive_loop(MatchFun, N, Timeout) ->
 
 spawn_workers(_, _, N) when N =< 0 ->
     ok;
-spawn_workers(Context, ParentPID, N) ->
-    erlang:spawn_link(fun() -> worker(Context, ParentPID) end),
-    spawn_workers(Context, ParentPID, N - 1).
+spawn_workers(Token, ParentPID, N) ->
+    erlang:spawn_link(fun() -> worker(Token, ParentPID) end),
+    spawn_workers(Token, ParentPID, N - 1).
 
-worker(Context, ParentPID) ->
-    Query0 = [
-        {shopID, ?STRING},
-        {from_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {to_time, {{2016, 03, 22}, {6, 12, 27}}},
-        {reportType, ?REPORT_TYPE}
-    ],
-    Result = anapi_client_reports:create_report(?config(context, Config), ?QUERY),
+worker(Token, ParentPID) ->
+    Context = get_context(Token),
+    Result = anapi_client_reports:create_report(Context, ?QUERY),
     ParentPID ! {result, Result}.
+
+get_context(Token) ->
+    Deadline = build_deadline(genlib_time:now()),
+    anapi_ct_helper:get_context(Token, #{}, Deadline).
+
+get_token() ->
+    BasePermissions = [
+        {[invoices], read},
+        {[party], read},
+        {[party], write},
+        {[invoices, payments], read}
+    ],
+    {ok, Token} = anapi_ct_helper:issue_token(BasePermissions, unlimited),
+    Token.
+
+build_deadline(CurrentSeconds) ->
+    genlib_rfc3339:format_relaxed(genlib_time:add_hours(CurrentSeconds, 1), second).

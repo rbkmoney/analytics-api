@@ -26,9 +26,9 @@
 -export([start_anapi/1]).
 -export([issue_token/2]).
 -export([issue_token/3]).
--export([issue_token/4]).
 -export([get_context/1]).
 -export([get_context/2]).
+-export([get_context/3]).
 -export([get_keysource/2]).
 -export([start_mocked_service_sup/1]).
 -export([stop_mocked_service_sup/1]).
@@ -160,6 +160,19 @@ get_context(Token) ->
 
 get_context(Token, ExtraProperties) ->
     anapi_client_lib:get_context(?ANAPI_URL, Token, 10000, ipv4, ExtraProperties).
+
+-spec get_context(binary(), map(), binary()) ->
+    anapi_client_lib:context().
+
+get_context(Token, ExtraProperties, Deadline) ->
+    anapi_client_lib:get_context(
+        ?ANAPI_URL,
+        Token,
+        10000,
+        ipv4,
+        ExtraProperties,
+        Deadline
+    ).
 
 % TODO move it to `anapi_dummy_service`, looks more appropriate
 

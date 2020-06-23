@@ -32,6 +32,7 @@
         swag_server,
         jose,
         cowboy_cors,
+        cowboy_draining_server,
         cowboy_access_log,
         base64url,
         snowflake,

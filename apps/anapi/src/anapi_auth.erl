@@ -64,6 +64,8 @@ get_operation_access('GetPaymentsSplitCount'  , _) ->
 get_operation_access('GetRefundsAmount'  , _) ->
     [{[party], read}];
 get_operation_access('GetCurrentBalances'  , _) ->
+    [{[party], read}];
+get_operation_access('GetPaymentsSubErrorDistribution'  , _) ->
     [{[party], read}].
 
 -spec get_consumer(uac:claims()) ->

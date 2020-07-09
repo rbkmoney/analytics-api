@@ -297,4 +297,4 @@ analytics_timeout_test(Config) ->
         {to_time, {{2020, 08, 11}, {19, 42, 35}}}
     ],
 
-    {error,{invalid_response_code,504}} = anapi_client_analytics:get_refunds_amount(?config(context, Config), Query).
+    {error, {invalid_response_code, 504}} = anapi_client_analytics:get_refunds_amount(?config(context, Config), Query).

@@ -86,12 +86,7 @@ start_anapi(Config) ->
                 }
             }
         }},
-        {max_requested_deadline, 3000},
-        {service_deadlines, #{
-            merchant_stat => 1000,
-            reporting => 1000,
-            analytics => 1000
-        }}
+        {max_requested_deadline, 3000}
     ],
     start_app(anapi, AnapiEnv).
 
@@ -190,7 +185,14 @@ mock_services(Services, SupOrConfig) ->
     start_woody_client(mock_services_(Services, SupOrConfig)).
 
 start_woody_client(ServiceURLs) ->
-    start_app(anapi_woody_client, [{service_urls, ServiceURLs}]).
+    start_app(anapi_woody_client, [
+        {service_urls, ServiceURLs},
+        {service_deadlines, #{
+            merchant_stat => 1000,
+            reporting => 1000,
+            analytics => 1000
+        }}
+    ]).
 
 -spec mock_services_(_, _) ->
     _.

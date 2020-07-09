@@ -85,7 +85,8 @@ start_anapi(Config) ->
                     anapi => {pem_file, get_keysource("keys/local/private.pem", Config)}
                 }
             }
-        }}
+        }},
+        {max_deadline, 500}
     ],
     start_app(anapi, AnapiEnv).
 

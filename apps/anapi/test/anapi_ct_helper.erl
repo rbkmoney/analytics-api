@@ -86,7 +86,7 @@ start_anapi(Config) ->
                 }
             }
         }},
-        {max_deadline, 500}
+        {max_deadline, 1000}
     ],
     start_app(anapi, AnapiEnv).
 

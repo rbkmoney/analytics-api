@@ -21,6 +21,7 @@
 -export([parse_deadline/1]).
 
 -export([to_universal_time/1]).
+-export([get_max_deadline/0]).
 -export([get_process_metadata/0]).
 
 -export([unwrap/1]).
@@ -108,7 +109,7 @@ unit_factor(<<"m">>) ->
 unit_factor(_Other) ->
     {error, unknown_unit}.
 
-clamp_max_deadline(Value) when is_integer(Value)->
+clamp_max_deadline(Value) when is_integer(Value) ->
     MaxDeadline = genlib_app:env(anapi, max_deadline, ?MAX_DEADLINE_TIME),
     case Value > MaxDeadline of
         true ->
@@ -116,6 +117,11 @@ clamp_max_deadline(Value) when is_integer(Value)->
         false ->
             Value
     end.
+
+-spec get_max_deadline() -> woody:deadline().
+get_max_deadline() ->
+    MaxDeadline = genlib_app:env(anapi, max_deadline, ?MAX_DEADLINE_TIME),
+    woody_deadline:from_timeout(MaxDeadline).
 
 -spec get_process_metadata() -> logger:metadata().
 get_process_metadata() ->

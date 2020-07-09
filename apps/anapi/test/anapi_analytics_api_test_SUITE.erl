@@ -287,7 +287,7 @@ analytics_timeout_test(Config) ->
     anapi_ct_helper:mock_services(
         [{analytics,
             fun('GetRefundsAmount', _) ->
-                timer:sleep(1000),
+                timer:sleep(1500),
                 {ok, ?ANALYTICS_AMOUNT_RESP}
             end}],
         Config),

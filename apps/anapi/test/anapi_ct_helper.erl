@@ -86,7 +86,12 @@ start_anapi(Config) ->
                 }
             }
         }},
-        {max_deadline, 1000}
+        {max_requested_deadline, 3000},
+        {service_deadlines, #{
+            merchant_stat => 1000,
+            reporting => 1000,
+            analytics => 1000
+        }}
     ],
     start_app(anapi, AnapiEnv).
 

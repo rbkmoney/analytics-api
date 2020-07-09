@@ -191,8 +191,7 @@ collect_user_identity(AuthContext) ->
     }).
 
 attach_deadline(#{'X-Request-Deadline' := undefined}, Context) ->
-    MaxDeadline = anapi_utils:get_max_deadline(),
-    woody_context:set_deadline(MaxDeadline, Context);
+    Context;
 attach_deadline(#{'X-Request-Deadline' := Header}, Context) ->
     case anapi_utils:parse_deadline(Header) of
         {ok, Deadline} when Deadline /= undefined ->

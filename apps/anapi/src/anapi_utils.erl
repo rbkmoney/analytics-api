@@ -25,7 +25,7 @@
 
 -export([unwrap/1]).
 
--define(MAX_REQUESTED_DEADLINE_TIME, 5*60*1000). % 5 min
+-define(MAX_REQUESTED_DEADLINE_TIME, timer:minutes(5)). % 5 min
 
 -spec map_to_base64url(map()) -> binary() | no_return().
 map_to_base64url(Map) when is_map(Map) ->

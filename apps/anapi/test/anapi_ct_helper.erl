@@ -85,7 +85,8 @@ start_anapi(Config) ->
                     anapi => {pem_file, get_keysource("keys/local/private.pem", Config)}
                 }
             }
-        }}
+        }},
+        {max_request_deadline, 3000}
     ],
     start_app(anapi, AnapiEnv).
 
@@ -184,7 +185,14 @@ mock_services(Services, SupOrConfig) ->
     start_woody_client(mock_services_(Services, SupOrConfig)).
 
 start_woody_client(ServiceURLs) ->
-    start_app(anapi_woody_client, [{service_urls, ServiceURLs}]).
+    start_app(anapi_woody_client, [
+        {service_urls, ServiceURLs},
+        {service_deadlines, #{
+            merchant_stat => 1000,
+            reporting => 1000,
+            analytics => 1000
+        }}
+    ]).
 
 -spec mock_services_(_, _) ->
     _.

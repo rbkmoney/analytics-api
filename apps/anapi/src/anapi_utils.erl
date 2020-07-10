@@ -25,7 +25,7 @@
 
 -export([unwrap/1]).
 
--define(MAX_REQUESTED_DEADLINE_TIME, timer:minutes(5)). % 5 min
+-define(MAX_REQUEST_DEADLINE_TIME, timer:minutes(5)). % 5 min
 
 -spec map_to_base64url(map()) -> binary() | no_return().
 map_to_base64url(Map) when is_map(Map) ->
@@ -109,7 +109,7 @@ unit_factor(_Other) ->
     {error, unknown_unit}.
 
 clamp_max_deadline(Value) when is_integer(Value) ->
-    MaxDeadline = genlib_app:env(anapi, max_requested_deadline, ?MAX_REQUESTED_DEADLINE_TIME),
+    MaxDeadline = genlib_app:env(anapi, max_request_deadline, ?MAX_REQUEST_DEADLINE_TIME),
     case Value > MaxDeadline of
         true ->
             MaxDeadline;

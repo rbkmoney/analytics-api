@@ -44,7 +44,9 @@
     get_payments_split_count_ok_test/1,
     get_refunds_amount_ok_test/1,
     get_current_balances_ok_test/1,
-    get_payments_sub_error_distribution_ok_test/1
+    get_payments_sub_error_distribution_ok_test/1,
+
+    analytics_timeout_test/1
 ]).
 
 -define(ANAPI_PORT                   , 8080).
@@ -86,7 +88,8 @@ groups() ->
                 get_payments_split_count_ok_test,
                 get_refunds_amount_ok_test,
                 get_current_balances_ok_test,
-                get_payments_sub_error_distribution_ok_test
+                get_payments_sub_error_distribution_ok_test,
+                analytics_timeout_test
             ]
         }
     ].
@@ -276,3 +279,22 @@ get_payments_sub_error_distribution_ok_test(Config) ->
     ],
 
     {ok, _} = anapi_client_analytics:get_payments_sub_error_distribution(?config(context, Config), Query).
+
+
+-spec analytics_timeout_test(config()) ->
+    _.
+analytics_timeout_test(Config) ->
+    anapi_ct_helper:mock_services(
+        [{analytics,
+            fun('GetRefundsAmount', _) ->
+                timer:sleep(1500),
+                {ok, ?ANALYTICS_AMOUNT_RESP}
+            end}],
+        Config),
+    Query = [
+        {shopIDs, <<"asdf,asdf2">>},
+        {from_time, {{2015, 08, 11}, {19, 42, 35}}},
+        {to_time, {{2020, 08, 11}, {19, 42, 35}}}
+    ],
+
+    {error, {invalid_response_code, 504}} = anapi_client_analytics:get_refunds_amount(?config(context, Config), Query).

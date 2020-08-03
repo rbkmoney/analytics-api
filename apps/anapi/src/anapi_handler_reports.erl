@@ -187,7 +187,7 @@ get_default_url_lifetime() ->
 
 %%
 
-can_cancel_report(#reports_Report{report_type = <<"provisionOfService">>}) ->
+can_cancel_report(#reports_Report{report_type = <<"provision_of_service">>}) ->
     false;
 can_cancel_report(_) ->
     true.

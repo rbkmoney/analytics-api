@@ -43,6 +43,8 @@
     get_report_not_found_test/1,
     search_reports_ok_test/1,
     create_report_ok_test/1,
+    cancel_report_ok_test/1,
+    cancel_report_bad_request_test/1,
     create_report_without_shop_id_ok_test/1,
     download_report_file_ok_test/1
 ]).
@@ -85,6 +87,8 @@ groups() ->
                 get_report_not_found_test,
                 search_reports_ok_test,
                 create_report_ok_test,
+                cancel_report_ok_test,
+                cancel_report_bad_request_test,
                 create_report_without_shop_id_ok_test,
                 download_report_file_ok_test
             ]
@@ -288,6 +292,29 @@ create_report_ok_test(Config) ->
         {reportType, ?REPORT_TYPE}
     ],
     {ok, _} = anapi_client_reports:create_report(?config(context, Config), Query0).
+
+-spec cancel_report_ok_test(config()) ->
+    _.
+cancel_report_ok_test(Config) ->
+    anapi_ct_helper:mock_services([
+        {reporting, fun
+                        ('CancelReport', _)       -> {ok, ok};
+                        ('GetReport', [?INTEGER]) -> {ok, ?REPORT}
+                    end}
+    ], Config),
+    {ok, _} = anapi_client_reports:cancel_report(?config(context, Config), ?INTEGER).
+
+
+-spec cancel_report_bad_request_test(config()) ->
+    _.
+cancel_report_bad_request_test(Config) ->
+    anapi_ct_helper:mock_services([
+        {reporting, fun
+                        ('GetReport', [?INTEGER]) -> {ok, ?REPORT(<<"provision_of_service">>)}
+                    end}
+    ], Config),
+    {error, {400, #{<<"message">> := <<"Invalid report type">>}}} =
+        anapi_client_reports:cancel_report(?config(context, Config), ?INTEGER).
 
 -spec create_report_without_shop_id_ok_test(config()) ->
     _.

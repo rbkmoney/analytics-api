@@ -2,6 +2,7 @@
 
 -export([search_reports/2]).
 -export([get_report/2]).
+-export([cancel_report/2]).
 -export([create_report/2]).
 -export([download_file/3]).
 
@@ -21,6 +22,13 @@ get_report(Context, ReportID) ->
     Params = #{ binding => #{ <<"reportID">> => ReportID } },
     {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
     Response = swag_client_reports_api:get_report(Url, PreparedParams, Opts),
+    anapi_client_lib:handle_response(Response).
+
+-spec cancel_report(context(), binary()) -> {ok, list()} | {error, term()}.
+cancel_report(Context, ReportID) ->
+    Params = #{ binding => #{ <<"reportID">> => ReportID } },
+    {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
+    Response = swag_client_reports_api:cancel_report(Url, PreparedParams, Opts),
     anapi_client_lib:handle_response(Response).
 
 -spec create_report(context(), reporting_query()) ->

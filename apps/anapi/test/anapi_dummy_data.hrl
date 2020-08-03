@@ -244,14 +244,16 @@
 -define(REPORT_TYPE, <<"paymentRegistry">>).
 -define(REPORT_TYPE_ALT, <<"provisionOfService">>).
 
--define(REPORT, #reports_Report{
+-define(REPORT, ?REPORT(<<"payment_registry">>)).
+
+-define(REPORT(ReportType), #reports_Report{
     report_id = ?INTEGER,
     time_range = #reports_ReportTimeRange{
         from_time = ?TIMESTAMP,
         to_time = ?TIMESTAMP
     },
     created_at = ?TIMESTAMP,
-    report_type = <<"payment_registry">>,
+    report_type = ReportType,
     status = created,
     files = [
         #reports_FileMeta{

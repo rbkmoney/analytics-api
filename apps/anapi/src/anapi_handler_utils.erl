@@ -21,6 +21,8 @@
 -export([server_error/1]).
 -export([format_request_errors/1]).
 
+-export([get_report_by_id/2]).
+
 -export([service_call/2]).
 
 -export([get_auth_context/1]).
@@ -64,6 +66,13 @@ server_error(Code) when Code >= 500 andalso Code < 600 ->
 
 format_request_errors([]    ) -> <<>>;
 format_request_errors(Errors) -> genlib_string:join(<<"\n">>, Errors).
+
+-spec get_report_by_id(binary(), processing_context()) ->
+    woody:result().
+
+get_report_by_id(ReportId, Context) ->
+    Call = {reporting, 'GetReport', [ReportId]},
+    service_call(Call, Context).
 
 %%%
 

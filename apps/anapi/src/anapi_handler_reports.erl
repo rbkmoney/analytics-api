@@ -31,8 +31,7 @@ process_request('SearchReports', Req, Context) ->
 process_request('GetReport', Req, Context) ->
     PartyId = anapi_handler_utils:get_party_id(Context),
     ReportId = maps:get(reportID, Req),
-    Call = {reporting, 'GetReport', [ReportId]},
-    case anapi_handler_utils:service_call(Call, Context) of
+    case anapi_handler_utils:get_report_by_id(ReportId, Context) of
         {ok, Report = #reports_Report{party_id = PartyId}} ->
             {ok, {200, #{}, decode_report(Report)}};
         {ok, _WrongReport} ->
@@ -50,6 +49,21 @@ process_request('CreateReport', Req, Context) ->
         report_type => encode_report_type(maps:get(reportType, Req))
     },
     process_create_report(Params, Context);
+
+process_request('CancelReport', Req, Context) ->
+    ReportId = maps:get(reportID, Req),
+    PartyId = anapi_handler_utils:get_party_id(Context),
+    case anapi_handler_utils:get_report_by_id(ReportId, Context) of
+        {ok, Report = #reports_Report{party_id = PartyId}} ->
+            case can_cancel_report(Report) of
+                true  -> cancel_report(ReportId, Context);
+                false -> {ok, logic_error(invalidRequest, <<"Invalid report type">>)}
+            end;
+        {ok, _WrongReport} ->
+            {ok, general_error(404, <<"Report not found">>)};
+        {exception, #reports_ReportNotFound{}} ->
+            {ok, general_error(404, <<"Report not found">>)}
+    end;
 
 process_request('DownloadFile', Req, Context) ->
     Call = {
@@ -101,6 +115,15 @@ process_create_report(Params, Context) ->
                 #reports_ShopNotFound{} ->
                     {ok, logic_error(invalidShopID, <<"Shop not found">>)}
             end
+    end.
+
+cancel_report(ReportId, Context) ->
+    Call = {reporting, 'CancelReport', [ReportId]},
+    case anapi_handler_utils:service_call(Call, Context) of
+        {ok, _} ->
+            {ok, {202, #{}, undefined}};
+        {exception, #reports_ReportNotFound{}} ->
+            {ok, general_error(404, <<"Report not found">>)}
     end.
 
 process_search_reports(Params, Context) ->
@@ -163,6 +186,11 @@ get_default_url_lifetime() ->
     genlib_rfc3339:format(Now + Lifetime, second).
 
 %%
+
+can_cancel_report(#reports_Report{report_type = <<"provision_of_service">>}) ->
+    false;
+can_cancel_report(_) ->
+    true.
 
 encode_report_type(provisionOfService) -> <<"provision_of_service">>;
 encode_report_type(paymentRegistry) -> <<"payment_registry">>.

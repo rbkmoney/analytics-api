@@ -20,6 +20,7 @@
 -export([search_payments/2]).
 -export([search_refunds/2]).
 -export([search_payouts/2]).
+-export([search_chargebacks/2]).
 
 -type context() :: anapi_client_lib:context().
 -type search_query() :: anapi_client_lib:search_query().
@@ -69,5 +70,17 @@ search_payouts(Context, Query) ->
     case anapi_client_lib:handle_response(Response) of
         {ok, #{<<"totalCount">> := TotalCount, <<"result">> := Payments}} ->
             {ok, TotalCount, Payments};
+        {error, Error} -> {error, Error}
+    end.
+
+-spec search_chargebacks(context(), search_query()) -> {ok, term(), term()} | {error, term()}.
+search_chargebacks(Context, Query) ->
+    Qs = anapi_client_lib:make_search_query_string(Query),
+    Params = #{ qs_val => Qs },
+    {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
+    Response = swag_client_search_api:search_chargebacks(Url, PreparedParams, Opts),
+    case anapi_client_lib:handle_response(Response) of
+        {ok, #{<<"totalCount">> := TotalCount, <<"result">> := Chargebacks}} ->
+            {ok, TotalCount, Chargebacks};
         {error, Error} -> {error, Error}
     end.

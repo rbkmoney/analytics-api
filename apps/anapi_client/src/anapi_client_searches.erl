@@ -78,7 +78,7 @@ search_chargebacks(Context, Query) ->
     Qs = anapi_client_lib:make_search_query_string(Query),
     Params = #{ qs_val => Qs },
     {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
-    Response = swag_client_search_api:search_chardgebacks(Url, PreparedParams, Opts),
+    Response = swag_client_search_api:search_chargebacks(Url, PreparedParams, Opts),
     case anapi_client_lib:handle_response(Response) of
         {ok, #{<<"totalCount">> := TotalCount, <<"result">> := Chargebacks}} ->
             {ok, TotalCount, Chargebacks};

@@ -120,7 +120,7 @@ process_request('SearchRefunds', Req, Context) ->
     },
     process_search_request(refunds, Query, Req, Context, Opts);
 
-process_request('SearchChardgebacks', Req, Context) ->
+process_request('SearchChargebacks', Req, Context) ->
     Query = #{
         <<"merchant_id"          >> => anapi_handler_utils:get_party_id(Context),
         <<"shop_id"              >> => genlib_map:get('shopID', Req),
@@ -619,7 +619,7 @@ decode_stat_chargeback(Chargeback, _Context) ->
             <<"providerFee">> => Chargeback#merchstat_StatChargeback.provider_fee,
             <<"externalFee">> => Chargeback#merchstat_StatChargeback.external_fee,
             <<"stage">> => decode_stat_chargeback_stage(Chargeback#merchstat_StatChargeback.stage),
-            <<"content">> => decode_stat_content(Chargeback#merchstat_StatChargeback.content),
+            <<"content">> => anapi_handler_decoder_utils:decode_context(Chargeback#merchstat_StatChargeback.content),
             <<"externalId">> => Chargeback#merchstat_StatChargeback.external_id
         },
         decode_stat_chargeback_reason(Chargeback#merchstat_StatChargeback.chargeback_reason)
@@ -645,9 +645,3 @@ decode_stat_chargeback_reason_category({Category, _}) ->
 
 decode_stat_chargeback_stage({Stage, _}) ->
     genlib:to_binary(Stage).
-
-decode_stat_content(#'Content'{type = Type, data = Data}) ->
-    #{
-        <<"type">> => Type,
-        <<"category">> => base64:encode(Data) %% category??
-    }.

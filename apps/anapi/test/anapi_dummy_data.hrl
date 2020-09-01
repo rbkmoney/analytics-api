@@ -68,6 +68,8 @@
     ]
 })).
 
+-define(STAT_RESPONSE_CHARGEBACKS, ?STAT_RESPONSE({chargebacks, [?STAT_CHARGEBACK]})).
+
 -define(STAT_INVOICE, #merchstat_StatInvoice{
     id = ?STRING,
     owner_id = ?STRING,
@@ -122,6 +124,13 @@
 
 -define(CURRENCY, #domain_CurrencyRef{
     symbolic_code = ?RUB
+}).
+
+-define(CURRENCY_OBJ, #domain_Currency{
+    name = ?STRING,
+    symbolic_code = ?RUB,
+    numeric_code = 42,
+    exponent = 42
 }).
 
 -define(TX_INFO, #domain_AdditionalTransactionInfo{
@@ -241,17 +250,43 @@
     count = ?INTEGER
 }).
 
+-define(STAT_CHARGEBACK, #merchstat_StatChargeback{
+    invoice_id = ?STRING,
+    payment_id = ?STRING,
+    chargeback_id = ?STRING,
+    party_id = ?STRING,
+    shop_id = ?STRING,
+    chargeback_status = {pending, #domain_InvoicePaymentChargebackPending{}},
+    created_at = ?TIMESTAMP,
+    chargeback_reason = #domain_InvoicePaymentChargebackReason{
+        code = <<"authorisation">>,
+        category = {authorisation, #domain_InvoicePaymentChargebackCategoryAuthorisation{}}
+    },
+    levy_amount = ?INTEGER,
+    levy_currency_code = ?CURRENCY_OBJ,
+    amount = ?INTEGER,
+    currency_code = ?CURRENCY_OBJ,
+    fee = ?INTEGER,
+    provider_fee = ?INTEGER,
+    external_fee = ?INTEGER,
+    stage = {arbitration, #domain_InvoicePaymentChargebackStageArbitration{}},
+    content = ?CONTENT,
+    external_id = ?STRING
+}).
+
 -define(REPORT_TYPE, <<"paymentRegistry">>).
 -define(REPORT_TYPE_ALT, <<"provisionOfService">>).
 
--define(REPORT, #reports_Report{
+-define(REPORT, ?REPORT(<<"payment_registry">>)).
+
+-define(REPORT(ReportType), #reports_Report{
     report_id = ?INTEGER,
     time_range = #reports_ReportTimeRange{
         from_time = ?TIMESTAMP,
         to_time = ?TIMESTAMP
     },
     created_at = ?TIMESTAMP,
-    report_type = <<"payment_registry">>,
+    report_type = ReportType,
     status = created,
     files = [
         #reports_FileMeta{

@@ -120,6 +120,26 @@ process_request('SearchRefunds', Req, Context) ->
     },
     process_search_request(refunds, Query, Req, Context, Opts);
 
+process_request('SearchChargebacks', Req, Context) ->
+    Query = #{
+        <<"merchant_id"          >> => anapi_handler_utils:get_party_id(Context),
+        <<"shop_id"              >> => genlib_map:get('shopID', Req),
+        <<"shop_ids"             >> => genlib_map:get('shopIDs', Req),
+        <<"from_time"            >> => anapi_handler_utils:get_time('fromTime', Req),
+        <<"to_time"              >> => anapi_handler_utils:get_time('toTime', Req),
+        <<"invoice_id"           >> => genlib_map:get('invoiceID', Req),
+        <<"payment_id"           >> => genlib_map:get('paymentID', Req),
+        <<"chargeback_id"        >> => genlib_map:get('chargebackID', Req),
+        <<"chargeback_statuses"  >> => genlib_map:get('chargebackStatuses', Req),
+        <<"chargeback_stages"    >> => genlib_map:get('chargebackStages', Req),
+        <<"chargeback_categories">> => genlib_map:get('chargebackCategories', Req)
+    },
+    Opts = #{
+        thrift_fun => 'GetChargebacks',
+        decode_fun => fun decode_stat_chargeback/2
+    },
+    process_search_request(chargebacks, Query, Req, Context, Opts);
+
 %%
 
 process_request(_OperationID, _Req, _Context) ->
@@ -581,3 +601,47 @@ construct_exclude(Req) ->
     genlib_map:compact(#{
         <<"shop_id">> => genlib_map:get('excludedShops', Req)
     }).
+
+decode_stat_chargeback(Chargeback, _Context) ->
+    anapi_handler_utils:merge_and_compact(
+        #{
+            <<"invoiceId">> => Chargeback#merchstat_StatChargeback.invoice_id,
+            <<"paymentId">> => Chargeback#merchstat_StatChargeback.payment_id,
+            <<"chargebackId">> => Chargeback#merchstat_StatChargeback.chargeback_id,
+            <<"shopID">> => Chargeback#merchstat_StatChargeback.shop_id,
+            <<"status">> => decode_stat_chargeback_status(Chargeback#merchstat_StatChargeback.chargeback_status),
+            <<"createdAt">> => Chargeback#merchstat_StatChargeback.created_at,
+            <<"levyAmount">> => Chargeback#merchstat_StatChargeback.levy_amount,
+            <<"levyCurrency">> => decode_stat_currency_code(Chargeback#merchstat_StatChargeback.levy_currency_code),
+            <<"bodyAmount">> => Chargeback#merchstat_StatChargeback.amount,
+            <<"bodyCurrency">> => decode_stat_currency_code(Chargeback#merchstat_StatChargeback.currency_code),
+            <<"fee">> => Chargeback#merchstat_StatChargeback.fee,
+            <<"providerFee">> => Chargeback#merchstat_StatChargeback.provider_fee,
+            <<"externalFee">> => Chargeback#merchstat_StatChargeback.external_fee,
+            <<"stage">> => decode_stat_chargeback_stage(Chargeback#merchstat_StatChargeback.stage),
+            <<"content">> => anapi_handler_decoder_utils:decode_context(Chargeback#merchstat_StatChargeback.content),
+            <<"externalId">> => Chargeback#merchstat_StatChargeback.external_id
+        },
+        decode_stat_chargeback_reason(Chargeback#merchstat_StatChargeback.chargeback_reason)
+    ).
+
+decode_stat_chargeback_status({Status, _}) ->
+    genlib:to_binary(Status).
+
+decode_stat_currency_code(#domain_Currency{symbolic_code = CurrencySymbolicCode}) ->
+    CurrencySymbolicCode.
+
+decode_stat_chargeback_reason(#domain_InvoicePaymentChargebackReason{
+    code = Code,
+    category = Category
+}) ->
+    #{<<"chargebackReason">> => #{
+        <<"code">> => Code,
+        <<"category">> => decode_stat_chargeback_reason_category(Category)
+    }}.
+
+decode_stat_chargeback_reason_category({Category, _}) ->
+    genlib:to_binary(Category).
+
+decode_stat_chargeback_stage({Stage, _}) ->
+    genlib:to_binary(Stage).

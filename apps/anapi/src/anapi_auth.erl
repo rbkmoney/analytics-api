@@ -39,10 +39,14 @@ get_operation_access('SearchPayouts' , _) ->
     [{[party], read}];
 get_operation_access('SearchReports' , _) ->
     [{[party], read}];
+get_operation_access('SearchChargebacks' , _) ->
+    [{[party], read}];
 
 get_operation_access('GetReport'     , _) ->
     [{[party], read}];
 get_operation_access('CreateReport'  , _) ->
+    [{[party], write}];
+get_operation_access('CancelReport'  , _) ->
     [{[party], write}];
 get_operation_access('DownloadFile'  , _) ->
     [{[party], read}];

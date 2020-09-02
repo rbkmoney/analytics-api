@@ -193,7 +193,8 @@ can_cancel_report(_) ->
     true.
 
 encode_report_type(provisionOfService) -> <<"provision_of_service">>;
-encode_report_type(paymentRegistry) -> <<"payment_registry">>.
+encode_report_type(paymentRegistry) -> <<"payment_registry">>;
+encode_report_type(paymentRegistryByPayout) -> <<"payment_registry_by_payout">>.
 
 %%
 
@@ -215,7 +216,8 @@ decode_report_status(pending) -> <<"pending">>;
 decode_report_status(created) -> <<"created">>.
 
 decode_report_type(<<"provision_of_service">>) -> <<"provisionOfService">>;
-decode_report_type(<<"payment_registry">>) -> <<"paymentRegistry">>.
+decode_report_type(<<"payment_registry">>) -> <<"paymentRegistry">>;
+decode_report_type(<<"payment_registry_by_payout">>) -> <<"paymentRegistryByPayout">>.
 
 decode_report_file(#reports_FileMeta{file_id = ID, filename = Filename, signature = Signature}) ->
     #{

@@ -148,6 +148,7 @@ get_payments_tool_distribution_ok_test(Config) ->
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
+        {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}}
     ],
@@ -162,6 +163,7 @@ get_payments_amount_ok_test(Config) ->
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
+        {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}}
     ],
@@ -176,6 +178,7 @@ get_average_payment_ok_test(Config) ->
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
+        {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}}
     ],
@@ -190,6 +193,7 @@ get_payments_count_ok_test(Config) ->
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
+        {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}}
     ],
@@ -204,6 +208,7 @@ get_payments_error_distribution_ok_test(Config) ->
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
+        {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}}
     ],
@@ -218,6 +223,7 @@ get_payments_split_amount_ok_test(Config) ->
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
+        {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}},
         {split_unit, ?SPLIT_UNIT}
@@ -233,6 +239,7 @@ get_payments_split_count_ok_test(Config) ->
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
+        {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}},
         {split_unit, ?SPLIT_UNIT}
@@ -248,6 +255,7 @@ get_refunds_amount_ok_test(Config) ->
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
+        {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}}
     ],
@@ -261,7 +269,8 @@ get_current_balances_ok_test(Config) ->
         [{analytics, fun('GetCurrentBalances', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end}],
         Config),
     Query = [
-        {shopIDs, <<"asdf,asdf2">>}
+        {shopIDs, <<"asdf,asdf2">>},
+        {excludeShopIDs, <<"asdf3">>}
     ],
 
     {ok, _} = anapi_client_analytics:get_current_balances(?config(context, Config), Query).
@@ -274,6 +283,7 @@ get_payments_sub_error_distribution_ok_test(Config) ->
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
+        {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}}
     ],
@@ -293,6 +303,7 @@ analytics_timeout_test(Config) ->
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
+        {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}}
     ],

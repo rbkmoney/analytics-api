@@ -47,12 +47,14 @@ encode_stat_request(Dsl, ContinuationToken) when is_binary(Dsl) ->
     merchant_filter() | time_filter() | filter_request() | split_filter_request().
 
 encode_analytics_request(merchant_filter, #{
-    party_id  := PartyID,
-    shop_ids  := ShopIDs
+    party_id         := PartyID,
+    shop_ids         := ShopIDs,
+    exclude_shop_ids := ExcludeShopIDs
 }) ->
     #analytics_MerchantFilter{
         party_id = PartyID,
-        shop_ids = ShopIDs
+        shop_ids = ShopIDs,
+        exclude_shop_ids = ExcludeShopIDs
     };
 encode_analytics_request(time_filter, #{
     from_time := FromTime,

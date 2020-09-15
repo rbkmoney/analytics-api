@@ -137,11 +137,12 @@ process_analytics_request_result(Result, #{decode_fun := DecodeFun}) ->
 
 make_query(Req, Context) ->
     #{
-        party_id   => anapi_handler_utils:get_party_id(Context),
-        shop_ids   => genlib_map:get('shopIDs', Req),
-        from_time  => anapi_handler_utils:get_time('fromTime', Req),
-        to_time    => anapi_handler_utils:get_time('toTime', Req),
-        split_unit => genlib_map:get('splitUnit', Req)
+        party_id         => anapi_handler_utils:get_party_id(Context),
+        shop_ids         => genlib_map:get('shopIDs', Req),
+        exclude_shop_ids => genlib_map:get('excludeShopIDs', Req),
+        from_time        => anapi_handler_utils:get_time('fromTime', Req),
+        to_time          => anapi_handler_utils:get_time('toTime', Req),
+        split_unit       => genlib_map:get('splitUnit', Req)
     }.
 
 %%

@@ -81,7 +81,8 @@
     due  = ?TIMESTAMP,
     amount = ?INTEGER,
     currency_symbolic_code = ?RUB,
-    context = ?CONTENT
+    context = ?CONTENT,
+    external_id = ?STRING
 }).
 
 -define(STAT_PAYMENT(Payer, Status), #merchstat_StatPayment{
@@ -102,7 +103,8 @@
     location_info = ?LOCATION_INFO,
     short_id = ?STRING,
     make_recurrent = false,
-    cart = ?INVOICE_CART
+    cart = ?INVOICE_CART,
+    external_id = ?STRING
 }).
 
 -define(INSTANT_INVOICE_PAYMENT_FLOW, {instant, #merchstat_InvoicePaymentFlowInstant{}}).
@@ -176,8 +178,8 @@
     created_at = ?TIMESTAMP,
     amount = ?INTEGER,
     fee = ?INTEGER,
-    currency_symbolic_code = ?RUB
-
+    currency_symbolic_code = ?RUB,
+    external_id = ?STRING
 }).
 
 -define(STAT_PAYOUT(Type, PayoutSummary), #merchstat_StatPayout{

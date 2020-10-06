@@ -163,7 +163,8 @@ search_invoices_ok_test(Config) ->
         {invoiceAmountTo, 20000},
         {invoiceID, <<"testInvoiceID">>},
         {continuationToken, <<"come_back_next_time">>},
-        {excludedShops, <<"shop1, shop2">>}
+        {excludedShops, <<"shop1, shop2">>},
+        {externalID, ?STRING}
     ],
 
     {ok, _, _} = anapi_client_searches:search_invoices(?config(context, Config), Query).
@@ -196,7 +197,8 @@ search_payments_ok_test(Config) ->
         {paymentAmountFrom, 1},
         {paymentAmountTo, 20000},
         {continuationToken, <<"come_back_next_time">>},
-        {excludedShops, <<"shop1, shop2">>}
+        {excludedShops, <<"shop1, shop2">>},
+        {externalID, ?STRING}
     ],
     Query1 = [{payerIP, <<"192.168.0.1">>} | Params],
     Query2 = [{payerIP, <<"992.168.0.1">>} | Params],
@@ -222,7 +224,8 @@ search_refunds_ok_test(Config) ->
         {refundID, <<"testRefundID">>},
         {refundStatus, <<"succeeded">>},
         {continuationToken, <<"come_back_next_time">>},
-        {excludedShops, <<"shop1, shop2">>}
+        {excludedShops, <<"shop1, shop2">>},
+        {externalID, ?STRING}
     ],
 
     {ok, _, _} = anapi_client_searches:search_refunds(?config(context, Config), Query).

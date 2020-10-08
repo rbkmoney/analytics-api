@@ -35,6 +35,7 @@ process_request('SearchInvoices', Req, Context) ->
         <<"shop_id"                  >> => genlib_map:get('shopID', Req),
         <<"shop_ids"                 >> => genlib_map:get('shopIDs', Req),
         <<"invoice_id"               >> => genlib_map:get('invoiceID', Req),
+        <<"external_id"              >> => genlib_map:get('externalID', Req),
         <<"from_time"                >> => anapi_handler_utils:get_time('fromTime', Req),
         <<"to_time"                  >> => anapi_handler_utils:get_time('toTime', Req),
         <<"invoice_status"           >> => genlib_map:get('invoiceStatus', Req),
@@ -62,6 +63,7 @@ process_request('SearchPayments', Req, Context) ->
         <<"payment_terminal_provider">> => genlib_map:get('paymentTerminalProvider', Req),
         <<"payment_customer_id"      >> => genlib_map:get('customerID', Req),
         <<"payment_id"               >> => genlib_map:get('paymentID', Req),
+        <<"external_id"              >> => genlib_map:get('externalID', Req),
         <<"payment_email"            >> => genlib_map:get('payerEmail', Req),
         <<"payment_ip"               >> => genlib_map:get('payerIP', Req),
         <<"payment_fingerprint"      >> => genlib_map:get('payerFingerprint', Req),
@@ -107,6 +109,7 @@ process_request('SearchRefunds', Req, Context) ->
         <<"invoice_id"               >> => genlib_map:get('invoiceID', Req),
         <<"payment_id"               >> => genlib_map:get('paymentID', Req),
         <<"refund_id"                >> => genlib_map:get('refundID', Req),
+        <<"external_id"              >> => genlib_map:get('externalID', Req),
         <<"from_time"                >> => anapi_handler_utils:get_time('fromTime', Req),
         <<"to_time"                  >> => anapi_handler_utils:get_time('toTime', Req),
         <<"refund_status"            >> => genlib_map:get('refundStatus', Req),
@@ -207,7 +210,8 @@ decode_stat_invoice(Invoice, _Context) ->
         <<"metadata"   >> => anapi_handler_decoder_utils:decode_context(Invoice#merchstat_StatInvoice.context),
         <<"product"    >> => Invoice#merchstat_StatInvoice.product,
         <<"description">> => Invoice#merchstat_StatInvoice.description,
-        <<"cart"       >> => anapi_handler_decoder_invoicing:decode_invoice_cart(Invoice#merchstat_StatInvoice.cart)
+        <<"cart"       >> => anapi_handler_decoder_invoicing:decode_invoice_cart(Invoice#merchstat_StatInvoice.cart),
+        <<"externalID" >> => Invoice#merchstat_StatInvoice.external_id
     }, decode_stat_invoice_status(Invoice#merchstat_StatInvoice.status)).
 
 decode_stat_invoice_status({Status, StatusInfo}) ->
@@ -240,7 +244,8 @@ decode_stat_payment(Stat, Context) ->
         <<"makeRecurrent"  >> => anapi_handler_decoder_invoicing:decode_make_recurrent(
             Stat#merchstat_StatPayment.make_recurrent
         ),
-        <<"statusChangedAt">> => decode_status_changed_at(Stat#merchstat_StatPayment.status)
+        <<"statusChangedAt">> => decode_status_changed_at(Stat#merchstat_StatPayment.status),
+        <<"externalID"     >> => Stat#merchstat_StatPayment.external_id
     }, decode_stat_payment_status(Stat#merchstat_StatPayment.status, Context)).
 
 decode_stat_tx_info(undefined) ->
@@ -565,14 +570,15 @@ decode_stat_payout_summary_item(PayoutSummary) ->
 decode_stat_refund(Refund, Context) ->
     anapi_handler_utils:merge_and_compact(
         #{
-            <<"invoiceID">> => Refund#merchstat_StatRefund.invoice_id,
-            <<"paymentID">> => Refund#merchstat_StatRefund.payment_id,
-            <<"id">>        => Refund#merchstat_StatRefund.id,
-            <<"createdAt">> => Refund#merchstat_StatRefund.created_at,
-            <<"amount">>    => Refund#merchstat_StatRefund.amount,
-            <<"currency">>  => Refund#merchstat_StatRefund.currency_symbolic_code,
-            <<"reason">>    => Refund#merchstat_StatRefund.reason,
-            <<"shopID">>    => Refund#merchstat_StatRefund.shop_id
+            <<"invoiceID">>  => Refund#merchstat_StatRefund.invoice_id,
+            <<"paymentID">>  => Refund#merchstat_StatRefund.payment_id,
+            <<"id">>         => Refund#merchstat_StatRefund.id,
+            <<"createdAt">>  => Refund#merchstat_StatRefund.created_at,
+            <<"amount">>     => Refund#merchstat_StatRefund.amount,
+            <<"currency">>   => Refund#merchstat_StatRefund.currency_symbolic_code,
+            <<"reason">>     => Refund#merchstat_StatRefund.reason,
+            <<"shopID">>     => Refund#merchstat_StatRefund.shop_id,
+            <<"externalID">> => Refund#merchstat_StatRefund.external_id
         },
         decode_stat_refund_status(Refund#merchstat_StatRefund.status, Context)
     ).

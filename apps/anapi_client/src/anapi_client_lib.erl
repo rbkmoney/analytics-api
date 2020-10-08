@@ -101,6 +101,7 @@ prepare_search_param(Param) ->
         {split_unit, P}     -> #{<<"splitUnit">> => genlib:to_binary(P)};
         {split_size, P}     -> #{<<"splitSize">> => genlib:to_binary(P)};
         {payment_method, P} -> #{<<"paymentMethod">> => genlib:to_binary(P)};
+        {externalID, P}     -> #{<<"externalID">> => genlib:to_binary(P)};
         {ParamName, P}      -> #{genlib:to_binary(ParamName) => P}
     end.
 

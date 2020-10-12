@@ -31,6 +31,8 @@
 -export([merge_and_compact/2]).
 -export([get_time/2]).
 
+-export([construct_shop_ids/2]).
+
 -export([create_dsl/3]).
 
 -type processing_context() :: anapi_handler:processing_context().
@@ -119,3 +121,34 @@ create_dsl(QueryType, QueryBody, QueryParams) ->
         #{<<"query">> => maps:put(genlib:to_binary(QueryType), genlib_map:compact(QueryBody), #{})},
         QueryParams
     ).
+
+-spec construct_shop_ids(anapi_handler:request_data(), processing_context()) ->
+    [binary()] | undefined.
+
+construct_shop_ids(Req, Context) ->
+    % ShopIDs OR ShopID is present -> no need to lookup all the shops
+    ShopID  = genlib_map:get('shopID', Req),
+    ShopIDs = genlib_map:get('shopIDs', Req),
+    case {ShopID, ShopIDs} of
+        {undefined, undefined} ->
+            PartyID = genlib_map:get('partyID', Req),
+            Realm = genlib_map:get('paymentInstitutionRealm', Req),
+            get_party_shops(PartyID, Realm, Context);
+        {_, undefined} ->
+            [ShopID];
+        {undefined, _} ->
+            ShopIDs;
+        {_, _} ->
+            case lists:member(ShopID, ShopIDs) of
+                false -> [ShopID | ShopIDs];
+                true -> ShopIDs
+            end
+    end.
+
+get_party_shops(PartyID, Realm, Context) when PartyID =/= undefined andalso Realm =/= undefined ->
+    % Perhaps we can treat undefined realm as both
+    Call = {party_shop, 'GetShopsIds', [PartyID, Realm]},
+    {ok, ShopIDs} = anapi_handler_utils:service_call(Call, Context),
+    ShopIDs;
+get_party_shops(_, _, _) ->
+    undefined.

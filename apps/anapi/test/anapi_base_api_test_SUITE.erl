@@ -40,6 +40,7 @@
     search_refunds_ok_test/1,
     search_payouts_ok_test/1,
     search_chargebacks_ok_test/1,
+    search_chargebacks_by_party_id_ok_test/1,
     get_report_ok_test/1,
     get_report_not_found_test/1,
     search_reports_ok_test/1,
@@ -85,6 +86,7 @@ groups() ->
                 search_refunds_ok_test,
                 search_payouts_ok_test,
                 search_chargebacks_ok_test,
+                search_chargebacks_by_party_id_ok_test,
                 get_report_ok_test,
                 get_report_not_found_test,
                 search_reports_ok_test,
@@ -357,6 +359,30 @@ search_chargebacks_ok_test(Config) ->
         {to_time, {{2020, 08, 11}, {19, 42, 35}}},
         {shopID, ?STRING},
         {shopIDs, <<?STRING/binary, ",", ?STRING/binary>>},
+        {invoiceID, <<"testInvoiceID">>},
+        {paymentID, <<"testPaymentID">>},
+        {chargebackID, <<"testChargebackID">>},
+        {chargebackStatuses, <<"pending,accepted">>},
+        {chargebackStages, <<"chargeback,pre_arbitration">>},
+        {chargebackCategories, <<"fraud,dispute">>},
+        {continuationToken, <<"come_back_next_time">>}
+    ],
+    {ok, _, _} = anapi_client_searches:search_chargebacks(?config(context, Config), Query).
+
+-spec search_chargebacks_by_party_id_ok_test(config()) ->
+    _.
+search_chargebacks_by_party_id_ok_test(Config) ->
+    anapi_ct_helper:mock_services([
+            {merchant_stat, fun('GetChargebacks', _) -> {ok, ?STAT_RESPONSE_CHARGEBACKS} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
+        Config),
+    Query = [
+        {limit, 2},
+        {from_time, {{2015, 08, 11}, {19, 42, 35}}},
+        {to_time, {{2020, 08, 11}, {19, 42, 35}}},
+        {partyID, ?STRING},
+        {paymentInstitutionRealm, <<"live">>},
         {invoiceID, <<"testInvoiceID">>},
         {paymentID, <<"testPaymentID">>},
         {chargebackID, <<"testChargebackID">>},

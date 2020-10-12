@@ -73,7 +73,7 @@
        {ref,"76abb347c3c1d00fb0ccf9e4b43e22b3d2288484"}},
   0},
  {<<"party_shop_proto">>,
-  {git,"https://github.com/rbkmoney/party-shop-proto.git",
+  {git,"git@github.com:rbkmoney/party-shop-proto.git",
        {ref,"4c8ecba7f8453eda477605c38806e5dbffa09ced"}},
   0},
  {<<"payproc_errors">>,

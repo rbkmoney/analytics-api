@@ -91,7 +91,9 @@ get_service_modname(merchant_stat) ->
 get_service_modname(reporting) ->
     {reporter_reports_thrift, 'Reporting'};
 get_service_modname(analytics) ->
-    {analytics_proto_analytics_thrift, 'AnalyticsService'}.
+    {analytics_proto_analytics_thrift, 'AnalyticsService'};
+get_service_modname(party_shop) ->
+    {party_shop_proto_party_shop_thrift, 'PartyShopService'}.
 
 
 get_service_deadline(ServiceName) ->

@@ -126,29 +126,32 @@ create_dsl(QueryType, QueryBody, QueryParams) ->
     [binary()] | undefined.
 
 construct_shop_ids(Req, Context) ->
-    % ShopIDs OR ShopID is present -> no need to lookup all the shops
-    ShopID  = genlib_map:get('shopID', Req),
-    ShopIDs = genlib_map:get('shopIDs', Req),
-    case {ShopID, ShopIDs} of
-        {undefined, undefined} ->
-            PartyID = genlib_map:get('partyID', Req),
-            Realm = genlib_map:get('paymentInstitutionRealm', Req),
-            get_party_shops(PartyID, Realm, Context);
-        {_, undefined} ->
-            [ShopID];
-        {undefined, _} ->
-            ShopIDs;
-        {_, _} ->
-            case lists:member(ShopID, ShopIDs) of
-                false -> [ShopID | ShopIDs];
-                true -> ShopIDs
-            end
+    ShopIDs = get_request_shops(Req),
+    PartyShops = case genlib_map:get('paymentInstitutionRealm', Req) of
+        undefined ->
+            [];
+        Realm ->
+            % TODO: control party access, use party from request
+            % PartyID = genlib_map:get('partyID', Req),
+            PartyID = get_party_id(Context),
+            get_party_shops(PartyID, Realm, Context)
+    end,
+    ct:log("PartyShops: ~p, ShopIDs: ~p", [PartyShops, ShopIDs]),
+    deduplicate_shops(ShopIDs ++ PartyShops).
+
+deduplicate_shops(Shops) ->
+    sets:to_list(sets:from_list(Shops)).
+
+get_request_shops(Req) ->
+    ShopIDs = genlib:define(genlib_map:get('shopIDs', Req), []),
+    case genlib_map:get('shopID', Req) of
+        undefined -> ShopIDs;
+        ShopID    -> [ShopID | ShopIDs]
     end.
 
 get_party_shops(PartyID, Realm, Context) when PartyID =/= undefined andalso Realm =/= undefined ->
-    % Perhaps we can treat undefined realm as both
     Call = {party_shop, 'GetShopsIds', [PartyID, Realm]},
     {ok, ShopIDs} = anapi_handler_utils:service_call(Call, Context),
     ShopIDs;
 get_party_shops(_, _, _) ->
-    undefined.
+    [].

@@ -136,7 +136,6 @@ construct_shop_ids(Req, Context) ->
             PartyID = get_party_id(Context),
             get_party_shops(PartyID, Realm, Context)
     end,
-    ct:log("PartyShops: ~p, ShopIDs: ~p", [PartyShops, ShopIDs]),
     deduplicate_shops(ShopIDs ++ PartyShops).
 
 deduplicate_shops(Shops) ->

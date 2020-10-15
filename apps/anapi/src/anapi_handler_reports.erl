@@ -20,7 +20,7 @@ process_request('SearchReports', Req, Context) ->
     Params = #{
         party_id => anapi_handler_utils:get_party_id(Context),
         shop_id => genlib_map:get(shopID, Req),
-        shop_ids => anapi_handler_utils:construct_shop_ids(Req, Context),
+        shop_ids => anapi_handler_utils:enumerate_shop_ids(Req, Context),
         from_time => anapi_handler_utils:get_time(fromTime, Req),
         to_time => anapi_handler_utils:get_time(toTime, Req),
         report_types => [encode_report_type(F) || F <- maps:get(reportTypes, Req)],

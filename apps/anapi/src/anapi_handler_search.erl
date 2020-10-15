@@ -32,7 +32,7 @@
 process_request('SearchInvoices', Req, Context) ->
     Query = #{
         <<"merchant_id"              >> => anapi_handler_utils:get_party_id(Context),
-        <<"shop_ids"                 >> => anapi_handler_utils:construct_shop_ids(Req, Context),
+        <<"shop_ids"                 >> => anapi_handler_utils:enumerate_shop_ids(Req, Context),
         <<"invoice_id"               >> => genlib_map:get('invoiceID', Req),
         <<"external_id"              >> => genlib_map:get('externalID', Req),
         <<"from_time"                >> => anapi_handler_utils:get_time('fromTime', Req),
@@ -51,7 +51,7 @@ process_request('SearchInvoices', Req, Context) ->
 process_request('SearchPayments', Req, Context) ->
     Query = #{
         <<"merchant_id"              >> => anapi_handler_utils:get_party_id(Context),
-        <<"shop_ids"                 >> => anapi_handler_utils:construct_shop_ids(Req, Context),
+        <<"shop_ids"                 >> => anapi_handler_utils:enumerate_shop_ids(Req, Context),
         <<"invoice_id"               >> => genlib_map:get('invoiceID', Req),
         <<"from_time"                >> => anapi_handler_utils:get_time('fromTime', Req),
         <<"to_time"                  >> => anapi_handler_utils:get_time('toTime', Req),
@@ -84,7 +84,7 @@ process_request('SearchPayments', Req, Context) ->
 process_request('SearchPayouts', Req, Context) ->
     Query = #{
         <<"merchant_id"    >> => anapi_handler_utils:get_party_id(Context),
-        <<"shop_ids"       >> => anapi_handler_utils:construct_shop_ids(Req, Context),
+        <<"shop_ids"       >> => anapi_handler_utils:enumerate_shop_ids(Req, Context),
         <<"from_time"      >> => anapi_handler_utils:get_time('fromTime', Req),
         <<"to_time"        >> => anapi_handler_utils:get_time('toTime', Req),
         <<"payout_statuses">> => [<<"confirmed">>, <<"paid">>],
@@ -101,7 +101,7 @@ process_request('SearchPayouts', Req, Context) ->
 process_request('SearchRefunds', Req, Context) ->
     Query = #{
         <<"merchant_id"              >> => anapi_handler_utils:get_party_id(Context),
-        <<"shop_ids"                 >> => anapi_handler_utils:construct_shop_ids(Req, Context),
+        <<"shop_ids"                 >> => anapi_handler_utils:enumerate_shop_ids(Req, Context),
         <<"invoice_id"               >> => genlib_map:get('invoiceID', Req),
         <<"payment_id"               >> => genlib_map:get('paymentID', Req),
         <<"refund_id"                >> => genlib_map:get('refundID', Req),
@@ -122,7 +122,7 @@ process_request('SearchRefunds', Req, Context) ->
 process_request('SearchChargebacks', Req, Context) ->
     Query = #{
         <<"merchant_id"          >> => anapi_handler_utils:get_party_id(Context),
-        <<"shop_ids"             >> => anapi_handler_utils:construct_shop_ids(Req, Context),
+        <<"shop_ids"             >> => anapi_handler_utils:enumerate_shop_ids(Req, Context),
         <<"from_time"            >> => anapi_handler_utils:get_time('fromTime', Req),
         <<"to_time"              >> => anapi_handler_utils:get_time('toTime', Req),
         <<"invoice_id"           >> => genlib_map:get('invoiceID', Req),

@@ -138,7 +138,7 @@ process_analytics_request_result(Result, #{decode_fun := DecodeFun}) ->
 make_query(Req, Context) ->
     #{
         party_id         => anapi_handler_utils:get_party_id(Context),
-        shop_ids         => anapi_handler_utils:construct_shop_ids(Req, Context),
+        shop_ids         => anapi_handler_utils:enumerate_shop_ids(Req, Context),
         exclude_shop_ids => genlib_map:get('excludeShopIDs', Req),
         from_time        => anapi_handler_utils:get_time('fromTime', Req),
         to_time          => anapi_handler_utils:get_time('toTime', Req),

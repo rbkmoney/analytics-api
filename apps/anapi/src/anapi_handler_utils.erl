@@ -31,7 +31,7 @@
 -export([merge_and_compact/2]).
 -export([get_time/2]).
 
--export([construct_shop_ids/2]).
+-export([enumerate_shop_ids/2]).
 
 -export([create_dsl/3]).
 
@@ -122,10 +122,10 @@ create_dsl(QueryType, QueryBody, QueryParams) ->
         QueryParams
     ).
 
--spec construct_shop_ids(anapi_handler:request_data(), processing_context()) ->
+-spec enumerate_shop_ids(anapi_handler:request_data(), processing_context()) ->
     [binary()] | undefined.
 
-construct_shop_ids(Req, Context) ->
+enumerate_shop_ids(Req, Context) ->
     ShopIDs = get_request_shops(Req),
     PartyShops = case genlib_map:get('paymentInstitutionRealm', Req) of
         undefined ->

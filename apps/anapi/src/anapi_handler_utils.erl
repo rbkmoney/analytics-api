@@ -131,10 +131,10 @@ enumerate_shop_ids(Req, Context) ->
         undefined ->
             [];
         Realm ->
-            % TODO: control party access, use party from request
-            % PartyID = genlib_map:get('partyID', Req),
-            PartyID = get_party_id(Context),
-            get_party_shops(PartyID, Realm, Context)
+            PartyID = genlib_map:get('partyID', Req),
+            UserID  = get_party_id(Context),
+            ok = validate_party_access(UserID, PartyID),
+            get_party_shops(UserID, Realm, Context)
     end,
     deduplicate_shops(ShopIDs ++ PartyShops).
 
@@ -148,9 +148,20 @@ get_request_shops(Req) ->
         ShopID    -> [ShopID | ShopIDs]
     end.
 
-get_party_shops(PartyID, Realm, Context) when PartyID =/= undefined andalso Realm =/= undefined ->
+get_party_shops(PartyID, undefined, Context) ->
+    lists:flatten([
+        get_party_shops(PartyID, live, Context),
+        get_party_shops(PartyID, test, Context)
+    ]);
+get_party_shops(PartyID, Realm, Context) ->
     Call = {party_shop, 'GetShopsIds', [PartyID, Realm]},
     {ok, ShopIDs} = anapi_handler_utils:service_call(Call, Context),
-    ShopIDs;
-get_party_shops(_, _, _) ->
-    [].
+    ShopIDs.
+
+validate_party_access(_UserID, undefined) ->
+    ok;
+validate_party_access(UserID, PartyID) when UserID =:= PartyID ->
+    ok;
+validate_party_access(_UserID, PartyID) ->
+    % One day there will be a service for checking party accesss
+    throw({invalidPartyID, PartyID}).

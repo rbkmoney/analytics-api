@@ -145,6 +145,8 @@ handle_request_(OperationID, Req, SwagContext = #{auth_context := AuthContext}) 
         throw:{handler_function_clause, _OperationID} ->
             _ = logger:error("Operation ~p failed due to missing handler", [OperationID]),
             {error, {501, #{}, undefined}};
+        throw:{invalidPartyID, _PartyID} ->
+            {ok, logic_error(invalidPartyID, <<"Given party is either inaccessible or does not exist">>)};
         error:{woody_error, {Source, Class, Details}} ->
             process_woody_error(Source, Class, Details);
         Class:Reason:Stacktrace ->

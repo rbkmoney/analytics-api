@@ -31,6 +31,8 @@
 -export([merge_and_compact/2]).
 -export([get_time/2]).
 
+-export([enumerate_shop_ids/2]).
+
 -export([create_dsl/3]).
 
 -type processing_context() :: anapi_handler:processing_context().
@@ -119,3 +121,47 @@ create_dsl(QueryType, QueryBody, QueryParams) ->
         #{<<"query">> => maps:put(genlib:to_binary(QueryType), genlib_map:compact(QueryBody), #{})},
         QueryParams
     ).
+
+-spec enumerate_shop_ids(anapi_handler:request_data(), processing_context()) ->
+    [binary()] | undefined.
+
+enumerate_shop_ids(Req, Context) ->
+    ShopIDs = get_request_shops(Req),
+    PartyShops = case genlib_map:get('paymentInstitutionRealm', Req) of
+        undefined ->
+            [];
+        Realm ->
+            PartyID = genlib_map:get('partyID', Req),
+            UserID  = get_party_id(Context),
+            ok = validate_party_access(UserID, PartyID),
+            get_party_shops(UserID, Realm, Context)
+    end,
+    deduplicate_shops(ShopIDs ++ PartyShops).
+
+deduplicate_shops(Shops) ->
+    sets:to_list(sets:from_list(Shops)).
+
+get_request_shops(Req) ->
+    ShopIDs = genlib:define(genlib_map:get('shopIDs', Req), []),
+    case genlib_map:get('shopID', Req) of
+        undefined -> ShopIDs;
+        ShopID    -> [ShopID | ShopIDs]
+    end.
+
+get_party_shops(PartyID, undefined, Context) ->
+    lists:append([
+        get_party_shops(PartyID, test, Context),
+        get_party_shops(PartyID, live, Context)
+    ]);
+get_party_shops(PartyID, Realm, Context) ->
+    Call = {party_shop, 'GetShopsIds', [PartyID, Realm]},
+    {ok, ShopIDs} = anapi_handler_utils:service_call(Call, Context),
+    ShopIDs.
+
+validate_party_access(_UserID, undefined) ->
+    ok;
+validate_party_access(UserID, PartyID) when UserID =:= PartyID ->
+    ok;
+validate_party_access(_UserID, PartyID) ->
+    % One day there will be a service for checking party accesss
+    throw({invalidPartyID, PartyID}).

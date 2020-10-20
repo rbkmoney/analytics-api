@@ -149,9 +149,9 @@ get_request_shops(Req) ->
     end.
 
 get_party_shops(PartyID, undefined, Context) ->
-    lists:flatten([
-        get_party_shops(PartyID, live, Context),
-        get_party_shops(PartyID, test, Context)
+    lists:append([
+        get_party_shops(PartyID, test, Context),
+        get_party_shops(PartyID, live, Context)
     ]);
 get_party_shops(PartyID, Realm, Context) ->
     Call = {party_shop, 'GetShopsIds', [PartyID, Realm]},

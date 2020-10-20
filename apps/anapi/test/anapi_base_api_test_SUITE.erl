@@ -48,7 +48,8 @@
     cancel_report_ok_test/1,
     cancel_report_bad_request_test/1,
     create_report_without_shop_id_ok_test/1,
-    download_report_file_ok_test/1
+    download_report_file_ok_test/1,
+    search_by_inaccessible_party_id_error_test/1
 ]).
 
 -define(ANAPI_PORT                   , 8080).
@@ -94,6 +95,7 @@ groups() ->
                 cancel_report_ok_test,
                 cancel_report_bad_request_test,
                 create_report_without_shop_id_ok_test,
+                search_by_inaccessible_party_id_error_test,
                 download_report_file_ok_test
             ]
         }
@@ -392,3 +394,29 @@ search_chargebacks_by_party_id_ok_test(Config) ->
         {continuationToken, <<"come_back_next_time">>}
     ],
     {ok, _, _} = anapi_client_searches:search_chargebacks(?config(context, Config), Query).
+
+
+-spec search_by_inaccessible_party_id_error_test(config()) ->
+    _.
+search_by_inaccessible_party_id_error_test(Config) ->
+    anapi_ct_helper:mock_services([
+            {merchant_stat, fun('GetChargebacks', _) -> {ok, ?STAT_RESPONSE_CHARGEBACKS} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
+        Config),
+    Query = [
+        {limit, 2},
+        {from_time, {{2015, 08, 11}, {19, 42, 35}}},
+        {to_time, {{2020, 08, 11}, {19, 42, 35}}},
+        {partyID, <<"Totaly not the users party">>},
+        {paymentInstitutionRealm, <<"live">>},
+        {invoiceID, <<"testInvoiceID">>},
+        {paymentID, <<"testPaymentID">>},
+        {chargebackID, <<"testChargebackID">>},
+        {chargebackStatuses, <<"pending,accepted">>},
+        {chargebackStages, <<"chargeback,pre_arbitration">>},
+        {chargebackCategories, <<"fraud,dispute">>},
+        {continuationToken, <<"come_back_next_time">>}
+    ],
+    {error, {400, #{<<"code">> := <<"invalidPartyID">>}}} =
+        anapi_client_searches:search_chargebacks(?config(context, Config), Query).

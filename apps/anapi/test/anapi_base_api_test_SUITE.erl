@@ -153,7 +153,10 @@ end_per_testcase(_Name, C) ->
     _.
 search_invoices_ok_test(Config) ->
     anapi_ct_helper:mock_services(
-        [{merchant_stat, fun('GetInvoices', _) -> {ok, ?STAT_RESPONSE_INVOICES} end}],
+        [
+            {merchant_stat, fun('GetInvoices', _) -> {ok, ?STAT_RESPONSE_INVOICES} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
         Config),
     Query = [
         {limit, 2},
@@ -177,7 +180,10 @@ search_invoices_ok_test(Config) ->
     _.
 search_payments_ok_test(Config) ->
     anapi_ct_helper:mock_services(
-        [{merchant_stat, fun('GetPayments', _) -> {ok, ?STAT_RESPONSE_PAYMENTS} end}],
+        [
+            {merchant_stat, fun('GetPayments', _) -> {ok, ?STAT_RESPONSE_PAYMENTS} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
         Config),
     Params = [
         {limit, 2},
@@ -215,7 +221,10 @@ search_payments_ok_test(Config) ->
 -spec search_refunds_ok_test(config()) ->
     _.
 search_refunds_ok_test(Config) ->
-    anapi_ct_helper:mock_services([{merchant_stat, fun('GetPayments', _) -> {ok, ?STAT_RESPONSE_REFUNDS} end}], Config),
+    anapi_ct_helper:mock_services([
+        {merchant_stat, fun('GetPayments', _) -> {ok, ?STAT_RESPONSE_REFUNDS} end},
+        {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+    ], Config),
     Query = [
         {limit, 2},
         {offset, 2},
@@ -237,7 +246,10 @@ search_refunds_ok_test(Config) ->
 -spec search_payouts_ok_test(config()) ->
     _.
 search_payouts_ok_test(Config) ->
-    anapi_ct_helper:mock_services([{merchant_stat, fun('GetPayouts', _) -> {ok, ?STAT_RESPONSE_PAYOUTS} end}], Config),
+    anapi_ct_helper:mock_services([
+        {merchant_stat, fun('GetPayouts', _) -> {ok, ?STAT_RESPONSE_PAYOUTS} end},
+        {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+    ], Config),
     Query = [
         {limit, 2},
         {offset, 2},
@@ -256,7 +268,10 @@ search_payouts_ok_test(Config) ->
 -spec search_reports_ok_test(config()) ->
     _.
 search_reports_ok_test(Config) ->
-    anapi_ct_helper:mock_services([{reporting, fun('GetReports', _) -> {ok, ?FOUND_REPORTS} end}], Config),
+    anapi_ct_helper:mock_services([
+        {reporting, fun('GetReports', _) -> {ok, ?FOUND_REPORTS} end},
+        {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+    ], Config),
     Query0 = [
         {shopID, ?STRING},
         {shopIDs, <<?STRING/binary, ",", ?STRING/binary>>},
@@ -353,7 +368,10 @@ download_report_file_ok_test(Config) ->
     _.
 search_chargebacks_ok_test(Config) ->
     anapi_ct_helper:mock_services(
-        [{merchant_stat, fun('GetChargebacks', _) -> {ok, ?STAT_RESPONSE_CHARGEBACKS} end}],
+        [
+            {merchant_stat, fun('GetChargebacks', _) -> {ok, ?STAT_RESPONSE_CHARGEBACKS} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
         Config),
     Query = [
         {limit, 2},

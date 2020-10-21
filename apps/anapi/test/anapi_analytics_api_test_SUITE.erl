@@ -144,7 +144,10 @@ end_per_testcase(_Name, C) ->
     _.
 get_payments_tool_distribution_ok_test(Config) ->
     anapi_ct_helper:mock_services(
-        [{analytics, fun('GetPaymentsToolDistribution', _) -> {ok, ?ANALYTICS_PAYMENT_TOOL_DISTRIBUTION_RESP} end}],
+        [
+            {analytics, fun('GetPaymentsToolDistribution', _) -> {ok, ?ANALYTICS_PAYMENT_TOOL_DISTRIBUTION_RESP} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
@@ -159,7 +162,10 @@ get_payments_tool_distribution_ok_test(Config) ->
     _.
 get_payments_amount_ok_test(Config) ->
     anapi_ct_helper:mock_services(
-        [{analytics, fun('GetPaymentsAmount', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end}],
+        [
+            {analytics, fun('GetPaymentsAmount', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
@@ -174,7 +180,10 @@ get_payments_amount_ok_test(Config) ->
     _.
 get_average_payment_ok_test(Config) ->
     anapi_ct_helper:mock_services(
-        [{analytics, fun('GetAveragePayment', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end}],
+        [
+            {analytics, fun('GetAveragePayment', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
@@ -189,7 +198,10 @@ get_average_payment_ok_test(Config) ->
     _.
 get_payments_count_ok_test(Config) ->
     anapi_ct_helper:mock_services(
-        [{analytics, fun('GetPaymentsCount', _) -> {ok, ?ANALYTICS_COUNT_RESP} end}],
+        [
+            {analytics, fun('GetPaymentsCount', _) -> {ok, ?ANALYTICS_COUNT_RESP} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
@@ -204,7 +216,10 @@ get_payments_count_ok_test(Config) ->
     _.
 get_payments_error_distribution_ok_test(Config) ->
     anapi_ct_helper:mock_services(
-        [{analytics, fun('GetPaymentsErrorDistribution', _) -> {ok, ?ANALYTICS_ERROR_DISTRIBUTION_RESP} end}],
+        [
+            {analytics, fun('GetPaymentsErrorDistribution', _) -> {ok, ?ANALYTICS_ERROR_DISTRIBUTION_RESP} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
@@ -219,7 +234,10 @@ get_payments_error_distribution_ok_test(Config) ->
     _.
 get_payments_split_amount_ok_test(Config) ->
     anapi_ct_helper:mock_services(
-        [{analytics, fun('GetPaymentsSplitAmount', _) -> {ok, ?ANALYTICS_SPLIT_AMOUNT_RESP} end}],
+        [
+            {analytics, fun('GetPaymentsSplitAmount', _) -> {ok, ?ANALYTICS_SPLIT_AMOUNT_RESP} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
@@ -235,7 +253,10 @@ get_payments_split_amount_ok_test(Config) ->
     _.
 get_payments_split_count_ok_test(Config) ->
     anapi_ct_helper:mock_services(
-        [{analytics, fun('GetPaymentsSplitCount', _) -> {ok, ?ANALYTICS_SPLIT_COUNT_RESP} end}],
+        [
+            {analytics, fun('GetPaymentsSplitCount', _) -> {ok, ?ANALYTICS_SPLIT_COUNT_RESP} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
@@ -251,7 +272,10 @@ get_payments_split_count_ok_test(Config) ->
     _.
 get_refunds_amount_ok_test(Config) ->
     anapi_ct_helper:mock_services(
-        [{analytics, fun('GetRefundsAmount', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end}],
+        [
+            {analytics, fun('GetRefundsAmount', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
@@ -266,7 +290,10 @@ get_refunds_amount_ok_test(Config) ->
     _.
 get_current_balances_ok_test(Config) ->
     anapi_ct_helper:mock_services(
-        [{analytics, fun('GetCurrentBalances', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end}],
+        [
+            {analytics, fun('GetCurrentBalances', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
@@ -279,7 +306,10 @@ get_current_balances_ok_test(Config) ->
     _.
 get_payments_sub_error_distribution_ok_test(Config) ->
     anapi_ct_helper:mock_services(
-        [{analytics, fun('GetPaymentsSubErrorDistribution', _) -> {ok, ?ANALYTICS_SUB_ERROR_DISTRIBUTION_RESP} end}],
+        [
+            {analytics, fun('GetPaymentsSubErrorDistribution', _) -> {ok, ?ANALYTICS_SUB_ERROR_DISTRIBUTION_RESP} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
@@ -299,7 +329,9 @@ analytics_timeout_test(Config) ->
             fun('GetRefundsAmount', _) ->
                 timer:sleep(1500),
                 {ok, ?ANALYTICS_AMOUNT_RESP}
-            end}],
+            end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
         Config),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},

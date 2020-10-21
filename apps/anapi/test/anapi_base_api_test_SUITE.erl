@@ -290,19 +290,13 @@ search_reports_ok_test(Config) ->
 -spec get_report_ok_test(config()) ->
     _.
 get_report_ok_test(Config) ->
-    anapi_ct_helper:mock_services([
-        {reporting, fun('GetReport', _) -> {ok, ?REPORT} end}
-        % {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
-    ], Config),
+    anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT} end}], Config),
     {ok, _} = anapi_client_reports:get_report(?config(context, Config), ?INTEGER).
 
 -spec get_report_not_found_test(config()) ->
     _.
 get_report_not_found_test(Config) ->
-    anapi_ct_helper:mock_services([
-        {reporting, fun('GetReport', _) -> {ok, ?REPORT_ALT} end}
-        % {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
-    ], Config),
+    anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT_ALT} end}], Config),
     {error, {404, #{<<"message">> := <<"Report not found">>}}} =
         anapi_client_reports:get_report(?config(context, Config), ?INTEGER).
 

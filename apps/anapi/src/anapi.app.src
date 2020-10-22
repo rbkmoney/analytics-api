@@ -29,6 +29,7 @@
         damsel,
         reporter_proto,
         analytics_proto,
+        party_shop_proto,
         swag_server,
         jose,
         cowboy_cors,

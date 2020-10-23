@@ -66,6 +66,8 @@ get_operation_access('GetRefundsAmount', _) ->
 get_operation_access('GetCurrentBalances', _) ->
     [{[party], read}];
 get_operation_access('GetPaymentsSubErrorDistribution', _) ->
+    [{[party], read}];
+get_operation_access('GetCurrentBalancesGroupByShop', _) ->
     [{[party], read}].
 
 -spec get_consumer(uac:claims()) -> consumer().

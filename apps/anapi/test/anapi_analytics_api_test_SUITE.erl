@@ -45,6 +45,7 @@
     get_refunds_amount_ok_test/1,
     get_current_balances_ok_test/1,
     get_payments_sub_error_distribution_ok_test/1,
+    get_current_balances_group_by_shop_ok_test/1,
 
     analytics_timeout_test/1
 ]).
@@ -85,6 +86,7 @@ groups() ->
             get_refunds_amount_ok_test,
             get_current_balances_ok_test,
             get_payments_sub_error_distribution_ok_test,
+            get_current_balances_group_by_shop_ok_test,
             analytics_timeout_test
         ]}
     ].
@@ -307,6 +309,22 @@ get_payments_sub_error_distribution_ok_test(Config) ->
     ],
 
     {ok, _} = anapi_client_analytics:get_payments_sub_error_distribution(?config(context, Config), Query).
+
+-spec get_current_balances_group_by_shop_ok_test(config()) -> _.
+get_current_balances_group_by_shop_ok_test(Config) ->
+    anapi_ct_helper:mock_services(
+        [
+            {analytics, fun('GetCurrentShopBalances', _) -> {ok, ?ANALYTICS_SHOP_AMOUNT_RESP} end},
+            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
+        ],
+        Config
+    ),
+    Query = [
+        {shopIDs, <<"asdf,asdf2">>},
+        {excludeShopIDs, <<"asdf3">>}
+    ],
+
+    {ok, _} = anapi_client_analytics:get_current_balances_group_by_shop(?config(context, Config), Query).
 
 -spec analytics_timeout_test(config()) -> _.
 analytics_timeout_test(Config) ->

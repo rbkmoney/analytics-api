@@ -26,6 +26,7 @@
 -export([get_payments_split_count/2]).
 -export([get_refunds_amount/2]).
 -export([get_current_balances/2]).
+-export([get_current_balances_group_by_shop/2]).
 
 -type context() :: anapi_client_lib:context().
 -type analytics_query() :: anapi_client_lib:analytics_query().
@@ -153,6 +154,19 @@ get_current_balances(Context, Query) ->
     Params = #{qs_val => Qs},
     {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
     Response = swag_client_analytics_api:get_current_balances(Url, PreparedParams, Opts),
+    case anapi_client_lib:handle_response(Response) of
+        {ok, #{<<"result">> := RefundsAmount}} ->
+            {ok, RefundsAmount};
+        {error, Error} ->
+            {error, Error}
+    end.
+
+-spec get_current_balances_group_by_shop(context(), analytics_query()) -> {ok, term(), term()} | {error, term()}.
+get_current_balances_group_by_shop(Context, Query) ->
+    Qs = anapi_client_lib:make_analytics_query_string(Query),
+    Params = #{qs_val => Qs},
+    {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
+    Response = swag_client_analytics_api:get_current_balances_group_by_shop(Url, PreparedParams, Opts),
     case anapi_client_lib:handle_response(Response) of
         {ok, #{<<"result">> := RefundsAmount}} ->
             {ok, RefundsAmount};

@@ -108,6 +108,14 @@ process_request('GetPaymentsSubErrorDistribution', Req, Context) ->
     },
     process_analytics_request(filter_request, Query, Context, Opts);
 
+process_request('GetCurrentBalancesGroupByShop', Req, Context) ->
+    Query = make_query(Req, Context),
+    Opts = #{
+        thrift_fun => 'GetCurrentShopBalances',
+        decode_fun => fun decode_shop_amount_response/1
+    },
+    process_analytics_request(merchant_filter, Query, Context, Opts);
+
 %%
 
 process_request(_OperationID, _Req, _Context) ->
@@ -157,10 +165,7 @@ decode_payment_tool_distribution_response(PaymentToolDistribution) ->
     } <- PaymentToolDistribution#analytics_PaymentToolDistributionResponse.payment_tools_distributions].
 
 decode_amount_response(Amounts) ->
-    [#{
-        <<"amount">> => Amount,
-        <<"currency">> => Currency
-    } || #analytics_CurrencyGroupedAmount{
+    [decode_amount_result(Amount, Currency) || #analytics_CurrencyGroupedAmount{
         amount = Amount,
         currency = Currency
     } <- Amounts#analytics_AmountResponse.groups_amount].
@@ -214,6 +219,33 @@ decode_split_amount_response(SplitAmounts) ->
         offset_amounts = OffsetAmounts
     } <- SplitAmounts#analytics_SplitAmountResponse.grouped_currency_amounts].
 
+decode_shop_amount_response(ShopAmounts) ->
+    ResponseMap = lists:foldl(
+        fun(#analytics_ShopGroupedAmount{
+            amount = Amount,
+            shop_id = ShopID,
+            currency = Currency
+        }, AccIn) ->
+            AmountResults = maps:get(ShopID, AccIn, []),
+            AccIn#{
+                ShopID => [decode_amount_result(Amount, Currency) | AmountResults]
+            }
+        end,
+        #{},
+        ShopAmounts#analytics_ShopAmountResponse.groups_amount),
+    ResponseList = maps:fold(
+        fun(ShopID, AmountResults, AccIn) ->
+            [#{
+                <<"id">> => ShopID,
+                <<"amountResults">> => AmountResults
+            } | AccIn]
+        end,
+        [],
+        ResponseMap),
+    [#{
+        <<"groupBySHopResults">> => ResponseList
+    }].
+
 decode_offset_amount(#analytics_OffsetAmount{
     amount = Amount,
     offset = Offset
@@ -265,3 +297,9 @@ decode_split_unit(month) ->
     <<"month">>;
 decode_split_unit(year) ->
     <<"year">>.
+
+decode_amount_result(Amount, Currency) ->
+    #{
+        <<"amount">> => Amount,
+        <<"currency">> => Currency
+    }.

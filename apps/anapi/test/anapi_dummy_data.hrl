@@ -382,8 +382,18 @@
     groups_amount = [?ANALYTICS_CURRENCY_GROUPED_AMOUNT, ?ANALYTICS_CURRENCY_GROUPED_AMOUNT]
 }).
 
+-define(ANALYTICS_SHOP_AMOUNT_RESP, #analytics_ShopAmountResponse{
+    groups_amount = [?ANALYTICS_SHOP_GROUPED_AMOUNT, ?ANALYTICS_SHOP_GROUPED_AMOUNT]
+}).
+
 -define(ANALYTICS_CURRENCY_GROUPED_AMOUNT, #analytics_CurrencyGroupedAmount{
     amount = ?INTEGER,
+    currency = ?RUB
+}).
+
+-define(ANALYTICS_SHOP_GROUPED_AMOUNT, #analytics_ShopGroupedAmount{
+    amount = ?INTEGER,
+    shop_id = ?STRING,
     currency = ?RUB
 }).
 

@@ -26,7 +26,8 @@ CALL_ANYWHERE := \
 	submodules \
 	all compile xref lint dialyze test cover \
 	start devrel release clean distclean \
-	generate regenerate swag_server.regenerate swag_client.regenerate
+	generate regenerate swag_server.regenerate swag_client.regenerate \
+	check_format format
 
 CALL_W_CONTAINER := $(CALL_ANYWHERE)
 
@@ -55,6 +56,12 @@ xref:
 
 lint: generate
 	elvis rock
+
+check_format:
+	$(REBAR) fmt -c
+
+format:
+	$(REBAR) fmt -w
 
 dialyze:
 	$(REBAR) dialyzer

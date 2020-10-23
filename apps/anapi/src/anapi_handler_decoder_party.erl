@@ -20,9 +20,7 @@
 
 %%
 
--spec decode_residence(atom() | undefined) ->
-    binary().
-
+-spec decode_residence(atom() | undefined) -> binary().
 decode_residence(undefined) ->
     undefined;
 decode_residence(Residence) when is_atom(Residence) ->

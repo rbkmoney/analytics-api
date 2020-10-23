@@ -50,32 +50,29 @@
     analytics_timeout_test/1
 ]).
 
--define(ANAPI_PORT                   , 8080).
--define(ANAPI_HOST_NAME              , "localhost").
--define(ANAPI_URL                    , ?ANAPI_HOST_NAME ++ ":" ++ integer_to_list(?ANAPI_PORT)).
+-define(ANAPI_PORT, 8080).
+-define(ANAPI_HOST_NAME, "localhost").
+-define(ANAPI_URL, ?ANAPI_HOST_NAME ++ ":" ++ integer_to_list(?ANAPI_PORT)).
 
 -define(badresp(Code), {error, {invalid_response_code, Code}}).
 
--type test_case_name()  :: atom().
--type config()          :: [{atom(), any()}].
--type group_name()      :: atom().
+-type test_case_name() :: atom().
+-type config() :: [{atom(), any()}].
+-type group_name() :: atom().
 
 -behaviour(supervisor).
 
--spec init([]) ->
-    {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
+-spec init([]) -> {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
 init([]) ->
     {ok, {#{strategy => one_for_all, intensity => 1, period => 1}, []}}.
 
--spec all() ->
-    [test_case_name()].
+-spec all() -> [test_case_name()].
 all() ->
     [
         {group, all_tests}
     ].
 
--spec groups() ->
-    [{group_name(), list(), [test_case_name()]}].
+-spec groups() -> [{group_name(), list(), [test_case_name()]}].
 groups() ->
     [
         {all_tests, [],
@@ -99,20 +96,17 @@ groups() ->
 %%
 %% starting/stopping
 %%
--spec init_per_suite(config()) ->
-    config().
+-spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
     anapi_ct_helper:init_suite(?MODULE, Config).
 
--spec end_per_suite(config()) ->
-    _.
+-spec end_per_suite(config()) -> _.
 end_per_suite(C) ->
     _ = anapi_ct_helper:stop_mocked_service_sup(?config(suite_test_sup, C)),
     [application:stop(App) || App <- proplists:get_value(apps, C)],
     ok.
 
--spec init_per_group(group_name(), config()) ->
-    config().
+-spec init_per_group(group_name(), config()) -> config().
 init_per_group(all_tests, Config) ->
     BasePermissions = [
         {[party], read},
@@ -120,37 +114,33 @@ init_per_group(all_tests, Config) ->
     ],
     {ok, Token} = anapi_ct_helper:issue_token(BasePermissions, unlimited),
     [{context, anapi_ct_helper:get_context(Token)} | Config];
-
 init_per_group(_, Config) ->
     Config.
 
--spec end_per_group(group_name(), config()) ->
-    _.
+-spec end_per_group(group_name(), config()) -> _.
 end_per_group(_Group, _C) ->
     ok.
 
--spec init_per_testcase(test_case_name(), config()) ->
-    config().
+-spec init_per_testcase(test_case_name(), config()) -> config().
 init_per_testcase(_Name, C) ->
     [{test_sup, anapi_ct_helper:start_mocked_service_sup(?MODULE)} | C].
 
--spec end_per_testcase(test_case_name(), config()) ->
-    config().
+-spec end_per_testcase(test_case_name(), config()) -> config().
 end_per_testcase(_Name, C) ->
     anapi_ct_helper:stop_mocked_service_sup(?config(test_sup, C)),
     ok.
 
 %%% Tests
 
--spec get_payments_tool_distribution_ok_test(config()) ->
-    _.
+-spec get_payments_tool_distribution_ok_test(config()) -> _.
 get_payments_tool_distribution_ok_test(Config) ->
     anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetPaymentsToolDistribution', _) -> {ok, ?ANALYTICS_PAYMENT_TOOL_DISTRIBUTION_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
         ],
-        Config),
+        Config
+    ),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
@@ -160,15 +150,15 @@ get_payments_tool_distribution_ok_test(Config) ->
 
     {ok, _} = anapi_client_analytics:get_payments_tool_distribution(?config(context, Config), Query).
 
--spec get_payments_amount_ok_test(config()) ->
-    _.
+-spec get_payments_amount_ok_test(config()) -> _.
 get_payments_amount_ok_test(Config) ->
     anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetPaymentsAmount', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
         ],
-        Config),
+        Config
+    ),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
@@ -178,15 +168,15 @@ get_payments_amount_ok_test(Config) ->
 
     {ok, _} = anapi_client_analytics:get_payments_amount(?config(context, Config), Query).
 
--spec get_average_payment_ok_test(config()) ->
-    _.
+-spec get_average_payment_ok_test(config()) -> _.
 get_average_payment_ok_test(Config) ->
     anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetAveragePayment', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
         ],
-        Config),
+        Config
+    ),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
@@ -196,15 +186,15 @@ get_average_payment_ok_test(Config) ->
 
     {ok, _} = anapi_client_analytics:get_average_payment(?config(context, Config), Query).
 
--spec get_payments_count_ok_test(config()) ->
-    _.
+-spec get_payments_count_ok_test(config()) -> _.
 get_payments_count_ok_test(Config) ->
     anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetPaymentsCount', _) -> {ok, ?ANALYTICS_COUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
         ],
-        Config),
+        Config
+    ),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
@@ -214,15 +204,15 @@ get_payments_count_ok_test(Config) ->
 
     {ok, _} = anapi_client_analytics:get_payments_count(?config(context, Config), Query).
 
--spec get_payments_error_distribution_ok_test(config()) ->
-    _.
+-spec get_payments_error_distribution_ok_test(config()) -> _.
 get_payments_error_distribution_ok_test(Config) ->
     anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetPaymentsErrorDistribution', _) -> {ok, ?ANALYTICS_ERROR_DISTRIBUTION_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
         ],
-        Config),
+        Config
+    ),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
@@ -232,15 +222,15 @@ get_payments_error_distribution_ok_test(Config) ->
 
     {ok, _} = anapi_client_analytics:get_payments_error_distribution(?config(context, Config), Query).
 
--spec get_payments_split_amount_ok_test(config()) ->
-    _.
+-spec get_payments_split_amount_ok_test(config()) -> _.
 get_payments_split_amount_ok_test(Config) ->
     anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetPaymentsSplitAmount', _) -> {ok, ?ANALYTICS_SPLIT_AMOUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
         ],
-        Config),
+        Config
+    ),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
@@ -251,15 +241,15 @@ get_payments_split_amount_ok_test(Config) ->
 
     {ok, _} = anapi_client_analytics:get_payments_split_amount(?config(context, Config), Query).
 
--spec get_payments_split_count_ok_test(config()) ->
-    _.
+-spec get_payments_split_count_ok_test(config()) -> _.
 get_payments_split_count_ok_test(Config) ->
     anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetPaymentsSplitCount', _) -> {ok, ?ANALYTICS_SPLIT_COUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
         ],
-        Config),
+        Config
+    ),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
@@ -270,15 +260,15 @@ get_payments_split_count_ok_test(Config) ->
 
     {ok, _} = anapi_client_analytics:get_payments_split_count(?config(context, Config), Query).
 
--spec get_refunds_amount_ok_test(config()) ->
-    _.
+-spec get_refunds_amount_ok_test(config()) -> _.
 get_refunds_amount_ok_test(Config) ->
     anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetRefundsAmount', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
         ],
-        Config),
+        Config
+    ),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
@@ -288,15 +278,15 @@ get_refunds_amount_ok_test(Config) ->
 
     {ok, _} = anapi_client_analytics:get_refunds_amount(?config(context, Config), Query).
 
--spec get_current_balances_ok_test(config()) ->
-    _.
+-spec get_current_balances_ok_test(config()) -> _.
 get_current_balances_ok_test(Config) ->
     anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetCurrentBalances', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
         ],
-        Config),
+        Config
+    ),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>}
@@ -304,15 +294,15 @@ get_current_balances_ok_test(Config) ->
 
     {ok, _} = anapi_client_analytics:get_current_balances(?config(context, Config), Query).
 
--spec get_payments_sub_error_distribution_ok_test(config()) ->
-    _.
+-spec get_payments_sub_error_distribution_ok_test(config()) -> _.
 get_payments_sub_error_distribution_ok_test(Config) ->
     anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetPaymentsSubErrorDistribution', _) -> {ok, ?ANALYTICS_SUB_ERROR_DISTRIBUTION_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
         ],
-        Config),
+        Config
+    ),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
@@ -338,18 +328,18 @@ get_current_balances_group_by_shop_ok_test(Config) ->
 
     {ok, _} = anapi_client_analytics:get_current_balances_group_by_shop(?config(context, Config), Query).
 
--spec analytics_timeout_test(config()) ->
-    _.
+-spec analytics_timeout_test(config()) -> _.
 analytics_timeout_test(Config) ->
     anapi_ct_helper:mock_services(
-        [{analytics,
-            fun('GetRefundsAmount', _) ->
+        [
+            {analytics, fun('GetRefundsAmount', _) ->
                 timer:sleep(1500),
                 {ok, ?ANALYTICS_AMOUNT_RESP}
             end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
         ],
-        Config),
+        Config
+    ),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},

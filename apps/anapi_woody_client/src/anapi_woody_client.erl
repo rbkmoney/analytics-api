@@ -25,17 +25,13 @@
 
 -type service_name() :: atom().
 
--spec call_service(service_name(), woody:func(), [term()], woody_context:ctx()) ->
-    woody:result().
-
+-spec call_service(service_name(), woody:func(), [term()], woody_context:ctx()) -> woody:result().
 call_service(ServiceName, Function, Args, Context) ->
     EventHandlerOpts = genlib_app:env(anapi, scoper_event_handler_options, #{}),
     EventHandler = {scoper_woody_event_handler, EventHandlerOpts},
     call_service(ServiceName, Function, Args, Context, EventHandler).
 
--spec call_service(service_name(), woody:func(), [term()], woody_context:ctx(), woody:ev_handler()) ->
-    woody:result().
-
+-spec call_service(service_name(), woody:func(), [term()], woody_context:ctx(), woody:ev_handler()) -> woody:result().
 call_service(ServiceName, Function, Args, Context0, EventHandler) ->
     Deadline = get_service_deadline(ServiceName),
     Context1 = set_deadline(Deadline, Context0),
@@ -53,8 +49,8 @@ call_service(ServiceName, Function, Args, Context, EventHandler, Retry) ->
             Context
         )
     catch
-        error:{woody_error, {_Source, Class, _Details}} = Error
-        when Class =:= resource_unavailable orelse Class =:= result_unknown
+        error:{woody_error, {_Source, Class, _Details}} = Error when
+            Class =:= resource_unavailable orelse Class =:= result_unknown
         ->
             NextRetry = apply_retry_strategy(Retry, Error, Context),
             call_service(ServiceName, Function, Args, Context, EventHandler, NextRetry)
@@ -85,7 +81,6 @@ get_service_url(ServiceName) ->
     maps:get(ServiceName, genlib_app:env(?MODULE, service_urls)).
 
 -spec get_service_modname(service_name()) -> woody:service().
-
 get_service_modname(merchant_stat) ->
     {dmsl_merch_stat_thrift, 'MerchantStatistics'};
 get_service_modname(reporting) ->
@@ -94,7 +89,6 @@ get_service_modname(analytics) ->
     {analytics_proto_analytics_thrift, 'AnalyticsService'};
 get_service_modname(party_shop) ->
     {party_shop_proto_party_shop_thrift, 'PartyShopService'}.
-
 
 get_service_deadline(ServiceName) ->
     ServiceDeadlines = genlib_app:env(?MODULE, service_deadlines, #{}),

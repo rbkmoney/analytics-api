@@ -75,22 +75,20 @@ all() ->
 -spec groups() -> [{group_name(), list(), [test_case_name()]}].
 groups() ->
     [
-        {all_tests, [],
-            [
-                get_payments_tool_distribution_ok_test,
-                get_payments_amount_ok_test,
-                get_average_payment_ok_test,
-                get_payments_count_ok_test,
-                get_payments_error_distribution_ok_test,
-                get_payments_split_amount_ok_test,
-                get_payments_split_count_ok_test,
-                get_refunds_amount_ok_test,
-                get_current_balances_ok_test,
-                get_payments_sub_error_distribution_ok_test,
-                get_current_balances_group_by_shop_ok_test,
-                analytics_timeout_test
-            ]
-        }
+        {all_tests, [], [
+            get_payments_tool_distribution_ok_test,
+            get_payments_amount_ok_test,
+            get_average_payment_ok_test,
+            get_payments_count_ok_test,
+            get_payments_error_distribution_ok_test,
+            get_payments_split_amount_ok_test,
+            get_payments_split_count_ok_test,
+            get_refunds_amount_ok_test,
+            get_current_balances_ok_test,
+            get_payments_sub_error_distribution_ok_test,
+            get_current_balances_group_by_shop_ok_test,
+            analytics_timeout_test
+        ]}
     ].
 
 %%
@@ -312,15 +310,15 @@ get_payments_sub_error_distribution_ok_test(Config) ->
 
     {ok, _} = anapi_client_analytics:get_payments_sub_error_distribution(?config(context, Config), Query).
 
--spec get_current_balances_group_by_shop_ok_test(config()) ->
-    _.
+-spec get_current_balances_group_by_shop_ok_test(config()) -> _.
 get_current_balances_group_by_shop_ok_test(Config) ->
     anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetCurrentShopBalances', _) -> {ok, ?ANALYTICS_SHOP_AMOUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
         ],
-        Config),
+        Config
+    ),
     Query = [
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>}

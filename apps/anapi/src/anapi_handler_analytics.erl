@@ -104,7 +104,6 @@ process_request('GetCurrentBalancesGroupByShop', Req, Context) ->
         decode_fun => fun decode_shop_amount_response/1
     },
     process_analytics_request(merchant_filter, Query, Context, Opts);
-
 %%
 
 process_request(_OperationID, _Req, _Context) ->
@@ -157,10 +156,13 @@ decode_payment_tool_distribution_response(PaymentToolDistribution) ->
     ].
 
 decode_amount_response(Amounts) ->
-    [decode_amount_result(Amount, Currency) || #analytics_CurrencyGroupedAmount{
-        amount = Amount,
-        currency = Currency
-    } <- Amounts#analytics_AmountResponse.groups_amount].
+    [
+        decode_amount_result(Amount, Currency)
+        || #analytics_CurrencyGroupedAmount{
+               amount = Amount,
+               currency = Currency
+           } <- Amounts#analytics_AmountResponse.groups_amount
+    ].
 
 decode_count_response(Counts) ->
     [
@@ -225,30 +227,40 @@ decode_split_amount_response(SplitAmounts) ->
 
 decode_shop_amount_response(ShopAmounts) ->
     ResponseMap = lists:foldl(
-        fun(#analytics_ShopGroupedAmount{
-            amount = Amount,
-            shop_id = ShopID,
-            currency = Currency
-        }, AccIn) ->
+        fun(
+            #analytics_ShopGroupedAmount{
+                amount = Amount,
+                shop_id = ShopID,
+                currency = Currency
+            },
+            AccIn
+        ) ->
             AmountResults = maps:get(ShopID, AccIn, []),
             AccIn#{
                 ShopID => [decode_amount_result(Amount, Currency) | AmountResults]
             }
         end,
         #{},
-        ShopAmounts#analytics_ShopAmountResponse.groups_amount),
+        ShopAmounts#analytics_ShopAmountResponse.groups_amount
+    ),
     ResponseList = maps:fold(
         fun(ShopID, AmountResults, AccIn) ->
-            [#{
-                <<"id">> => ShopID,
-                <<"amountResults">> => AmountResults
-            } | AccIn]
+            [
+                #{
+                    <<"id">> => ShopID,
+                    <<"amountResults">> => AmountResults
+                }
+                | AccIn
+            ]
         end,
         [],
-        ResponseMap),
-    [#{
-        <<"groupBySHopResults">> => ResponseList
-    }].
+        ResponseMap
+    ),
+    [
+        #{
+            <<"groupBySHopResults">> => ResponseList
+        }
+    ].
 
 decode_offset_amount(#analytics_OffsetAmount{
     amount = Amount,

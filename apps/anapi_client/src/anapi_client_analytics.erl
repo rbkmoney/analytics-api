@@ -164,11 +164,12 @@ get_current_balances(Context, Query) ->
 -spec get_current_balances_group_by_shop(context(), analytics_query()) -> {ok, term(), term()} | {error, term()}.
 get_current_balances_group_by_shop(Context, Query) ->
     Qs = anapi_client_lib:make_analytics_query_string(Query),
-    Params = #{ qs_val => Qs },
+    Params = #{qs_val => Qs},
     {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
     Response = swag_client_analytics_api:get_current_balances_group_by_shop(Url, PreparedParams, Opts),
     case anapi_client_lib:handle_response(Response) of
         {ok, #{<<"result">> := RefundsAmount}} ->
             {ok, RefundsAmount};
-        {error, Error} -> {error, Error}
+        {error, Error} ->
+            {error, Error}
     end.

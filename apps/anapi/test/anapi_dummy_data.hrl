@@ -38,7 +38,7 @@
     data = ?JSON
 }).
 
--define (STAT_RESPONSE(Data), #merchstat_StatResponse{
+-define(STAT_RESPONSE(Data), #merchstat_StatResponse{
     data = Data,
     total_count = ?INTEGER,
     continuation_token = ?STRING
@@ -46,27 +46,31 @@
 
 -define(STAT_RESPONSE_INVOICES, ?STAT_RESPONSE({invoices, [?STAT_INVOICE]})).
 
--define(STAT_RESPONSE_PAYMENTS, ?STAT_RESPONSE({payments,
-    [
-        ?STAT_PAYMENT(?STAT_PAYER({bank_card, ?STAT_BANK_CARD}), ?STAT_PAYMENT_STATUS_CAPTURED),
-        ?STAT_PAYMENT(?STAT_PAYER({bank_card, ?STAT_BANK_CARD_WITH_TP}), ?STAT_PAYMENT_STATUS_PENDING),
-        ?STAT_PAYMENT(?STAT_PAYER({bank_card, ?STAT_BANK_CARD}, undefined), ?STAT_PAYMENT_STATUS_CAPTURED)
-    ]
-})).
+-define(STAT_RESPONSE_PAYMENTS,
+    ?STAT_RESPONSE(
+        {payments, [
+            ?STAT_PAYMENT(?STAT_PAYER({bank_card, ?STAT_BANK_CARD}), ?STAT_PAYMENT_STATUS_CAPTURED),
+            ?STAT_PAYMENT(?STAT_PAYER({bank_card, ?STAT_BANK_CARD_WITH_TP}), ?STAT_PAYMENT_STATUS_PENDING),
+            ?STAT_PAYMENT(?STAT_PAYER({bank_card, ?STAT_BANK_CARD}, undefined), ?STAT_PAYMENT_STATUS_CAPTURED)
+        ]}
+    )
+).
 
 -define(STAT_RESPONSE_RECORDS, ?STAT_RESPONSE({records, [?STAT_RECORD]})).
 
 -define(STAT_RESPONSE_REFUNDS, ?STAT_RESPONSE({refunds, [?STAT_REFUND]})).
 
--define(STAT_RESPONSE_PAYOUTS, ?STAT_RESPONSE({payouts,
-    [
-        ?STAT_PAYOUT({wallet, #merchstat_Wallet{wallet_id = ?STRING}}, []),
-        ?STAT_PAYOUT({bank_card, #merchstat_PayoutCard{card = ?STAT_BANK_CARD}}, [?PAYOUT_SUMMARY_ITEM]),
-        ?STAT_PAYOUT({bank_card, #merchstat_PayoutCard{card = ?STAT_BANK_CARD_WITH_TP}}, [?PAYOUT_SUMMARY_ITEM]),
-        ?STAT_PAYOUT({bank_account, ?STAT_PAYOUT_BANK_ACCOUNT_RUS}, undefined),
-        ?STAT_PAYOUT({bank_account, ?STAT_PAYOUT_BANK_ACCOUNT_INT}, [?PAYOUT_SUMMARY_ITEM])
-    ]
-})).
+-define(STAT_RESPONSE_PAYOUTS,
+    ?STAT_RESPONSE(
+        {payouts, [
+            ?STAT_PAYOUT({wallet, #merchstat_Wallet{wallet_id = ?STRING}}, []),
+            ?STAT_PAYOUT({bank_card, #merchstat_PayoutCard{card = ?STAT_BANK_CARD}}, [?PAYOUT_SUMMARY_ITEM]),
+            ?STAT_PAYOUT({bank_card, #merchstat_PayoutCard{card = ?STAT_BANK_CARD_WITH_TP}}, [?PAYOUT_SUMMARY_ITEM]),
+            ?STAT_PAYOUT({bank_account, ?STAT_PAYOUT_BANK_ACCOUNT_RUS}, undefined),
+            ?STAT_PAYOUT({bank_account, ?STAT_PAYOUT_BANK_ACCOUNT_INT}, [?PAYOUT_SUMMARY_ITEM])
+        ]}
+    )
+).
 
 -define(STAT_RESPONSE_CHARGEBACKS, ?STAT_RESPONSE({chargebacks, [?STAT_CHARGEBACK]})).
 
@@ -78,7 +82,7 @@
     status = {unpaid, #merchstat_InvoiceUnpaid{}},
     product = ?STRING,
     description = ?STRING,
-    due  = ?TIMESTAMP,
+    due = ?TIMESTAMP,
     amount = ?INTEGER,
     currency_symbolic_code = ?RUB,
     context = ?CONTENT,
@@ -140,16 +144,18 @@
     approval_code = <<"808080">>
 }).
 
--define (STAT_PAYER(PaymentTool), ?STAT_PAYER(PaymentTool, ?STRING)).
+-define(STAT_PAYER(PaymentTool), ?STAT_PAYER(PaymentTool, ?STRING)).
 
--define (STAT_PAYER(PaymentTool, SessionId), {payment_resource, #merchstat_PaymentResourcePayer{
-    payment_tool = PaymentTool,
-    ip_address = ?STRING,
-    fingerprint = ?STRING,
-    phone_number = ?STRING,
-    email = <<"test@test.ru">>,
-    session_id = SessionId
-}}).
+-define(STAT_PAYER(PaymentTool, SessionId),
+    {payment_resource, #merchstat_PaymentResourcePayer{
+        payment_tool = PaymentTool,
+        ip_address = ?STRING,
+        fingerprint = ?STRING,
+        phone_number = ?STRING,
+        email = <<"test@test.ru">>,
+        session_id = SessionId
+    }}
+).
 
 -define(STAT_PAYMENT_STATUS_PENDING, {pending, #merchstat_InvoicePaymentPending{}}).
 
@@ -195,27 +201,31 @@
     summary = PayoutSummary
 }).
 
--define(STAT_PAYOUT_BANK_ACCOUNT_RUS, {russian_payout_account, #merchstat_RussianPayoutAccount{
-    bank_account = #merchstat_RussianBankAccount{
-        account = <<"12345678901234567890">>,
-        bank_name = ?STRING,
-        bank_post_account = <<"12345678901234567890">>,
-        bank_bik = <<"123456789">>
-    },
-    inn = ?STRING,
-    purpose = ?STRING
-}}).
+-define(STAT_PAYOUT_BANK_ACCOUNT_RUS,
+    {russian_payout_account, #merchstat_RussianPayoutAccount{
+        bank_account = #merchstat_RussianBankAccount{
+            account = <<"12345678901234567890">>,
+            bank_name = ?STRING,
+            bank_post_account = <<"12345678901234567890">>,
+            bank_bik = <<"123456789">>
+        },
+        inn = ?STRING,
+        purpose = ?STRING
+    }}
+).
 
--define(STAT_PAYOUT_BANK_ACCOUNT_INT, {international_payout_account, #merchstat_InternationalPayoutAccount{
-    bank_account = #merchstat_InternationalBankAccount{
-        number = <<"12345678901234567890">>,
-        bank = ?STAT_PAYOUT_BANK_DETAILS_INT,
-        correspondent_account = #merchstat_InternationalBankAccount{number = <<"00000000000000000000">>},
-        iban = <<"GR1601101250000000012300695">>,
-        account_holder = ?STRING
-    },
-    purpose = ?STRING
-}}).
+-define(STAT_PAYOUT_BANK_ACCOUNT_INT,
+    {international_payout_account, #merchstat_InternationalPayoutAccount{
+        bank_account = #merchstat_InternationalBankAccount{
+            number = <<"12345678901234567890">>,
+            bank = ?STAT_PAYOUT_BANK_DETAILS_INT,
+            correspondent_account = #merchstat_InternationalBankAccount{number = <<"00000000000000000000">>},
+            iban = <<"GR1601101250000000012300695">>,
+            account_holder = ?STRING
+        },
+        purpose = ?STRING
+    }}
+).
 
 -define(STAT_PAYOUT_BANK_DETAILS_INT, #merchstat_InternationalBankDetails{
     %% In reality either bic or aba_rtn should be used, not both.
@@ -231,7 +241,6 @@
     payment_system = visa,
     bin = <<"411111">>,
     masked_pan = <<"411111******1111">>
-
 }).
 
 -define(STAT_BANK_CARD_WITH_TP, #merchstat_BankCard{

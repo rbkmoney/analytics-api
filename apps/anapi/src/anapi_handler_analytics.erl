@@ -19,15 +19,14 @@
 -include_lib("analytics_proto/include/analytics_proto_analytics_thrift.hrl").
 
 -behaviour(anapi_handler).
+
 -export([process_request/3]).
 
 -spec process_request(
     OperationID :: anapi_handler:operation_id(),
-    Req         :: anapi_handler:request_data(),
-    Context     :: anapi_handler:processing_context()
-) ->
-    {ok | error, anapi_handler:response() | noimpl}.
-
+    Req :: anapi_handler:request_data(),
+    Context :: anapi_handler:processing_context()
+) -> {ok | error, anapi_handler:response() | noimpl}.
 process_request('GetPaymentsToolDistribution', Req, Context) ->
     Query = make_query(Req, Context),
     Opts = #{
@@ -35,7 +34,6 @@ process_request('GetPaymentsToolDistribution', Req, Context) ->
         decode_fun => fun decode_payment_tool_distribution_response/1
     },
     process_analytics_request(filter_request, Query, Context, Opts);
-
 process_request('GetPaymentsAmount', Req, Context) ->
     Query = make_query(Req, Context),
     Opts = #{
@@ -43,7 +41,6 @@ process_request('GetPaymentsAmount', Req, Context) ->
         decode_fun => fun decode_amount_response/1
     },
     process_analytics_request(filter_request, Query, Context, Opts);
-
 process_request('GetAveragePayment', Req, Context) ->
     Query = make_query(Req, Context),
     Opts = #{
@@ -51,7 +48,6 @@ process_request('GetAveragePayment', Req, Context) ->
         decode_fun => fun decode_amount_response/1
     },
     process_analytics_request(filter_request, Query, Context, Opts);
-
 process_request('GetPaymentsCount', Req, Context) ->
     Query = make_query(Req, Context),
     Opts = #{
@@ -59,7 +55,6 @@ process_request('GetPaymentsCount', Req, Context) ->
         decode_fun => fun decode_count_response/1
     },
     process_analytics_request(filter_request, Query, Context, Opts);
-
 process_request('GetPaymentsErrorDistribution', Req, Context) ->
     Query = make_query(Req, Context),
     Opts = #{
@@ -67,7 +62,6 @@ process_request('GetPaymentsErrorDistribution', Req, Context) ->
         decode_fun => fun decode_error_distributions_response/1
     },
     process_analytics_request(filter_request, Query, Context, Opts);
-
 process_request('GetPaymentsSplitAmount', Req, Context) ->
     Query = make_query(Req, Context),
     Opts = #{
@@ -75,7 +69,6 @@ process_request('GetPaymentsSplitAmount', Req, Context) ->
         decode_fun => fun decode_split_amount_response/1
     },
     process_analytics_request(split_filter_request, Query, Context, Opts);
-
 process_request('GetPaymentsSplitCount', Req, Context) ->
     Query = make_query(Req, Context),
     Opts = #{
@@ -83,7 +76,6 @@ process_request('GetPaymentsSplitCount', Req, Context) ->
         decode_fun => fun decode_split_count_response/1
     },
     process_analytics_request(split_filter_request, Query, Context, Opts);
-
 process_request('GetRefundsAmount', Req, Context) ->
     Query = make_query(Req, Context),
     Opts = #{
@@ -91,7 +83,6 @@ process_request('GetRefundsAmount', Req, Context) ->
         decode_fun => fun decode_amount_response/1
     },
     process_analytics_request(filter_request, Query, Context, Opts);
-
 process_request('GetCurrentBalances', Req, Context) ->
     Query = make_query(Req, Context),
     Opts = #{
@@ -99,7 +90,6 @@ process_request('GetCurrentBalances', Req, Context) ->
         decode_fun => fun decode_amount_response/1
     },
     process_analytics_request(merchant_filter, Query, Context, Opts);
-
 process_request('GetPaymentsSubErrorDistribution', Req, Context) ->
     Query = make_query(Req, Context),
     Opts = #{
@@ -107,7 +97,6 @@ process_request('GetPaymentsSubErrorDistribution', Req, Context) ->
         decode_fun => fun decode_sub_error_distributions_response/1
     },
     process_analytics_request(filter_request, Query, Context, Opts);
-
 %%
 
 process_request(_OperationID, _Req, _Context) ->
@@ -137,60 +126,75 @@ process_analytics_request_result(Result, #{decode_fun := DecodeFun}) ->
 
 make_query(Req, Context) ->
     #{
-        party_id         => anapi_handler_utils:get_party_id(Context),
-        shop_ids         => anapi_handler_utils:enumerate_shop_ids(Req, Context),
+        party_id => anapi_handler_utils:get_party_id(Context),
+        shop_ids => anapi_handler_utils:enumerate_shop_ids(Req, Context),
         exclude_shop_ids => genlib_map:get('excludeShopIDs', Req),
-        from_time        => anapi_handler_utils:get_time('fromTime', Req),
-        to_time          => anapi_handler_utils:get_time('toTime', Req),
-        split_unit       => genlib_map:get('splitUnit', Req)
+        from_time => anapi_handler_utils:get_time('fromTime', Req),
+        to_time => anapi_handler_utils:get_time('toTime', Req),
+        split_unit => genlib_map:get('splitUnit', Req)
     }.
 
 %%
 
 decode_payment_tool_distribution_response(PaymentToolDistribution) ->
-    [#{
-        <<"name">> => Name,
-        <<"percents">> => Percents
-    } || #analytics_NamingDistribution{
-        name = Name,
-        percents = Percents
-    } <- PaymentToolDistribution#analytics_PaymentToolDistributionResponse.payment_tools_distributions].
+    [
+        #{
+            <<"name">> => Name,
+            <<"percents">> => Percents
+        }
+        || #analytics_NamingDistribution{
+               name = Name,
+               percents = Percents
+           } <- PaymentToolDistribution#analytics_PaymentToolDistributionResponse.payment_tools_distributions
+    ].
 
 decode_amount_response(Amounts) ->
-    [#{
-        <<"amount">> => Amount,
-        <<"currency">> => Currency
-    } || #analytics_CurrencyGroupedAmount{
-        amount = Amount,
-        currency = Currency
-    } <- Amounts#analytics_AmountResponse.groups_amount].
+    [
+        #{
+            <<"amount">> => Amount,
+            <<"currency">> => Currency
+        }
+        || #analytics_CurrencyGroupedAmount{
+               amount = Amount,
+               currency = Currency
+           } <- Amounts#analytics_AmountResponse.groups_amount
+    ].
 
 decode_count_response(Counts) ->
-    [#{
-        <<"count">> => Count,
-        <<"currency">> => Currency
-    } || #analytics_CurrecyGroupCount{
-        count = Count,
-        currency = Currency
-    } <- Counts#analytics_CountResponse.groups_count].
+    [
+        #{
+            <<"count">> => Count,
+            <<"currency">> => Currency
+        }
+        || #analytics_CurrecyGroupCount{
+               count = Count,
+               currency = Currency
+           } <- Counts#analytics_CountResponse.groups_count
+    ].
 
 decode_error_distributions_response(ErrorDistributions) ->
-    [#{
-        <<"error">> => Name,
-        <<"percents">> => Percents
-    } || #analytics_NamingDistribution{
-        name = Name,
-        percents = Percents
-    } <- ErrorDistributions#analytics_ErrorDistributionsResponse.error_distributions].
+    [
+        #{
+            <<"error">> => Name,
+            <<"percents">> => Percents
+        }
+        || #analytics_NamingDistribution{
+               name = Name,
+               percents = Percents
+           } <- ErrorDistributions#analytics_ErrorDistributionsResponse.error_distributions
+    ].
 
 decode_sub_error_distributions_response(ErrorDistributions) ->
-    [#{
-        <<"error">> => decode_sub_error(SubError),
-        <<"percents">> => Percents
-    } || #analytics_ErrorDistribution{
-        error = SubError,
-        percents = Percents
-    } <- ErrorDistributions#analytics_SubErrorDistributionsResponse.error_distributions].
+    [
+        #{
+            <<"error">> => decode_sub_error(SubError),
+            <<"percents">> => Percents
+        }
+        || #analytics_ErrorDistribution{
+               error = SubError,
+               percents = Percents
+           } <- ErrorDistributions#analytics_SubErrorDistributionsResponse.error_distributions
+    ].
 
 decode_sub_error(undefined) ->
     undefined;
@@ -205,14 +209,17 @@ decode_sub_error(#analytics_SubError{
 
 decode_split_amount_response(SplitAmounts) ->
     SplitUnit = decode_split_unit(SplitAmounts#analytics_SplitAmountResponse.result_split_unit),
-    [#{
-        <<"splitUnit">> => SplitUnit,
-        <<"currency">> => Currency,
-        <<"offsetAmounts">> => [decode_offset_amount(OffsetAmount) || OffsetAmount <- OffsetAmounts]
-    } || #analytics_GroupedCurrencyOffsetAmount{
-        currency = Currency,
-        offset_amounts = OffsetAmounts
-    } <- SplitAmounts#analytics_SplitAmountResponse.grouped_currency_amounts].
+    [
+        #{
+            <<"splitUnit">> => SplitUnit,
+            <<"currency">> => Currency,
+            <<"offsetAmounts">> => [decode_offset_amount(OffsetAmount) || OffsetAmount <- OffsetAmounts]
+        }
+        || #analytics_GroupedCurrencyOffsetAmount{
+               currency = Currency,
+               offset_amounts = OffsetAmounts
+           } <- SplitAmounts#analytics_SplitAmountResponse.grouped_currency_amounts
+    ].
 
 decode_offset_amount(#analytics_OffsetAmount{
     amount = Amount,
@@ -225,15 +232,20 @@ decode_offset_amount(#analytics_OffsetAmount{
 
 decode_split_count_response(SplitCounts) ->
     SplitUnit = decode_split_unit(SplitCounts#analytics_SplitCountResponse.result_split_unit),
-    [#{
-        <<"splitUnit">> => SplitUnit,
-        <<"currency">> => Currency,
-        <<"statusOffsetCounts">> => [decode_grouped_status_offset_count(OffsetCount)
-            || OffsetCount <- GroupedStatusOffsetCounts]
-    } || #analytics_GroupedCurrencyOffsetCount{
-        currency = Currency,
-        offset_amounts = GroupedStatusOffsetCounts
-    } <- SplitCounts#analytics_SplitCountResponse.payment_tools_destrobutions].
+    [
+        #{
+            <<"splitUnit">> => SplitUnit,
+            <<"currency">> => Currency,
+            <<"statusOffsetCounts">> => [
+                decode_grouped_status_offset_count(OffsetCount)
+                || OffsetCount <- GroupedStatusOffsetCounts
+            ]
+        }
+        || #analytics_GroupedCurrencyOffsetCount{
+               currency = Currency,
+               offset_amounts = GroupedStatusOffsetCounts
+           } <- SplitCounts#analytics_SplitCountResponse.payment_tools_destrobutions
+    ].
 
 decode_grouped_status_offset_count(#analytics_GroupedStatusOffsetCount{
     status = Status,

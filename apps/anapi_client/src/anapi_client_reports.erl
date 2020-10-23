@@ -12,30 +12,29 @@
 -spec search_reports(context(), reporting_query()) -> {ok, list()} | {error, term()}.
 search_reports(Context, Query) ->
     Qs = anapi_client_lib:make_reporting_query_string(Query),
-    Params = #{ qs_val => Qs },
+    Params = #{qs_val => Qs},
     {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
     Response = swag_client_reports_api:search_reports(Url, PreparedParams, Opts),
     anapi_client_lib:handle_response(Response).
 
 -spec get_report(context(), binary()) -> {ok, list()} | {error, term()}.
 get_report(Context, ReportID) ->
-    Params = #{ binding => #{ <<"reportID">> => ReportID } },
+    Params = #{binding => #{<<"reportID">> => ReportID}},
     {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
     Response = swag_client_reports_api:get_report(Url, PreparedParams, Opts),
     anapi_client_lib:handle_response(Response).
 
 -spec cancel_report(context(), binary()) -> {ok, list()} | {error, term()}.
 cancel_report(Context, ReportID) ->
-    Params = #{ binding => #{ <<"reportID">> => ReportID } },
+    Params = #{binding => #{<<"reportID">> => ReportID}},
     {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
     Response = swag_client_reports_api:cancel_report(Url, PreparedParams, Opts),
     anapi_client_lib:handle_response(Response).
 
--spec create_report(context(), reporting_query()) ->
-    {ok, list()} | {error, term()}.
+-spec create_report(context(), reporting_query()) -> {ok, list()} | {error, term()}.
 create_report(Context, Query) ->
     Qs = anapi_client_lib:make_reporting_query_string(Query),
-    Params = #{ qs_val => Qs },
+    Params = #{qs_val => Qs},
     {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
     Response = swag_client_reports_api:create_report(Url, PreparedParams, Opts),
     anapi_client_lib:handle_response(Response).

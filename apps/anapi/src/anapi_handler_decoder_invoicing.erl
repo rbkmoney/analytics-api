@@ -26,9 +26,7 @@
 -type processing_context() :: anapi_handler:processing_context().
 
 %%
--spec decode_payment_operation_failure({atom(), _}, processing_context()) ->
-    anapi_handler_decoder_utils:decode_data().
-
+-spec decode_payment_operation_failure({atom(), _}, processing_context()) -> anapi_handler_decoder_utils:decode_data().
 decode_payment_operation_failure({operation_timeout, _}, _) ->
     payment_error(<<"timeout">>);
 decode_payment_operation_failure({failure, Failure}, Context) ->
@@ -41,24 +39,20 @@ decode_payment_operation_failure({failure, Failure}, Context) ->
             )
     end.
 
-decode_payment_operation_failure_([H|T]) ->
+decode_payment_operation_failure_([H | T]) ->
     R = payment_error(H),
     case T of
         [] -> R;
-        _  -> R#{<<"subError">> => decode_payment_operation_failure_(T)}
+        _ -> R#{<<"subError">> => decode_payment_operation_failure_(T)}
     end.
 
--spec decode_make_recurrent(undefined | boolean()) ->
-    boolean().
-
+-spec decode_make_recurrent(undefined | boolean()) -> boolean().
 decode_make_recurrent(undefined) ->
     false;
 decode_make_recurrent(Value) when is_boolean(Value) ->
     Value.
 
--spec decode_recurrent_parent(anapi_handler_encoder:encode_data()) ->
-    anapi_handler_decoder_utils:decode_data().
-
+-spec decode_recurrent_parent(anapi_handler_encoder:encode_data()) -> anapi_handler_decoder_utils:decode_data().
 decode_recurrent_parent(#domain_RecurrentParentPayment{invoice_id = InvoiceID, payment_id = PaymentID}) ->
     #{
         <<"invoiceID">> => InvoiceID,
@@ -75,7 +69,6 @@ payment_error(Code) ->
 
 -spec decode_invoice_cart(anapi_handler_encoder:encode_data() | undefined) ->
     anapi_handler_decoder_utils:decode_data() | undefined.
-
 decode_invoice_cart(#domain_InvoiceCart{lines = Lines}) ->
     [decode_invoice_line(L) || L <- Lines];
 decode_invoice_cart(undefined) ->
@@ -83,22 +76,20 @@ decode_invoice_cart(undefined) ->
 
 decode_invoice_line(InvoiceLine = #domain_InvoiceLine{quantity = Quantity, price = #domain_Cash{amount = Price}}) ->
     genlib_map:compact(#{
-        <<"product" >> => InvoiceLine#domain_InvoiceLine.product,
+        <<"product">> => InvoiceLine#domain_InvoiceLine.product,
         <<"quantity">> => Quantity,
-        <<"price"   >> => Price,
-        <<"cost"    >> => Price * Quantity,
-        <<"taxMode" >> => decode_invoice_line_tax_mode(InvoiceLine#domain_InvoiceLine.metadata)
+        <<"price">> => Price,
+        <<"cost">> => Price * Quantity,
+        <<"taxMode">> => decode_invoice_line_tax_mode(InvoiceLine#domain_InvoiceLine.metadata)
     }).
 
--spec decode_invoice_line_tax_mode(map()) ->
-    anapi_handler_decoder_utils:decode_data() | undefined.
-
+-spec decode_invoice_line_tax_mode(map()) -> anapi_handler_decoder_utils:decode_data() | undefined.
 decode_invoice_line_tax_mode(#{<<"TaxMode">> := {str, TM}}) ->
     %% for more info about taxMode look here:
     %% https://github.com/rbkmoney/starrys/blob/master/docs/settings.md
     #{
-       <<"type">> => <<"InvoiceLineTaxVAT">>,
-       <<"rate">> => TM
+        <<"type">> => <<"InvoiceLineTaxVAT">>,
+        <<"rate">> => TM
     };
 decode_invoice_line_tax_mode(_) ->
     undefined.

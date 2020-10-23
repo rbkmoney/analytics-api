@@ -25,7 +25,8 @@
 
 -export([unwrap/1]).
 
--define(MAX_REQUEST_DEADLINE_TIME, timer:minutes(5)). % 5 min
+% 5 min
+-define(MAX_REQUEST_DEADLINE_TIME, timer:minutes(5)).
 
 -spec map_to_base64url(map()) -> binary() | no_return().
 map_to_base64url(Map) when is_map(Map) ->
@@ -36,8 +37,7 @@ to_universal_time(Timestamp) ->
     Microseconds = genlib_rfc3339:parse(Timestamp, microsecond),
     genlib_rfc3339:format_relaxed(Microseconds, microsecond).
 
--spec unwrap(ok | {ok, Value} | {error, _Error}) ->
-    Value | no_return().
+-spec unwrap(ok | {ok, Value} | {error, _Error}) -> Value | no_return().
 unwrap(ok) ->
     ok;
 unwrap({ok, Value}) ->
@@ -56,6 +56,7 @@ parse_deadline(DeadlineStr) ->
         fun try_parse_relative/1
     ],
     try_parse_deadline(DeadlineStr, Parsers).
+
 %%
 %% Internals
 %%
@@ -68,6 +69,7 @@ try_parse_deadline(DeadlineStr, [P | Parsers]) ->
         {error, bad_deadline} ->
             try_parse_deadline(DeadlineStr, Parsers)
     end.
+
 try_parse_woody_default(DeadlineStr) ->
     try
         Deadline = woody_deadline:from_binary(to_universal_time(DeadlineStr)),
@@ -82,6 +84,7 @@ try_parse_woody_default(DeadlineStr) ->
         error:deadline_reached ->
             {error, bad_deadline}
     end.
+
 try_parse_relative(DeadlineStr) ->
     %% deadline string like '1ms', '30m', '2.6h' etc
     case re:split(DeadlineStr, <<"^(\\d+\\.\\d+|\\d+)([a-z]+)$">>) of
@@ -91,6 +94,7 @@ try_parse_relative(DeadlineStr) ->
         _Other ->
             {error, bad_deadline}
     end.
+
 try_parse_relative(Number, Unit) ->
     case unit_factor(Unit) of
         {ok, Factor} ->
@@ -99,6 +103,7 @@ try_parse_relative(Number, Unit) ->
         {error, _Reason} ->
             {error, bad_deadline}
     end.
+
 unit_factor(<<"ms">>) ->
     {ok, 1};
 unit_factor(<<"s">>) ->
@@ -121,7 +126,7 @@ clamp_max_deadline(Value) when is_integer(Value) ->
 get_process_metadata() ->
     case logger:get_process_metadata() of
         undefined -> #{};
-        Metadata  -> Metadata
+        Metadata -> Metadata
     end.
 
 %%
@@ -132,8 +137,9 @@ get_process_metadata() ->
 -spec test() -> _.
 
 -spec to_universal_time_test() -> _.
+
 to_universal_time_test() ->
-    ?assertEqual(<<"2017-04-19T13:56:07Z">>,     to_universal_time(<<"2017-04-19T13:56:07Z">>)),
+    ?assertEqual(<<"2017-04-19T13:56:07Z">>, to_universal_time(<<"2017-04-19T13:56:07Z">>)),
     ?assertEqual(<<"2017-04-19T13:56:07.530Z">>, to_universal_time(<<"2017-04-19T13:56:07.53Z">>)),
     ?assertEqual(<<"2017-04-19T10:36:07.530Z">>, to_universal_time(<<"2017-04-19T13:56:07.53+03:20">>)),
     ?assertEqual(<<"2017-04-19T17:16:07.530Z">>, to_universal_time(<<"2017-04-19T13:56:07.53-03:20">>)).

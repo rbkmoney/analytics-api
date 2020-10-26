@@ -104,16 +104,17 @@ create_dsl(QueryType, QueryBody, QueryParams) ->
 
 -spec enumerate_shop_ids(anapi_handler:request_data(), processing_context()) -> [binary()].
 enumerate_shop_ids(Req, Context) ->
-    ShopIDs = get_request_shops(Req),
-    Realm = genlib_map:get('paymentInstitutionRealm', Req),
-    PartyID = genlib_map:get('partyID', Req),
-    UserID = get_party_id(Context),
-    ok = validate_party_access(UserID, PartyID),
-    PartyShops = get_party_shops(UserID, Realm, Context),
-    deduplicate_shops(ShopIDs ++ PartyShops).
-
-deduplicate_shops(Shops) ->
-    sets:to_list(sets:from_list(Shops)).
+    case get_request_shops(Req) of
+        [] ->
+            % Neither shopID nor shopIDs is set, will search using partyID & realm
+            Realm = genlib_map:get('paymentInstitutionRealm', Req),
+            PartyID = genlib_map:get('partyID', Req),
+            UserID = get_party_id(Context),
+            ok = validate_party_access(UserID, PartyID),
+            get_party_shops(UserID, Realm, Context);
+        ShopIDs ->
+            ShopIDs
+    end.
 
 get_request_shops(Req) ->
     ShopIDs = genlib:define(genlib_map:get('shopIDs', Req), []),

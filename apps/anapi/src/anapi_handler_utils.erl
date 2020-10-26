@@ -140,3 +140,36 @@ validate_party_access(UserID, PartyID) when UserID =:= PartyID ->
 validate_party_access(_UserID, PartyID) ->
     % One day there will be a service for checking party accesss
     throw({invalidPartyID, PartyID}).
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+-spec test() -> _.
+
+-spec enumerate_shop_ids_shopID_present_test() -> _.
+enumerate_shop_ids_shopID_present_test() ->
+    ShopID = <<"SHOP_ID">>,
+    Req = #{
+        'shopID' => ShopID
+    },
+    [ShopID] = enumerate_shop_ids(Req, #{}).
+
+-spec enumerate_shop_ids_shopIDs_present_test() -> _.
+enumerate_shop_ids_shopIDs_present_test() ->
+    ShopIDs = [<<"SHOP_ID">>, <<"SHOP_ID_2">>],
+    Req = #{
+        'shopIDs' => ShopIDs
+    },
+    ShopIDs = enumerate_shop_ids(Req, #{}).
+
+-spec enumerate_shop_ids_both_filters_present_test() -> _.
+enumerate_shop_ids_both_filters_present_test() ->
+    ShopID = <<"SHOP_ID">>,
+    ShopIDs = [<<"SHOP_ID_2">>, <<"SHOP_ID_3">>],
+    Req = #{
+        'shopID'  => ShopID,
+        'shopIDs' => ShopIDs
+    },
+    [ShopID | ShopIDs] = enumerate_shop_ids(Req, #{}).
+
+-endif.

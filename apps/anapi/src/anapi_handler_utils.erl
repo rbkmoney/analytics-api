@@ -147,6 +147,7 @@ validate_party_access(_UserID, PartyID) ->
 -spec test() -> _.
 
 -spec enumerate_shop_ids_shopID_present_test() -> _.
+
 enumerate_shop_ids_shopID_present_test() ->
     ShopID = <<"SHOP_ID">>,
     Req = #{
@@ -167,7 +168,7 @@ enumerate_shop_ids_both_filters_present_test() ->
     ShopID = <<"SHOP_ID">>,
     ShopIDs = [<<"SHOP_ID_2">>, <<"SHOP_ID_3">>],
     Req = #{
-        'shopID'  => ShopID,
+        'shopID' => ShopID,
         'shopIDs' => ShopIDs
     },
     [ShopID | ShopIDs] = enumerate_shop_ids(Req, #{}).

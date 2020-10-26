@@ -104,16 +104,17 @@ create_dsl(QueryType, QueryBody, QueryParams) ->
 
 -spec enumerate_shop_ids(anapi_handler:request_data(), processing_context()) -> [binary()].
 enumerate_shop_ids(Req, Context) ->
-    ShopIDs = get_request_shops(Req),
-    Realm = genlib_map:get('paymentInstitutionRealm', Req),
-    PartyID = genlib_map:get('partyID', Req),
-    UserID = get_party_id(Context),
-    ok = validate_party_access(UserID, PartyID),
-    PartyShops = get_party_shops(UserID, Realm, Context),
-    deduplicate_shops(ShopIDs ++ PartyShops).
-
-deduplicate_shops(Shops) ->
-    sets:to_list(sets:from_list(Shops)).
+    case get_request_shops(Req) of
+        [] ->
+            % Neither shopID nor shopIDs is set, will search using partyID & realm
+            Realm = genlib_map:get('paymentInstitutionRealm', Req),
+            PartyID = genlib_map:get('partyID', Req),
+            UserID = get_party_id(Context),
+            ok = validate_party_access(UserID, PartyID),
+            get_party_shops(UserID, Realm, Context);
+        ShopIDs ->
+            ShopIDs
+    end.
 
 get_request_shops(Req) ->
     ShopIDs = genlib:define(genlib_map:get('shopIDs', Req), []),
@@ -139,3 +140,37 @@ validate_party_access(UserID, PartyID) when UserID =:= PartyID ->
 validate_party_access(_UserID, PartyID) ->
     % One day there will be a service for checking party accesss
     throw({invalidPartyID, PartyID}).
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+-spec test() -> _.
+
+-spec enumerate_shop_ids_shopID_present_test() -> _.
+
+enumerate_shop_ids_shopID_present_test() ->
+    ShopID = <<"SHOP_ID">>,
+    Req = #{
+        'shopID' => ShopID
+    },
+    [ShopID] = enumerate_shop_ids(Req, #{}).
+
+-spec enumerate_shop_ids_shopIDs_present_test() -> _.
+enumerate_shop_ids_shopIDs_present_test() ->
+    ShopIDs = [<<"SHOP_ID">>, <<"SHOP_ID_2">>],
+    Req = #{
+        'shopIDs' => ShopIDs
+    },
+    ShopIDs = enumerate_shop_ids(Req, #{}).
+
+-spec enumerate_shop_ids_both_filters_present_test() -> _.
+enumerate_shop_ids_both_filters_present_test() ->
+    ShopID = <<"SHOP_ID">>,
+    ShopIDs = [<<"SHOP_ID_2">>, <<"SHOP_ID_3">>],
+    Req = #{
+        'shopID' => ShopID,
+        'shopIDs' => ShopIDs
+    },
+    [ShopID | ShopIDs] = enumerate_shop_ids(Req, #{}).
+
+-endif.

@@ -474,6 +474,8 @@ decode_status_changed_at({_, #merchstat_InvoicePaymentCancelled{at = ChangedAt}}
 decode_status_changed_at({_, #merchstat_InvoicePaymentRefunded{at = ChangedAt}}) ->
     ChangedAt;
 decode_status_changed_at({_, #merchstat_InvoicePaymentFailed{at = ChangedAt}}) ->
+    ChangedAt;
+decode_status_changed_at({_, #merchstat_InvoicePaymentChargedBack{at = ChangedAt}}) ->
     ChangedAt.
 
 decode_stat_payout(Payout, _Context) ->

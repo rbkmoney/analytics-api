@@ -95,6 +95,7 @@ make_restricted_query(ShopIDs, Req, Context) ->
         <<"merchant_id">> => anapi_handler_utils:get_party_id(Context),
         <<"shop_ids">> => ShopIDs,
         <<"invoice_id">> => genlib_map:get('invoiceID', Req),
+        <<"invoice_ids">> => genlib_map:get('invoiceIDs', Req),
         <<"from_time">> => anapi_handler_utils:get_time('fromTime', Req),
         <<"to_time">> => anapi_handler_utils:get_time('toTime', Req),
         <<"payment_status">> => genlib_map:get('paymentStatus', Req),
@@ -469,6 +470,8 @@ decode_status_changed_at({_, #merchstat_InvoicePaymentCancelled{at = ChangedAt}}
 decode_status_changed_at({_, #merchstat_InvoicePaymentRefunded{at = ChangedAt}}) ->
     ChangedAt;
 decode_status_changed_at({_, #merchstat_InvoicePaymentFailed{at = ChangedAt}}) ->
+    ChangedAt;
+decode_status_changed_at({_, #merchstat_InvoicePaymentChargedBack{at = ChangedAt}}) ->
     ChangedAt.
 
 decode_stat_payout(Payout, _Context) ->

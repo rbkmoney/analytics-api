@@ -20,7 +20,11 @@
 -export([get_consumer/1]).
 -export([get_access_config/0]).
 
+-export([get_subject_id/1]).
+
 -type consumer() :: client | merchant | provider.
+
+-define(DOMAIN, <<"common-api">>).
 
 %%
 
@@ -81,7 +85,7 @@ get_consumer(Claims) ->
 -spec get_access_config() -> map().
 get_access_config() ->
     #{
-        domain_name => <<"common-api">>,
+        domain_name => ?DOMAIN,
         resource_hierarchy => get_resource_hierarchy()
     }.
 
@@ -93,3 +97,7 @@ get_resource_hierarchy() ->
         payments => #{},
         party => #{}
     }.
+
+-spec get_subject_id(context()) -> binary().
+get_subject_id({Claims, _}) ->
+    uac_authorizer_jwt:get_subject_id(Claims).

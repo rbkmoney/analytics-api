@@ -21,6 +21,7 @@
 -behaviour(anapi_handler).
 
 -export([process_request/3]).
+-export([preprocess_request/3]).
 
 -spec process_request(
     OperationID :: anapi_handler:operation_id(),
@@ -109,6 +110,23 @@ process_request('GetCurrentBalancesGroupByShop', Req, Context) ->
 process_request(_OperationID, _Req, _Context) ->
     {error, noimpl}.
 
+preprocess_request(OperationID, Req, Context) when
+    OperationID =:= 'GetPaymentsToolDistribution' orelse
+        OperationID =:= 'GetPaymentsAmount' orelse
+        OperationID =:= 'GetAveragePayment' orelse
+        OperationID =:= 'GetPaymentsCount' orelse
+        OperationID =:= 'GetPaymentsErrorDistribution' orelse
+        OperationID =:= 'GetPaymentsSplitAmount' orelse
+        OperationID =:= 'GetPaymentsSplitCount' orelse
+        OperationID =:= 'GetRefundsAmount' orelse
+        OperationID =:= 'GetCurrentBalances' orelse
+        OperationID =:= 'GetPaymentsSubErrorDistribution' orelse
+        OperationID =:= 'GetCurrentBalancesGroupByShop'
+    ->
+    {ok, make_authorization_query(OperationID, Req, Context)};
+preprocess_request(_OperationID, _Req, _Context) ->
+    {error, noimpl}.
+
 process_analytics_request(QueryType, Query, Context, Opts = #{thrift_fun := ThriftFun}) ->
     Call = {
         analytics,
@@ -131,14 +149,25 @@ process_analytics_request_result(Result, #{decode_fun := DecodeFun}) ->
 
 %%
 
-make_query(Req, Context) ->
+make_query(Req, Context = #{restrictions_context := Restrictions}) ->
+    ShopIDs = anapi_bouncer_restrictions:get_restricted_shop_ids(Restrictions),
+    make_restricted_query(ShopIDs, Req, Context).
+
+make_restricted_query(ShopIDs, Req, Context) ->
     #{
         party_id => anapi_handler_utils:get_party_id(Context),
-        shop_ids => anapi_handler_utils:enumerate_shop_ids(Req, Context),
+        shop_ids => ShopIDs,
         exclude_shop_ids => genlib_map:get('excludeShopIDs', Req),
         from_time => anapi_handler_utils:get_time('fromTime', Req),
         to_time => anapi_handler_utils:get_time('toTime', Req),
         split_unit => genlib_map:get('splitUnit', Req)
+    }.
+
+make_authorization_query(OperationID, Req, Context) ->
+    #{
+        id => OperationID,
+        party_id => anapi_handler_utils:get_party_id(Context),
+        shop_ids => anapi_handler_utils:enumerate_shop_ids(Req, Context)
     }.
 
 %%

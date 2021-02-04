@@ -21,6 +21,7 @@
 -behaviour(anapi_handler).
 
 -export([process_request/3]).
+-export([preprocess_request/3]).
 
 -import(anapi_handler_utils, [logic_error/2]).
 
@@ -30,27 +31,69 @@
     Context :: anapi_handler:processing_context()
 ) -> {ok | error, anapi_handler:response() | noimpl}.
 process_request('SearchInvoices', Req, Context) ->
-    Query = #{
-        <<"merchant_id">> => anapi_handler_utils:get_party_id(Context),
-        <<"shop_ids">> => anapi_handler_utils:enumerate_shop_ids(Req, Context),
-        <<"invoice_id">> => genlib_map:get('invoiceID', Req),
-        <<"external_id">> => genlib_map:get('externalID', Req),
-        <<"from_time">> => anapi_handler_utils:get_time('fromTime', Req),
-        <<"to_time">> => anapi_handler_utils:get_time('toTime', Req),
-        <<"invoice_status">> => genlib_map:get('invoiceStatus', Req),
-        <<"invoice_amount_from">> => genlib_map:get('invoiceAmountFrom', Req),
-        <<"invoice_amount_to">> => genlib_map:get('invoiceAmountTo', Req),
-        <<"exclude">> => construct_exclude(Req)
-    },
+    Query = make_query(Req, Context),
     Opts = #{
         thrift_fun => 'GetInvoices',
         decode_fun => fun decode_stat_invoice/2
     },
     process_search_request(invoices, Query, Req, Context, Opts);
 process_request('SearchPayments', Req, Context) ->
-    Query = #{
+    Query = make_query(Req, Context),
+    Opts = #{
+        thrift_fun => 'GetPayments',
+        decode_fun => fun decode_stat_payment/2
+    },
+    process_search_request(payments, Query, Req, Context, Opts);
+process_request('SearchPayouts', Req, Context) ->
+    Query0 = make_query(Req, Context),
+    Query1 = Query0#{
+        <<"payout_statuses">> => [<<"confirmed">>, <<"paid">>]
+    },
+    Opts = #{
+        thrift_fun => 'GetPayouts',
+        decode_fun => fun decode_stat_payout/2
+    },
+    process_search_request(payouts, Query1, Req, Context, Opts);
+process_request('SearchRefunds', Req, Context) ->
+    Query = make_query(Req, Context),
+    Opts = #{
+        %% TODO no special fun for refunds so we can use any
+        %% should be fixed in new magista
+        thrift_fun => 'GetPayments',
+        decode_fun => fun decode_stat_refund/2
+    },
+    process_search_request(refunds, Query, Req, Context, Opts);
+process_request('SearchChargebacks', Req, Context) ->
+    Query = make_query(Req, Context),
+    Opts = #{
+        thrift_fun => 'GetChargebacks',
+        decode_fun => fun decode_stat_chargeback/2
+    },
+    process_search_request(chargebacks, Query, Req, Context, Opts);
+%%
+
+process_request(_OperationID, _Req, _Context) ->
+    {error, noimpl}.
+
+preprocess_request(OperationID, Req, Context) when
+    OperationID =:= 'SearchInvoices' orelse
+        OperationID =:= 'SearchPayments' orelse
+        OperationID =:= 'SearchPayouts' orelse
+        OperationID =:= 'SearchRefunds' orelse
+        OperationID =:= 'SearchChargebacks'
+    ->
+    {ok, make_authorization_query(OperationID, Req, Context)};
+preprocess_request(_OperationID, _Req, _Context) ->
+    {error, noimpl}.
+
+make_query(Req, Context = #{restrictions_context := Restrictions}) ->
+    ShopIDs = anapi_bouncer_restrictions:get_restricted_shop_ids(Restrictions),
+    make_restricted_query(ShopIDs, Req, Context).
+
+make_restricted_query(ShopIDs, Req, Context) ->
+    #{
         <<"merchant_id">> => anapi_handler_utils:get_party_id(Context),
-        <<"shop_ids">> => anapi_handler_utils:enumerate_shop_ids(Req, Context),
+        <<"shop_ids">> => ShopIDs,
         <<"invoice_id">> => genlib_map:get('invoiceID', Req),
         <<"from_time">> => anapi_handler_utils:get_time('fromTime', Req),
         <<"to_time">> => anapi_handler_utils:get_time('toTime', Req),
@@ -72,71 +115,26 @@ process_request('SearchPayments', Req, Context) ->
         <<"payment_last4">> => genlib_map:get('last4', Req),
         <<"payment_rrn">> => genlib_map:get('rrn', Req),
         <<"payment_approval_code">> => genlib_map:get('approvalCode', Req),
-        <<"exclude">> => construct_exclude(Req)
-    },
-    Opts = #{
-        thrift_fun => 'GetPayments',
-        decode_fun => fun decode_stat_payment/2
-    },
-    process_search_request(payments, Query, Req, Context, Opts);
-process_request('SearchPayouts', Req, Context) ->
-    Query = #{
-        <<"merchant_id">> => anapi_handler_utils:get_party_id(Context),
-        <<"shop_ids">> => anapi_handler_utils:enumerate_shop_ids(Req, Context),
-        <<"from_time">> => anapi_handler_utils:get_time('fromTime', Req),
-        <<"to_time">> => anapi_handler_utils:get_time('toTime', Req),
-        <<"payout_statuses">> => [<<"confirmed">>, <<"paid">>],
-        <<"payout_id">> => genlib_map:get('payoutID', Req),
-        <<"payout_type">> => encode_payout_type(genlib_map:get('payoutToolType', Req)),
-        <<"exclude">> => construct_exclude(Req)
-    },
-    Opts = #{
-        thrift_fun => 'GetPayouts',
-        decode_fun => fun decode_stat_payout/2
-    },
-    process_search_request(payouts, Query, Req, Context, Opts);
-process_request('SearchRefunds', Req, Context) ->
-    Query = #{
-        <<"merchant_id">> => anapi_handler_utils:get_party_id(Context),
-        <<"shop_ids">> => anapi_handler_utils:enumerate_shop_ids(Req, Context),
-        <<"invoice_id">> => genlib_map:get('invoiceID', Req),
-        <<"payment_id">> => genlib_map:get('paymentID', Req),
-        <<"refund_id">> => genlib_map:get('refundID', Req),
-        <<"external_id">> => genlib_map:get('externalID', Req),
-        <<"from_time">> => anapi_handler_utils:get_time('fromTime', Req),
-        <<"to_time">> => anapi_handler_utils:get_time('toTime', Req),
-        <<"refund_status">> => genlib_map:get('refundStatus', Req),
-        <<"exclude">> => construct_exclude(Req)
-    },
-    Opts = #{
-        %% TODO no special fun for refunds so we can use any
-        %% should be fixed in new magista
-        thrift_fun => 'GetPayments',
-        decode_fun => fun decode_stat_refund/2
-    },
-    process_search_request(refunds, Query, Req, Context, Opts);
-process_request('SearchChargebacks', Req, Context) ->
-    Query = #{
-        <<"merchant_id">> => anapi_handler_utils:get_party_id(Context),
-        <<"shop_ids">> => anapi_handler_utils:enumerate_shop_ids(Req, Context),
-        <<"from_time">> => anapi_handler_utils:get_time('fromTime', Req),
-        <<"to_time">> => anapi_handler_utils:get_time('toTime', Req),
-        <<"invoice_id">> => genlib_map:get('invoiceID', Req),
-        <<"payment_id">> => genlib_map:get('paymentID', Req),
+        <<"exclude">> => construct_exclude(Req),
         <<"chargeback_id">> => genlib_map:get('chargebackID', Req),
         <<"chargeback_statuses">> => genlib_map:get('chargebackStatuses', Req),
         <<"chargeback_stages">> => genlib_map:get('chargebackStages', Req),
-        <<"chargeback_categories">> => genlib_map:get('chargebackCategories', Req)
-    },
-    Opts = #{
-        thrift_fun => 'GetChargebacks',
-        decode_fun => fun decode_stat_chargeback/2
-    },
-    process_search_request(chargebacks, Query, Req, Context, Opts);
-%%
+        <<"chargeback_categories">> => genlib_map:get('chargebackCategories', Req),
+        <<"refund_id">> => genlib_map:get('refundID', Req),
+        <<"refund_status">> => genlib_map:get('refundStatus', Req),
+        <<"invoice_status">> => genlib_map:get('invoiceStatus', Req),
+        <<"invoice_amount_from">> => genlib_map:get('invoiceAmountFrom', Req),
+        <<"invoice_amount_to">> => genlib_map:get('invoiceAmountTo', Req),
+        <<"payout_id">> => genlib_map:get('payoutID', Req),
+        <<"payout_type">> => encode_payout_type(genlib_map:get('payoutToolType', Req))
+    }.
 
-process_request(_OperationID, _Req, _Context) ->
-    {error, noimpl}.
+make_authorization_query(OperationID, Req, Context) ->
+    #{
+        id => OperationID,
+        party_id => anapi_handler_utils:get_party_id(Context),
+        shop_ids => anapi_handler_utils:enumerate_shop_ids(Req, Context)
+    }.
 
 process_search_request(QueryType, Query, Req, Context, Opts = #{thrift_fun := ThriftFun}) ->
     QueryParams = #{

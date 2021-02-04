@@ -32,6 +32,16 @@
 -export_type([request_context/0]).
 -export_type([response/0]).
 -export_type([processing_context/0]).
+-export_type([processing_context/1]).
+-export_type([resolution/0]).
+-export_type([preprocess_context/0]).
+-export_type([preprocess_context/1]).
+
+-callback preprocess_request(
+    OperationID :: operation_id(),
+    Req :: request_data(),
+    Context :: processing_context()
+) -> {ok, preprocess_context()} | {error, response() | noimpl}.
 
 -callback process_request(
     OperationID :: operation_id(),
@@ -48,7 +58,7 @@
 
 -define(DOMAIN, <<"common-api">>).
 
--spec authorize_api_key(swag_server:operation_id(), swag_server:api_key(), handler_opts()) ->
+-spec authorize_api_key(swag_server:operation_id(), swag_server:api_key(), swag_server:handler_opts(_)) ->
     Result :: false | {true, uac:context()}.
 authorize_api_key(OperationID, ApiKey, _HandlerOpts) ->
     scoper:scope(
@@ -90,11 +100,26 @@ map_error(validation_error, Error) ->
 -type operation_id() :: swag_server:operation_id().
 -type request_context() :: swag_server:request_context().
 -type response() :: swag_server:response().
--type handler_opts() :: swag_server:handler_opts(_).
--type processing_context() :: #{
+-type processing_context(T) :: #{
     swagger_context := swag_server:request_context(),
-    woody_context := woody_context:ctx()
+    woody_context := woody_context:ctx(),
+    preprocess_context => preprocess_context(T),
+    restrictions_context => restrictions_context()
 }.
+
+-type processing_context() :: processing_context(map()).
+
+-type preprocess_context(T) :: T.
+-type preprocess_context() :: preprocess_context(map()).
+
+-type restrictions_context(T) :: T.
+-type restrictions_context() :: restrictions_context(map()).
+
+-type resolution() ::
+    allowed
+    | {restricted, _Restrictions}
+    | forbidden.
+
 
 get_handlers() ->
     [
@@ -110,31 +135,35 @@ get_verification_options() ->
 
 -spec handle_request(
     OperationID :: operation_id(),
-    Req :: request_data(),
-    SwagContext :: request_context(),
+    Req :: swag_server:object(),
+    ReqCtx :: request_context(),
     HandlerOpts :: handler_opts()
 ) -> {ok | error, response()}.
-handle_request(OperationID, Req, SwagContext, _HandlerOpts) ->
+handle_request(OperationID, Req, ReqCtx, _HandlerOpts) ->
     scoper:scope(
         ?SWAG_HANDLER_SCOPE,
         #{
             operation_id => OperationID
         },
-        fun() -> handle_request_(OperationID, Req, SwagContext) end
+        fun() -> handle_request_(OperationID, Req, ReqCtx) end
     ).
 
-handle_request_(OperationID, Req, SwagContext = #{auth_context := AuthContext}) ->
+handle_request_(OperationID, Req, ReqCtx = #{auth_context := AuthCtx}) ->
+    _ = logger:debug("Processing request: ~p", [OperationID]),
     try
-        WoodyContext = attach_deadline(Req, create_woody_context(Req, AuthContext)),
-        _ = logger:debug("Processing request"),
-        OperationACL = anapi_auth:get_operation_access(OperationID, Req),
-        case uac:authorize_operation(OperationACL, AuthContext) of
-            ok ->
-                Context = create_processing_context(SwagContext, WoodyContext),
-                process_request(OperationID, Req, Context, get_handlers());
-            {error, _} = Error ->
-                _ = logger:info("Operation ~p authorization failed due to ~p", [OperationID, Error]),
-                {ok, {401, #{}, undefined}}
+        WoodyCtx = attach_deadline(Req, create_woody_context(Req, AuthCtx)),
+        Context0 = create_processing_context(ReqCtx, WoodyCtx),
+        Handlers = get_handlers(),
+        case preprocess_request(OperationID, Req, Context0, Handlers) of
+            {ok, PreprocessedContext, Handler} ->
+                Context1 = add_preprocess_context(PreprocessedContext, Context0),
+                case authorize_operation(Context1) of
+                    {restricted, Restrictions} ->
+                        Context2 = add_restrictions_context(Restrictions, Context1),
+                        process_request(OperationID, Req, Context2, Handler)
+                end;
+            {error, no_impl} ->
+                erlang:throw({handler_function_clause, OperationID})
         end
     catch
         throw:{bad_deadline, _Deadline} ->
@@ -147,31 +176,29 @@ handle_request_(OperationID, Req, SwagContext = #{auth_context := AuthContext}) 
         error:{woody_error, {Source, Class, Details}} ->
             process_woody_error(Source, Class, Details);
         Class:Reason:Stacktrace ->
-            process_general_error(Class, Reason, Stacktrace, OperationID, Req, SwagContext)
+            process_general_error(Class, Reason, Stacktrace, OperationID, Req, ReqCtx)
     end.
 
 -spec process_request(
     OperationID :: operation_id(),
     Req :: request_data(),
     Context :: processing_context(),
-    Handlers :: list(module())
+    Handler :: module()
 ) -> {ok | error, response()}.
-process_request(OperationID, _Req, _Context, []) ->
-    erlang:throw({handler_function_clause, OperationID});
-process_request(OperationID, Req, Context, [Handler | Rest]) ->
+process_request(OperationID, Req, Context, Handler) ->
     case Handler:process_request(OperationID, Req, Context) of
         {error, noimpl} ->
-            process_request(OperationID, Req, Context, Rest);
+            erlang:throw({handler_function_clause, OperationID});
         Response ->
             Response
     end.
 
 %%
 
-create_processing_context(SwaggerContext, WoodyContext) ->
+create_processing_context(ReqCtx, WoodyCtx) ->
     #{
-        woody_context => WoodyContext,
-        swagger_context => SwaggerContext
+        woody_context => WoodyCtx,
+        swagger_context => ReqCtx
     }.
 
 create_woody_context(#{'X-Request-ID' := RequestID}, AuthContext) ->
@@ -217,3 +244,44 @@ process_general_error(Class, Reason, Stacktrace, OperationID, Req, SwagContext) 
         }
     ),
     {error, server_error(500)}.
+
+-spec preprocess_request(
+    OperationID :: operation_id(),
+    Req :: request_data(),
+    Context :: processing_context(),
+    Handlers :: list(module())
+) -> {ok, preprocess_context()} | {error, response() | noimpl}.
+preprocess_request(_OperationID, _Req, _Context, []) ->
+    {error, no_impl};
+preprocess_request(OperationID, Req, Context, [Handler | Rest]) ->
+    case Handler:preprocess_request(OperationID, Req, Context) of
+        {error, noimpl} ->
+            preprocess_request(OperationID, Req, Context, Rest);
+        Response ->
+            {ok, Response, Handler}
+    end.
+
+-spec add_preprocess_context(preprocess_context(), processing_context()) -> processing_context().
+add_preprocess_context(PreprocessContext, Context) ->
+    Context#{preprocess_context => PreprocessContext}.
+
+-spec add_preprocess_context(restrictions_context(), processing_context()) -> processing_context().
+add_restrictions_context(RestrictionsContext, Context) ->
+    Context#{restrictions_context => RestrictionsContext}.
+
+-spec authorize_operation(
+    Context :: capi_handler:processing_context()
+) -> resolution() | no_return().
+authorize_operation(
+    #{
+        swagger_context := ReqCtx,
+        woody_context := WoodyCtx,
+        preprocess_context := PreprocessedContext
+    }) ->
+    case anapi_bouncer:extract_context_fragments(ReqCtx, WoodyCtx) of
+        Fragments when Fragments /= undefined ->
+            Fragments1 = anapi_bouncer_context:build(PreprocessedContext, Fragments),
+            anapi_bouncer:judge(Fragments1, WoodyCtx);
+        undefined ->
+            forbidden
+    end.

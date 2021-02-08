@@ -87,21 +87,21 @@ get_keysource(Key, Config) ->
     filename:join(?config(data_dir, Config), Key).
 
 -spec issue_token(_, _) ->
-    {ok, binary()} |
-    {error, nonexistent_key}.
+    {ok, binary()}
+    | {error, nonexistent_key}.
 issue_token(ACL, LifeTime) ->
     issue_token(ACL, LifeTime, #{}).
 
 -spec issue_token(_, _, _) ->
-    {ok, binary()} |
-    {error, nonexistent_key}.
+    {ok, binary()}
+    | {error, nonexistent_key}.
 issue_token(ACL, LifeTime, ExtraProperties) ->
     % ugly
     issue_token(?STRING, ACL, LifeTime, ExtraProperties).
 
 -spec issue_token(_, _, _, _) ->
-    {ok, binary()} |
-    {error, nonexistent_key}.
+    {ok, binary()}
+    | {error, nonexistent_key}.
 issue_token(PartyID, ACL, LifeTime, ExtraProperties) ->
     Claims = maps:merge(
         #{

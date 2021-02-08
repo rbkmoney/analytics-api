@@ -110,13 +110,7 @@ process_request(_OperationID, _Req, _Context) ->
     {error, noimpl}.
 
 process_analytics_request(QueryType, Query, Context, Opts = #{thrift_fun := ThriftFun}) ->
-    Call = {
-        analytics,
-        ThriftFun,
-        [
-            anapi_handler_encoder:encode_analytics_request(QueryType, Query)
-        ]
-    },
+    Call = {analytics, ThriftFun, {anapi_handler_encoder:encode_analytics_request(QueryType, Query)}},
     process_analytics_request_result(anapi_handler_utils:service_call(Call, Context), Opts).
 
 process_analytics_request_result(Result, #{decode_fun := DecodeFun}) ->

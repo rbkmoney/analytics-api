@@ -68,7 +68,7 @@
 init([]) ->
     {ok, {#{strategy => one_for_all, intensity => 1, period => 1}, []}}.
 
--spec all() -> [test_case_name()].
+-spec all() -> [{group, test_case_name()}].
 all() ->
     [
         {group, all_tests}
@@ -106,7 +106,7 @@ init_per_suite(Config) ->
 -spec end_per_suite(config()) -> _.
 end_per_suite(C) ->
     _ = anapi_ct_helper:stop_mocked_service_sup(?config(suite_test_sup, C)),
-    [application:stop(App) || App <- proplists:get_value(apps, C)],
+    _ = [application:stop(App) || App <- proplists:get_value(apps, C)],
     ok.
 
 -spec init_per_group(group_name(), config()) -> config().
@@ -130,7 +130,7 @@ end_per_group(_Group, _C) ->
 init_per_testcase(_Name, C) ->
     [{test_sup, anapi_ct_helper:start_mocked_service_sup(?MODULE)} | C].
 
--spec end_per_testcase(test_case_name(), config()) -> config().
+-spec end_per_testcase(test_case_name(), config()) -> _.
 end_per_testcase(_Name, C) ->
     anapi_ct_helper:stop_mocked_service_sup(?config(test_sup, C)),
     ok.
@@ -139,7 +139,7 @@ end_per_testcase(_Name, C) ->
 
 -spec search_invoices_ok_test(config()) -> _.
 search_invoices_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {merchant_stat, fun('GetInvoices', _) -> {ok, ?STAT_RESPONSE_INVOICES} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -166,7 +166,7 @@ search_invoices_ok_test(Config) ->
 
 -spec search_payments_ok_test(config()) -> _.
 search_payments_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {merchant_stat, fun('GetPayments', _) -> {ok, ?STAT_RESPONSE_PAYMENTS} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -210,7 +210,7 @@ search_payments_ok_test(Config) ->
 
 -spec search_refunds_ok_test(config()) -> _.
 search_refunds_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {merchant_stat, fun('GetPayments', _) -> {ok, ?STAT_RESPONSE_REFUNDS} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -238,7 +238,7 @@ search_refunds_ok_test(Config) ->
 
 -spec search_payouts_ok_test(config()) -> _.
 search_payouts_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {merchant_stat, fun('GetPayouts', _) -> {ok, ?STAT_RESPONSE_PAYOUTS} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -262,7 +262,7 @@ search_payouts_ok_test(Config) ->
 
 -spec search_reports_ok_test(config()) -> _.
 search_reports_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {reporting, fun('GetReports', _) -> {ok, ?FOUND_REPORTS} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -286,22 +286,22 @@ search_reports_ok_test(Config) ->
 
 -spec get_report_ok_test(config()) -> _.
 get_report_ok_test(Config) ->
-    anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT} end}], Config),
-    {ok, _} = anapi_client_reports:get_report(?config(context, Config), ?INTEGER).
+    _ = anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT} end}], Config),
+    {ok, _} = anapi_client_reports:get_report(?config(context, Config), ?INTEGER_BINARY).
 
 -spec get_report_not_found_test(config()) -> _.
 get_report_not_found_test(Config) ->
-    anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT_ALT} end}], Config),
+    _ = anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT_ALT} end}], Config),
     {error, {404, #{<<"message">> := <<"Report not found">>}}} =
-        anapi_client_reports:get_report(?config(context, Config), ?INTEGER).
+        anapi_client_reports:get_report(?config(context, Config), ?INTEGER_BINARY).
 
 -spec create_report_ok_test(config()) -> _.
 create_report_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {reporting, fun
                 ('CreateReport', _) -> {ok, ?INTEGER};
-                ('GetReport', [?INTEGER]) -> {ok, ?REPORT}
+                ('GetReport', {?INTEGER}) -> {ok, ?REPORT}
             end}
         ],
         Config
@@ -316,35 +316,35 @@ create_report_ok_test(Config) ->
 
 -spec cancel_report_ok_test(config()) -> _.
 cancel_report_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {reporting, fun
                 ('CancelReport', _) -> {ok, ok};
-                ('GetReport', [?INTEGER]) -> {ok, ?REPORT}
+                ('GetReport', {?INTEGER}) -> {ok, ?REPORT}
             end}
         ],
         Config
     ),
-    {ok, _} = anapi_client_reports:cancel_report(?config(context, Config), ?INTEGER).
+    {ok, _} = anapi_client_reports:cancel_report(?config(context, Config), ?INTEGER_BINARY).
 
 -spec cancel_report_bad_request_test(config()) -> _.
 cancel_report_bad_request_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
-            {reporting, fun('GetReport', [?INTEGER]) -> {ok, ?REPORT(<<"provision_of_service">>)} end}
+            {reporting, fun('GetReport', {?INTEGER}) -> {ok, ?REPORT(<<"provision_of_service">>)} end}
         ],
         Config
     ),
     {error, {400, #{<<"message">> := <<"Invalid report type">>}}} =
-        anapi_client_reports:cancel_report(?config(context, Config), ?INTEGER).
+        anapi_client_reports:cancel_report(?config(context, Config), ?INTEGER_BINARY).
 
 -spec create_report_without_shop_id_ok_test(config()) -> _.
 create_report_without_shop_id_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {reporting, fun
                 ('CreateReport', _) -> {ok, ?INTEGER};
-                ('GetReport', [?INTEGER]) -> {ok, ?REPORT_WITHOUT_SHOP_ID}
+                ('GetReport', {?INTEGER}) -> {ok, ?REPORT_WITHOUT_SHOP_ID}
             end}
         ],
         Config
@@ -358,7 +358,7 @@ create_report_without_shop_id_ok_test(Config) ->
 
 -spec download_report_file_ok_test(_) -> _.
 download_report_file_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {reporting, fun
                 ('GetReport', _) -> {ok, ?REPORT};
@@ -367,11 +367,11 @@ download_report_file_ok_test(Config) ->
         ],
         Config
     ),
-    {ok, _} = anapi_client_reports:download_file(?config(context, Config), ?INTEGER, ?STRING).
+    {ok, _} = anapi_client_reports:download_file(?config(context, Config), ?INTEGER_BINARY, ?STRING).
 
 -spec search_chargebacks_ok_test(config()) -> _.
 search_chargebacks_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {merchant_stat, fun('GetChargebacks', _) -> {ok, ?STAT_RESPONSE_CHARGEBACKS} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -396,7 +396,7 @@ search_chargebacks_ok_test(Config) ->
 
 -spec search_chargebacks_by_party_id_ok_test(config()) -> _.
 search_chargebacks_by_party_id_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {merchant_stat, fun('GetChargebacks', _) -> {ok, ?STAT_RESPONSE_CHARGEBACKS} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -421,7 +421,7 @@ search_chargebacks_by_party_id_ok_test(Config) ->
 
 -spec search_by_inaccessible_party_id_error_test(config()) -> _.
 search_by_inaccessible_party_id_error_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {merchant_stat, fun('GetChargebacks', _) -> {ok, ?STAT_RESPONSE_CHARGEBACKS} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}

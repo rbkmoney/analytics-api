@@ -63,11 +63,7 @@ process_request('CancelReport', Req, Context) ->
             {ok, general_error(404, <<"Report not found">>)}
     end;
 process_request('DownloadFile', Req, Context) ->
-    Call = {
-        reporting,
-        'GetReport',
-        [maps:get(reportID, Req)]
-    },
+    Call = {reporting, 'GetReport', {maps:get(reportID, Req)}},
     case anapi_handler_utils:service_call(Call, Context) of
         {ok, #reports_Report{status = created, files = Files}} ->
             FileID = maps:get(fileID, Req),
@@ -95,12 +91,9 @@ process_create_report(Params, Context) ->
         }
     },
     ReportType = maps:get(report_type, Params),
-    case anapi_handler_utils:service_call({reporting, 'CreateReport', [ReportRequest, ReportType]}, Context) of
+    case anapi_handler_utils:service_call({reporting, 'CreateReport', {ReportRequest, ReportType}}, Context) of
         {ok, ReportId} ->
-            {ok, Report} = anapi_handler_utils:service_call(
-                {reporting, 'GetReport', [ReportId]},
-                Context
-            ),
+            {ok, Report} = anapi_handler_utils:service_call({reporting, 'GetReport', {ReportId}}, Context),
             {ok, {201, #{}, decode_report(Report)}};
         {exception, Exception} ->
             case Exception of
@@ -113,7 +106,7 @@ process_create_report(Params, Context) ->
     end.
 
 cancel_report(ReportId, Context) ->
-    Call = {reporting, 'CancelReport', [ReportId]},
+    Call = {reporting, 'CancelReport', {ReportId}},
     case anapi_handler_utils:service_call(Call, Context) of
         {ok, _} ->
             {ok, {202, #{}, undefined}};
@@ -138,7 +131,7 @@ process_search_reports(Params, Context) ->
         continuation_token = ContinuationToken,
         report_types = ReportTypes
     },
-    Call = {reporting, 'GetReports', [StatReportRequest]},
+    Call = {reporting, 'GetReports', {StatReportRequest}},
     case anapi_handler_utils:service_call(Call, Context) of
         {ok, #reports_StatReportResponse{reports = Reports, continuation_token = CT}} ->
             Res = genlib_map:compact(#{
@@ -160,7 +153,7 @@ process_search_reports(Params, Context) ->
 
 generate_report_presigned_url(FileID, Context) ->
     ExpiresAt = get_default_url_lifetime(),
-    Call = {reporting, 'GeneratePresignedUrl', [FileID, ExpiresAt]},
+    Call = {reporting, 'GeneratePresignedUrl', {FileID, ExpiresAt}},
     case anapi_handler_utils:service_call(Call, Context) of
         {ok, URL} ->
             {ok, {200, #{}, #{<<"url">> => URL}}};

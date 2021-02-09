@@ -66,7 +66,7 @@
 init([]) ->
     {ok, {#{strategy => one_for_all, intensity => 1, period => 1}, []}}.
 
--spec all() -> [test_case_name()].
+-spec all() -> [{group, test_case_name()}].
 all() ->
     [
         {group, all_tests}
@@ -101,7 +101,7 @@ init_per_suite(Config) ->
 -spec end_per_suite(config()) -> _.
 end_per_suite(C) ->
     _ = anapi_ct_helper:stop_mocked_service_sup(?config(suite_test_sup, C)),
-    [application:stop(App) || App <- proplists:get_value(apps, C)],
+    _ = [application:stop(App) || App <- proplists:get_value(apps, C)],
     ok.
 
 -spec init_per_group(group_name(), config()) -> config().
@@ -123,16 +123,16 @@ end_per_group(_Group, _C) ->
 init_per_testcase(_Name, C) ->
     [{test_sup, anapi_ct_helper:start_mocked_service_sup(?MODULE)} | C].
 
--spec end_per_testcase(test_case_name(), config()) -> config().
+-spec end_per_testcase(test_case_name(), config()) -> _.
 end_per_testcase(_Name, C) ->
-    anapi_ct_helper:stop_mocked_service_sup(?config(test_sup, C)),
+    _ = anapi_ct_helper:stop_mocked_service_sup(?config(test_sup, C)),
     ok.
 
 %%% Tests
 
 -spec get_payments_tool_distribution_ok_test(config()) -> _.
 get_payments_tool_distribution_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetPaymentsToolDistribution', _) -> {ok, ?ANALYTICS_PAYMENT_TOOL_DISTRIBUTION_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -150,7 +150,7 @@ get_payments_tool_distribution_ok_test(Config) ->
 
 -spec get_payments_amount_ok_test(config()) -> _.
 get_payments_amount_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetPaymentsAmount', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -168,7 +168,7 @@ get_payments_amount_ok_test(Config) ->
 
 -spec get_average_payment_ok_test(config()) -> _.
 get_average_payment_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetAveragePayment', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -186,7 +186,7 @@ get_average_payment_ok_test(Config) ->
 
 -spec get_payments_count_ok_test(config()) -> _.
 get_payments_count_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetPaymentsCount', _) -> {ok, ?ANALYTICS_COUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -204,7 +204,7 @@ get_payments_count_ok_test(Config) ->
 
 -spec get_payments_error_distribution_ok_test(config()) -> _.
 get_payments_error_distribution_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetPaymentsErrorDistribution', _) -> {ok, ?ANALYTICS_ERROR_DISTRIBUTION_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -222,7 +222,7 @@ get_payments_error_distribution_ok_test(Config) ->
 
 -spec get_payments_split_amount_ok_test(config()) -> _.
 get_payments_split_amount_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetPaymentsSplitAmount', _) -> {ok, ?ANALYTICS_SPLIT_AMOUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -241,7 +241,7 @@ get_payments_split_amount_ok_test(Config) ->
 
 -spec get_payments_split_count_ok_test(config()) -> _.
 get_payments_split_count_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetPaymentsSplitCount', _) -> {ok, ?ANALYTICS_SPLIT_COUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -260,7 +260,7 @@ get_payments_split_count_ok_test(Config) ->
 
 -spec get_refunds_amount_ok_test(config()) -> _.
 get_refunds_amount_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetRefundsAmount', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -278,7 +278,7 @@ get_refunds_amount_ok_test(Config) ->
 
 -spec get_current_balances_ok_test(config()) -> _.
 get_current_balances_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetCurrentBalances', _) -> {ok, ?ANALYTICS_AMOUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -294,7 +294,7 @@ get_current_balances_ok_test(Config) ->
 
 -spec get_payments_sub_error_distribution_ok_test(config()) -> _.
 get_payments_sub_error_distribution_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetPaymentsSubErrorDistribution', _) -> {ok, ?ANALYTICS_SUB_ERROR_DISTRIBUTION_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -312,7 +312,7 @@ get_payments_sub_error_distribution_ok_test(Config) ->
 
 -spec get_current_balances_group_by_shop_ok_test(config()) -> _.
 get_current_balances_group_by_shop_ok_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetCurrentShopBalances', _) -> {ok, ?ANALYTICS_SHOP_AMOUNT_RESP} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
@@ -328,7 +328,7 @@ get_current_balances_group_by_shop_ok_test(Config) ->
 
 -spec analytics_timeout_test(config()) -> _.
 analytics_timeout_test(Config) ->
-    anapi_ct_helper:mock_services(
+    _ = anapi_ct_helper:mock_services(
         [
             {analytics, fun('GetRefundsAmount', _) ->
                 timer:sleep(1500),

@@ -65,12 +65,12 @@ format_request_errors(Errors) -> genlib_string:join(<<"\n">>, Errors).
 
 -spec get_report_by_id(binary(), processing_context()) -> woody:result().
 get_report_by_id(ReportId, Context) ->
-    Call = {reporting, 'GetReport', [ReportId]},
+    Call = {reporting, 'GetReport', {ReportId}},
     service_call(Call, Context).
 
 %%%
 
--spec service_call({atom(), atom(), list()}, processing_context()) -> woody:result().
+-spec service_call({atom(), woody:func(), woody:args()}, processing_context()) -> woody:result().
 service_call({ServiceName, Function, Args}, #{woody_context := WoodyContext}) ->
     anapi_woody_client:call_service(ServiceName, Function, Args, WoodyContext).
 
@@ -129,7 +129,7 @@ get_party_shops(PartyID, undefined, Context) ->
         get_party_shops(PartyID, live, Context)
     ]);
 get_party_shops(PartyID, Realm, Context) ->
-    Call = {party_shop, 'GetShopsIds', [PartyID, Realm]},
+    Call = {party_shop, 'GetShopsIds', {PartyID, Realm}},
     {ok, ShopIDs} = anapi_handler_utils:service_call(Call, Context),
     ShopIDs.
 
@@ -144,24 +144,34 @@ validate_party_access(_UserID, PartyID) ->
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 
+processing_context_new() ->
+    #{
+        swagger_context => #{},
+        woody_context => woody_context:new(#{
+            span_id => <<"1">>,
+            trace_id => <<"2">>,
+            parent_id => <<"3">>
+        })
+    }.
+
 -spec test() -> _.
 
--spec enumerate_shop_ids_shopID_present_test() -> _.
+-spec enumerate_shop_ids_one_test() -> _.
 
-enumerate_shop_ids_shopID_present_test() ->
+enumerate_shop_ids_one_test() ->
     ShopID = <<"SHOP_ID">>,
     Req = #{
         'shopID' => ShopID
     },
-    [ShopID] = enumerate_shop_ids(Req, #{}).
+    [ShopID] = enumerate_shop_ids(Req, processing_context_new()).
 
--spec enumerate_shop_ids_shopIDs_present_test() -> _.
-enumerate_shop_ids_shopIDs_present_test() ->
+-spec enumerate_shop_ids_many_test() -> _.
+enumerate_shop_ids_many_test() ->
     ShopIDs = [<<"SHOP_ID">>, <<"SHOP_ID_2">>],
     Req = #{
         'shopIDs' => ShopIDs
     },
-    ShopIDs = enumerate_shop_ids(Req, #{}).
+    ShopIDs = enumerate_shop_ids(Req, processing_context_new()).
 
 -spec enumerate_shop_ids_both_filters_present_test() -> _.
 enumerate_shop_ids_both_filters_present_test() ->
@@ -171,6 +181,6 @@ enumerate_shop_ids_both_filters_present_test() ->
         'shopID' => ShopID,
         'shopIDs' => ShopIDs
     },
-    [ShopID | ShopIDs] = enumerate_shop_ids(Req, #{}).
+    [ShopID | ShopIDs] = enumerate_shop_ids(Req, processing_context_new()).
 
 -endif.

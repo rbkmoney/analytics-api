@@ -25,7 +25,8 @@ process_request('SearchReports', Req, Context) ->
         from_time => anapi_handler_utils:get_time(fromTime, Req),
         to_time => anapi_handler_utils:get_time(toTime, Req),
         report_types => [encode_report_type(F) || F <- maps:get(reportTypes, Req)],
-        continuation_token => genlib_map:get(continuationToken, Req)
+        continuation_token => genlib_map:get(continuationToken, Req),
+        limit => maps:get(limit, Req, undefined)
     },
     process_search_reports(Params, Context);
 process_request('GetReport', Req, Context) ->
@@ -129,7 +130,8 @@ process_search_reports(Params, Context) ->
     StatReportRequest = #reports_StatReportRequest{
         request = ReportRequest,
         continuation_token = ContinuationToken,
-        report_types = ReportTypes
+        report_types = ReportTypes,
+        limit = maps:get(limit, Params, undefined)
     },
     Call = {reporting, 'GetReports', {StatReportRequest}},
     case anapi_handler_utils:service_call(Call, Context) of

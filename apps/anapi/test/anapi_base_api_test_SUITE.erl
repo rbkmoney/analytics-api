@@ -270,6 +270,7 @@ search_reports_ok_test(Config) ->
         Config
     ),
     Query0 = [
+        {limit, 2},
         {shopID, ?STRING},
         {shopIDs, <<?STRING/binary, ",", ?STRING/binary>>},
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},

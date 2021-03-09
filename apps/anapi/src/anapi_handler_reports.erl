@@ -6,6 +6,7 @@
 -behaviour(anapi_handler).
 
 -export([process_request/3]).
+-export([prepare/3]).
 
 -import(anapi_handler_utils, [general_error/2, logic_error/2]).
 
@@ -28,17 +29,6 @@ process_request('SearchReports', Req, Context) ->
         continuation_token => genlib_map:get(continuationToken, Req)
     },
     process_search_reports(Params, Context);
-process_request('GetReport', Req, Context) ->
-    PartyId = anapi_handler_utils:get_party_id(Context),
-    ReportId = maps:get(reportID, Req),
-    case anapi_handler_utils:get_report_by_id(ReportId, Context) of
-        {ok, Report = #reports_Report{party_id = PartyId}} ->
-            {ok, {200, #{}, decode_report(Report)}};
-        {ok, _WrongReport} ->
-            {ok, general_error(404, <<"Report not found">>)};
-        {exception, #reports_ReportNotFound{}} ->
-            {ok, general_error(404, <<"Report not found">>)}
-    end;
 process_request('CreateReport', Req, Context) ->
     Params = #{
         party_id => anapi_handler_utils:get_party_id(Context),
@@ -84,6 +74,37 @@ process_request('DownloadFile', Req, Context) ->
 
 process_request(_OperationID, _Req, _Context) ->
     {error, noimpl}.
+
+prepare(OperationID, Req, Context) when
+    OperationID =:= 'GetReport'
+    ->
+    ReportId = maps:get(reportID, Req),
+    Report =
+        case anapi_handler_utils:get_report_by_id(ReportId, Context) of
+            {ok, Report} ->
+                Report;
+            {exception, #reports_ReportNotFound{}} ->
+                anapi_handler:respond(general_error(404, <<"Report not found">>))
+        end,
+    OperationContext = make_authorization_query(OperationID, Req, Context),
+    Authorize =
+        fun() ->
+            {ok, anapi_auth:authorize_operation([{operation, OperationContext}, {reports, Report}], Context)}
+        end,
+    Process =
+        fun
+            () -> {ok, {200, #{}, decode_report(Report)}}
+        end,
+    {ok, #{authorize => Authorize, process => Process}};
+prepare(_OperationID, _Req, _Context) ->
+    {error, noimpl}.
+
+make_authorization_query(OperationID, Req, Context) ->
+    #{
+        id => OperationID,
+        party_id => anapi_handler_utils:get_party_id(Context),
+        report_id => maps:get(reportID, Req)
+    }.
 
 process_create_report(Params, Context) ->
     ReportRequest = #reports_ReportRequest{

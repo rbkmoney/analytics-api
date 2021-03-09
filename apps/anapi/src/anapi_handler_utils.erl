@@ -32,6 +32,7 @@
 -export([get_time/2]).
 
 -export([enumerate_shop_ids/2]).
+-export([intersected_shop_ids/2]).
 
 -export([create_dsl/3]).
 
@@ -115,6 +116,13 @@ enumerate_shop_ids(Req, Context) ->
         ShopIDs ->
             ShopIDs
     end.
+
+-spec intersected_shop_ids([binary()], [binary()]) -> [binary()].
+intersected_shop_ids(ShopIDs1, ShopIDs2) ->
+    Set1 = ordsets:from_list(ShopIDs1),
+    Set2 = ordsets:from_list(ShopIDs2),
+    IntersectedSet = ordsets:intersection(Set1, Set2),
+    ordsets:to_list(IntersectedSet).
 
 get_request_shops(Req) ->
     ShopIDs = genlib:define(genlib_map:get('shopIDs', Req), []),

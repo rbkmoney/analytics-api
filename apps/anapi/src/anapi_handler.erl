@@ -25,6 +25,8 @@
 -export([handle_request/4]).
 -export([map_error/2]).
 
+-export([respond/1]).
+
 %% Handler behaviour
 
 -export_type([operation_id/0]).
@@ -34,16 +36,8 @@
 -export_type([processing_context/0]).
 -export_type([processing_context/1]).
 -export_type([resolution/0]).
--export_type([preprocess_context/0]).
--export_type([preprocess_context/1]).
 
--callback preprocess_request(
-    OperationID :: operation_id(),
-    Req :: request_data(),
-    Context :: processing_context()
-) -> {ok, preprocess_context()} | {error, response() | noimpl}.
-
--callback process_request(
+-callback prepare(
     OperationID :: operation_id(),
     Req :: request_data(),
     Context :: processing_context()
@@ -154,16 +148,20 @@ handle_request_(OperationID, Req, ReqCtx = #{auth_context := AuthCtx}) ->
         WoodyCtx = attach_deadline(Req, create_woody_context(Req, AuthCtx)),
         Context0 = create_processing_context(ReqCtx, WoodyCtx),
         Handlers = get_handlers(),
-        case preprocess_request(OperationID, Req, Context0, Handlers) of
-            {ok, PreprocessedContext, Handler} ->
-                Context1 = add_preprocess_context(PreprocessedContext, Context0),
-                case authorize_operation(Context1) of
-                    {restricted, Restrictions} ->
-                        Context2 = add_restrictions_context(Restrictions, Context1),
-                        process_request(OperationID, Req, Context2, Handler)
-                end;
-            {error, no_impl} ->
-                erlang:throw({handler_function_clause, OperationID})
+        {ok, #{authorize := Authorize, process := Process}} =
+            prepare(OperationID, Req, Context0, Handlers),
+        {ok, Resolution} = Authorize(),
+        case Resolution of
+            allowed ->
+                Process();
+            {restricted, Restrictions} ->
+                Process(Restrictions);
+            forbidden ->
+                _ = logger:info("Authorization failed"),
+                {ok, {401, #{}, undefined}};
+            {forbidden, Error} ->
+                _ = logger:info("Authorization failed due to ~p", [Error]),
+                {ok, {401, #{}, undefined}}
         end
     catch
         throw:{bad_deadline, _Deadline} ->
@@ -179,19 +177,25 @@ handle_request_(OperationID, Req, ReqCtx = #{auth_context := AuthCtx}) ->
             process_general_error(Class, Reason, Stacktrace, OperationID, Req, ReqCtx)
     end.
 
--spec process_request(
+-spec prepare(
     OperationID :: operation_id(),
     Req :: request_data(),
     Context :: processing_context(),
-    Handler :: module()
-) -> {ok | error, response()}.
-process_request(OperationID, Req, Context, Handler) ->
-    case Handler:process_request(OperationID, Req, Context) of
+    Handlers :: list(module())
+) -> {ok, request_state()}.
+prepare(_OperationID, _Req, _Context, []) ->
+    {error, no_impl};
+prepare(OperationID, Req, Context, [Handler | Rest]) ->
+    case Handler:prepare(OperationID, Req, Context) of
         {error, noimpl} ->
-            erlang:throw({handler_function_clause, OperationID});
+            prepare(OperationID, Req, Context, Rest);
         Response ->
-            Response
+            {ok, Response, Handler}
     end.
+
+-spec respond(response()) -> throw(response()).
+respond(Response) ->
+    erlang:throw({handler_respond, Response}).
 
 %%
 
@@ -244,44 +248,3 @@ process_general_error(Class, Reason, Stacktrace, OperationID, Req, SwagContext) 
         }
     ),
     {error, server_error(500)}.
-
--spec preprocess_request(
-    OperationID :: operation_id(),
-    Req :: request_data(),
-    Context :: processing_context(),
-    Handlers :: list(module())
-) -> {ok, preprocess_context()} | {error, response() | noimpl}.
-preprocess_request(_OperationID, _Req, _Context, []) ->
-    {error, no_impl};
-preprocess_request(OperationID, Req, Context, [Handler | Rest]) ->
-    case Handler:preprocess_request(OperationID, Req, Context) of
-        {error, noimpl} ->
-            preprocess_request(OperationID, Req, Context, Rest);
-        Response ->
-            {ok, Response, Handler}
-    end.
-
--spec add_preprocess_context(preprocess_context(), processing_context()) -> processing_context().
-add_preprocess_context(PreprocessContext, Context) ->
-    Context#{preprocess_context => PreprocessContext}.
-
--spec add_preprocess_context(restrictions_context(), processing_context()) -> processing_context().
-add_restrictions_context(RestrictionsContext, Context) ->
-    Context#{restrictions_context => RestrictionsContext}.
-
--spec authorize_operation(
-    Context :: capi_handler:processing_context()
-) -> resolution() | no_return().
-authorize_operation(
-    #{
-        swagger_context := ReqCtx,
-        woody_context := WoodyCtx,
-        preprocess_context := PreprocessedContext
-    }) ->
-    case anapi_bouncer:extract_context_fragments(ReqCtx, WoodyCtx) of
-        Fragments when Fragments /= undefined ->
-            Fragments1 = anapi_bouncer_context:build(PreprocessedContext, Fragments),
-            anapi_bouncer:judge(Fragments1, WoodyCtx);
-        undefined ->
-            forbidden
-    end.

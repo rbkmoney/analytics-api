@@ -22,6 +22,8 @@
 
 -export([get_subject_id/1]).
 
+-export([authorize_operation/2]).
+
 -type consumer() :: client | merchant | provider.
 
 -define(DOMAIN, <<"common-api">>).
@@ -101,3 +103,18 @@ get_resource_hierarchy() ->
 -spec get_subject_id(context()) -> binary().
 get_subject_id({Claims, _}) ->
     uac_authorizer_jwt:get_subject_id(Claims).
+
+-spec authorize_operation(
+    Prototypes :: capi_bouncer_context:prototypes(),
+    Context :: capi_handler:processing_context()
+) -> resolution() | no_return().
+authorize_operation([], _) ->
+    undefined;
+authorize_operation(Prototypes, #{swagger_context := ReqCtx, woody_context := WoodyCtx}) ->
+    case anapi_bouncer:extract_context_fragments(ReqCtx, WoodyCtx) of
+        Fragments when Fragments /= undefined ->
+            Fragments1 = anapi_bouncer_context:build(Prototypes, Fragments, WoodyCtx),
+            anapi_bouncer:judge(Fragments1, WoodyCtx);
+        undefined ->
+            undefined
+    end.

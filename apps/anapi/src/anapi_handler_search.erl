@@ -21,7 +21,7 @@
 -behaviour(anapi_handler).
 
 -export([process_request/3]).
--export([preprocess_request/3]).
+-export([prepare/3]).
 
 -import(anapi_handler_utils, [logic_error/2]).
 
@@ -75,19 +75,33 @@ process_request('SearchChargebacks', Req, Context) ->
 process_request(_OperationID, _Req, _Context) ->
     {error, noimpl}.
 
-preprocess_request(OperationID, Req, Context) when
+prepare(OperationID, Req, Context0) when
     OperationID =:= 'SearchInvoices' orelse
         OperationID =:= 'SearchPayments' orelse
         OperationID =:= 'SearchPayouts' orelse
         OperationID =:= 'SearchRefunds' orelse
         OperationID =:= 'SearchChargebacks'
     ->
-    {ok, make_authorization_query(OperationID, Req, Context)};
-preprocess_request(_OperationID, _Req, _Context) ->
+    OperationContext = make_authorization_query(OperationID, Context0),
+    Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context0)} end,
+    Process =
+        fun
+            () -> process_request(OperationID, Context0, Req);
+            (Restrictions) ->
+                Context1 = Context0#{restrictions_context => Restrictions},
+                process_request(OperationID, Context1, Req)
+        end,
+    {ok, #{authorize => Authorize, process => Process}};
+prepare(_OperationID, _Req, _Context) ->
     {error, noimpl}.
 
 make_query(Req, Context = #{restrictions_context := Restrictions}) ->
-    ShopIDs = anapi_bouncer_restrictions:get_restricted_shop_ids(Restrictions),
+    RestrictedShopIDs = anapi_bouncer_restrictions:get_restricted_shop_ids(Restrictions),
+    RequestedShopIDs = anapi_handler_utils:enumerate_shop_ids(Req, Context),
+    ShopIDs = anapi_handler_utils:intersected_shop_ids(RestrictedShopIDs, RequestedShopIDs),
+    make_restricted_query(ShopIDs, Req, Context);
+make_query(Req, Context) ->
+    ShopIDs = anapi_handler_utils:enumerate_shop_ids(Req, Context),
     make_restricted_query(ShopIDs, Req, Context).
 
 make_restricted_query(ShopIDs, Req, Context) ->
@@ -130,11 +144,10 @@ make_restricted_query(ShopIDs, Req, Context) ->
         <<"payout_type">> => encode_payout_type(genlib_map:get('payoutToolType', Req))
     }.
 
-make_authorization_query(OperationID, Req, Context) ->
+make_authorization_query(OperationID, Context) ->
     #{
         id => OperationID,
-        party_id => anapi_handler_utils:get_party_id(Context),
-        shop_ids => anapi_handler_utils:enumerate_shop_ids(Req, Context)
+        party_id => anapi_handler_utils:get_party_id(Context)
     }.
 
 process_search_request(QueryType, Query, Req, Context, Opts = #{thrift_fun := ThriftFun}) ->

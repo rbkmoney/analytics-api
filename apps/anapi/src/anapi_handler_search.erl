@@ -20,86 +20,139 @@
 
 -behaviour(anapi_handler).
 
--export([process_request/3]).
 -export([prepare/3]).
 
 -import(anapi_handler_utils, [logic_error/2]).
 
--spec process_request(
+-spec prepare(
     OperationID :: anapi_handler:operation_id(),
     Req :: anapi_handler:request_data(),
     Context :: anapi_handler:processing_context()
-) -> {ok | error, anapi_handler:response() | noimpl}.
-process_request('SearchInvoices', Req, Context) ->
-    Query = make_query(Req, Context),
-    Opts = #{
-        thrift_fun => 'GetInvoices',
-        decode_fun => fun decode_stat_invoice/2
-    },
-    process_search_request(invoices, Query, Req, Context, Opts);
-process_request('SearchPayments', Req, Context) ->
-    Query = make_query(Req, Context),
-    Opts = #{
-        thrift_fun => 'GetPayments',
-        decode_fun => fun decode_stat_payment/2
-    },
-    process_search_request(payments, Query, Req, Context, Opts);
-process_request('SearchPayouts', Req, Context) ->
-    Query0 = make_query(Req, Context),
-    Query1 = Query0#{
-        <<"payout_statuses">> => [<<"confirmed">>, <<"paid">>]
-    },
-    Opts = #{
-        thrift_fun => 'GetPayouts',
-        decode_fun => fun decode_stat_payout/2
-    },
-    process_search_request(payouts, Query1, Req, Context, Opts);
-process_request('SearchRefunds', Req, Context) ->
-    Query = make_query(Req, Context),
-    Opts = #{
-        %% TODO no special fun for refunds so we can use any
-        %% should be fixed in new magista
-        thrift_fun => 'GetPayments',
-        decode_fun => fun decode_stat_refund/2
-    },
-    process_search_request(refunds, Query, Req, Context, Opts);
-process_request('SearchChargebacks', Req, Context) ->
-    Query = make_query(Req, Context),
-    Opts = #{
-        thrift_fun => 'GetChargebacks',
-        decode_fun => fun decode_stat_chargeback/2
-    },
-    process_search_request(chargebacks, Query, Req, Context, Opts);
-%%
-
-process_request(_OperationID, _Req, _Context) ->
-    {error, noimpl}.
-
-prepare(OperationID, Req, Context0) when
-    OperationID =:= 'SearchInvoices' orelse
-        OperationID =:= 'SearchPayments' orelse
-        OperationID =:= 'SearchPayouts' orelse
-        OperationID =:= 'SearchRefunds' orelse
-        OperationID =:= 'SearchChargebacks'
-    ->
-    OperationContext = make_authorization_query(OperationID, Context0),
-    Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context0)} end,
+) -> {ok, anapi_handler:request_state()} | {error, noimpl}.
+prepare(OperationID, Req, Context) when OperationID =:= 'SearchInvoices' ->
+    OperationContext = make_authorization_query(OperationID, Context),
+    Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process =
         fun
-            () -> process_request(OperationID, Context0, Req);
+            () ->
+                Query = make_query(Req, Context),
+                Opts = #{
+                    thrift_fun => 'GetInvoices',
+                    decode_fun => fun decode_stat_invoice/2
+                },
+                process_search_request(invoices, Query, Req, Context, Opts);
             (Restrictions) ->
-                Context1 = Context0#{restrictions_context => Restrictions},
-                process_request(OperationID, Context1, Req)
+                Query = make_query(Req, Context, Restrictions),
+                Opts = #{
+                    thrift_fun => 'GetInvoices',
+                    decode_fun => fun decode_stat_invoice/2
+                },
+                process_search_request(invoices, Query, Req, Context, Opts)
+        end,
+    {ok, #{authorize => Authorize, process => Process}};
+prepare(OperationID, Req, Context) when OperationID =:= 'SearchPayments' ->
+    OperationContext = make_authorization_query(OperationID, Context),
+    Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
+    Process =
+        fun
+            () ->
+                Query = make_query(Req, Context),
+                Opts = #{
+                    thrift_fun => 'GetPayments',
+                    decode_fun => fun decode_stat_payment/2
+                },
+                process_search_request(payments, Query, Req, Context, Opts);
+            (Restrictions) ->
+                Query = make_query(Req, Context, Restrictions),
+                Opts = #{
+                    thrift_fun => 'GetPayments',
+                    decode_fun => fun decode_stat_payment/2
+                },
+                process_search_request(payments, Query, Req, Context, Opts)
+        end,
+    {ok, #{authorize => Authorize, process => Process}};
+prepare(OperationID, Req, Context) when OperationID =:= 'SearchPayouts' ->
+    OperationContext = make_authorization_query(OperationID, Context),
+    Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
+    Process =
+        fun
+            () ->
+                Query0 = make_query(Req, Context),
+                Query1 = Query0#{
+                    <<"payout_statuses">> => [<<"confirmed">>, <<"paid">>]
+                },
+                Opts = #{
+                    thrift_fun => 'GetPayouts',
+                    decode_fun => fun decode_stat_payout/2
+                },
+                process_search_request(payouts, Query1, Req, Context, Opts);
+            (Restrictions) ->
+                Query0 = make_query(Req, Context, Restrictions),
+                Query1 = Query0#{
+                    <<"payout_statuses">> => [<<"confirmed">>, <<"paid">>]
+                },
+                Opts = #{
+                    thrift_fun => 'GetPayouts',
+                    decode_fun => fun decode_stat_payout/2
+                },
+                process_search_request(payouts, Query1, Req, Context, Opts)
+        end,
+    {ok, #{authorize => Authorize, process => Process}};
+prepare(OperationID, Req, Context) when OperationID =:= 'SearchRefunds' ->
+    OperationContext = make_authorization_query(OperationID, Context),
+    Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
+    Process =
+        fun
+            () ->
+                Query = make_query(Req, Context),
+                Opts = #{
+                    %% TODO no special fun for refunds so we can use any
+                    %% should be fixed in new magista
+                    thrift_fun => 'GetPayments',
+                    decode_fun => fun decode_stat_refund/2
+                },
+                process_search_request(refunds, Query, Req, Context, Opts);
+            (Restrictions) ->
+                Query = make_query(Req, Context, Restrictions),
+                Opts = #{
+                    %% TODO no special fun for refunds so we can use any
+                    %% should be fixed in new magista
+                    thrift_fun => 'GetPayments',
+                    decode_fun => fun decode_stat_refund/2
+                },
+                process_search_request(refunds, Query, Req, Context, Opts)
+        end,
+    {ok, #{authorize => Authorize, process => Process}};
+prepare(OperationID, Req, Context) when OperationID =:= 'SearchChargebacks' ->
+    OperationContext = make_authorization_query(OperationID, Context),
+    Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
+    Process =
+        fun
+            () ->
+                Query = make_query(Req, Context),
+                Opts = #{
+                    thrift_fun => 'GetChargebacks',
+                    decode_fun => fun decode_stat_chargeback/2
+                },
+                process_search_request(chargebacks, Query, Req, Context, Opts);
+            (Restrictions) ->
+                Query = make_query(Req, Context, Restrictions),
+                Opts = #{
+                    thrift_fun => 'GetChargebacks',
+                    decode_fun => fun decode_stat_chargeback/2
+                },
+                process_search_request(chargebacks, Query, Req, Context, Opts)
         end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(_OperationID, _Req, _Context) ->
     {error, noimpl}.
 
-make_query(Req, Context = #{restrictions_context := Restrictions}) ->
+make_query(Req, Context, Restrictions) ->
     RestrictedShopIDs = anapi_bouncer_restrictions:get_restricted_shop_ids(Restrictions),
     RequestedShopIDs = anapi_handler_utils:enumerate_shop_ids(Req, Context),
     ShopIDs = anapi_handler_utils:intersected_shop_ids(RestrictedShopIDs, RequestedShopIDs),
-    make_restricted_query(ShopIDs, Req, Context);
+    make_restricted_query(ShopIDs, Req, Context).
+
 make_query(Req, Context) ->
     ShopIDs = anapi_handler_utils:enumerate_shop_ids(Req, Context),
     make_restricted_query(ShopIDs, Req, Context).

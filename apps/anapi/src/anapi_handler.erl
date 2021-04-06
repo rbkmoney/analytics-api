@@ -26,6 +26,7 @@
 -export([map_error/2]).
 
 -export([respond/1]).
+-export([respond_if_error/1]).
 
 %% Handler behaviour
 
@@ -196,6 +197,12 @@ prepare(OperationID, Req, Context, [Handler | Rest]) ->
 -spec respond(response()) -> throw(response()).
 respond(Response) ->
     erlang:throw({handler_respond, Response}).
+
+-spec respond_if_error({error, response()} | _Entity) -> ok | throw(response()).
+respond_if_error({error, Response}) ->
+    respond(Response);
+respond_if_error(_) ->
+    ok.
 
 %%
 

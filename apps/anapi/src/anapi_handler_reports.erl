@@ -5,7 +5,6 @@
 
 -behaviour(anapi_handler).
 
--export([process_request/3]).
 -export([prepare/3]).
 
 -import(anapi_handler_utils, [general_error/2, logic_error/2]).
@@ -13,68 +12,29 @@
 % seconds
 -define(DEFAULT_URL_LIFETIME, 60).
 
--spec process_request(
+-spec prepare(
     OperationID :: anapi_handler:operation_id(),
     Req :: anapi_handler:request_data(),
     Context :: anapi_handler:processing_context()
-) -> {ok | error, anapi_handler:response() | noimpl}.
-process_request('SearchReports', Req, Context) ->
-    Params = #{
-        party_id => anapi_handler_utils:get_party_id(Context),
-        shop_id => genlib_map:get(shopID, Req),
-        shop_ids => anapi_handler_utils:enumerate_shop_ids(Req, Context),
-        from_time => anapi_handler_utils:get_time(fromTime, Req),
-        to_time => anapi_handler_utils:get_time(toTime, Req),
-        report_types => [encode_report_type(F) || F <- maps:get(reportTypes, Req)],
-        continuation_token => genlib_map:get(continuationToken, Req)
-    },
-    process_search_reports(Params, Context);
-process_request('CreateReport', Req, Context) ->
-    Params = #{
-        party_id => anapi_handler_utils:get_party_id(Context),
-        shop_id => genlib_map:get(shopID, Req),
-        from_time => anapi_handler_utils:get_time(fromTime, Req),
-        to_time => anapi_handler_utils:get_time(toTime, Req),
-        report_type => encode_report_type(maps:get(reportType, Req))
-    },
-    process_create_report(Params, Context);
-process_request('CancelReport', Req, Context) ->
-    ReportId = maps:get(reportID, Req),
-    PartyId = anapi_handler_utils:get_party_id(Context),
-    case anapi_handler_utils:get_report_by_id(ReportId, Context) of
-        {ok, Report = #reports_Report{party_id = PartyId}} ->
-            case can_cancel_report(Report) of
-                true -> cancel_report(ReportId, Context);
-                false -> {ok, logic_error(invalidRequest, <<"Invalid report type">>)}
-            end;
-        {ok, _WrongReport} ->
-            {ok, general_error(404, <<"Report not found">>)};
-        {exception, #reports_ReportNotFound{}} ->
-            {ok, general_error(404, <<"Report not found">>)}
-    end;
-process_request('DownloadFile', Req, Context) ->
-    Call = {
-        reporting,
-        'GetReport',
-        [maps:get(reportID, Req)]
-    },
-    case anapi_handler_utils:service_call(Call, Context) of
-        {ok, #reports_Report{status = created, files = Files}} ->
-            FileID = maps:get(fileID, Req),
-            case lists:keymember(FileID, #reports_FileMeta.file_id, Files) of
-                true ->
-                    generate_report_presigned_url(FileID, Context);
-                false ->
-                    {ok, general_error(404, <<"File not found">>)}
-            end;
-        {exception, #reports_ReportNotFound{}} ->
-            {ok, general_error(404, <<"Report not found">>)}
-    end;
-%%
-
-process_request(_OperationID, _Req, _Context) ->
-    {error, noimpl}.
-
+) -> {ok, anapi_handler:request_state()} | {error, noimpl}.
+prepare(OperationID, Req, Context) when OperationID =:= 'SearchReports' ->
+    OperationContext = make_authorization_query(OperationID, Req, Context),
+    Authorize =
+        fun() ->
+            {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)}
+        end,
+    Process = fun () ->
+        Params = #{
+            party_id => anapi_handler_utils:get_party_id(Context),
+            shop_ids => anapi_handler_utils:enumerate_shop_ids(Req, Context),
+            from_time => anapi_handler_utils:get_time(fromTime, Req),
+            to_time => anapi_handler_utils:get_time(toTime, Req),
+            report_types => [encode_report_type(F) || F <- maps:get(reportTypes, Req)],
+            continuation_token => genlib_map:get(continuationToken, Req)
+        },
+        process_search_reports(Params, Context)
+    end,
+    {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetReport' ->
     ReportId = maps:get(reportID, Req),
     Report =
@@ -101,8 +61,15 @@ prepare(OperationID, Req, Context) when OperationID =:= 'CreateReport' ->
             {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)}
         end,
     Process =
-        fun
-            () -> process_request(OperationID, Req, Context)
+        fun () ->
+            Params = #{
+                party_id => anapi_handler_utils:get_party_id(Context),
+                shop_id => genlib_map:get(shopID, Req),
+                from_time => anapi_handler_utils:get_time(fromTime, Req),
+                to_time => anapi_handler_utils:get_time(toTime, Req),
+                report_type => encode_report_type(maps:get(reportType, Req))
+            },
+            process_create_report(Params, Context)
         end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'CancelReport' ->
@@ -112,20 +79,44 @@ prepare(OperationID, Req, Context) when OperationID =:= 'CancelReport' ->
             {ok, Report} ->
                 case can_cancel_report(Report) of
                     true -> Report;
-                    false -> anapi_handler:respond(logic_error(invalidRequest, <<"Invalid report type">>))
+                    false -> {error, logic_error(invalidRequest, <<"Invalid report type">>)}
                 end;
             {exception, #reports_ReportNotFound{}} ->
-                anapi_handler:respond(general_error(404, <<"Report not found">>))
+                {error, general_error(404, <<"Report not found">>)}
+        end,
+    OperationContext = make_authorization_query(OperationID, Req, Context),
+    Authorize =
+        fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}, {reports, Report}], Context)} end,
+    Process = fun () ->
+        anapi_handler:respond_if_error(Report),
+        cancel_report(ReportId, Context)
+    end,
+    {ok, #{authorize => Authorize, process => Process}};
+prepare(OperationID, Req, Context) when OperationID =:= 'DownloadFile' ->
+    ReportId = maps:get(reportID, Req),
+    Report =
+        case anapi_handler_utils:get_report_by_id(ReportId, Context) of
+            {ok, Report} ->
+                Report;
+            {exception, #reports_ReportNotFound{}} ->
+                {error, general_error(404, <<"Report not found">>)}
         end,
     OperationContext = make_authorization_query(OperationID, Req, Context),
     Authorize =
         fun() ->
             {ok, anapi_auth:authorize_operation([{operation, OperationContext}, {reports, Report}], Context)}
         end,
-    Process =
-        fun
-            () -> cancel_report(ReportId, Context)
-        end,
+    Process = fun () ->
+        anapi_handler:respond_if_error(Report),
+        #reports_Report{files = Files} = Report,
+        FileID = maps:get(fileID, Req),
+        case lists:keymember(FileID, #reports_FileMeta.file_id, Files) of
+            true ->
+                generate_report_presigned_url(FileID, Context);
+            false ->
+                {error, general_error(404, <<"File not found">>)}
+        end
+    end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(_OperationID, _Req, _Context) ->
     {error, noimpl}.

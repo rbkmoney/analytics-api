@@ -30,233 +30,222 @@
 prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsToolDistribution' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
-    Process =
-        fun
-            () ->
-                Query = make_query(Req, Context),
-                Opts = #{
-                    thrift_fun => 'GetPaymentsToolDistribution',
-                    decode_fun => fun decode_payment_tool_distribution_response/1
-                },
-                process_analytics_request(filter_request, Query, Context, Opts);
-            (Restrictions) ->
-                Query = make_query(Req, Context, Restrictions),
-                Opts = #{
-                    thrift_fun => 'GetPaymentsToolDistribution',
-                    decode_fun => fun decode_payment_tool_distribution_response/1
-                },
-                process_analytics_request(filter_request, Query, Context, Opts)
-        end,
+    Process = fun
+        () ->
+            Query = make_query(Req, Context),
+            Opts = #{
+                thrift_fun => 'GetPaymentsToolDistribution',
+                decode_fun => fun decode_payment_tool_distribution_response/1
+            },
+            process_analytics_request(filter_request, Query, Context, Opts);
+        (Restrictions) ->
+            Query = make_query(Req, Context, Restrictions),
+            Opts = #{
+                thrift_fun => 'GetPaymentsToolDistribution',
+                decode_fun => fun decode_payment_tool_distribution_response/1
+            },
+            process_analytics_request(filter_request, Query, Context, Opts)
+    end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsAmount' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
-    Process =
-        fun
-            () ->
-                Query = make_query(Req, Context),
-                Opts = #{
-                    thrift_fun => 'GetPaymentsAmount',
-                    decode_fun => fun decode_amount_response/1
-                },
-                process_analytics_request(filter_request, Query, Context, Opts);
-            (Restrictions) ->
-                Query = make_query(Req, Context, Restrictions),
-                Opts = #{
-                    thrift_fun => 'GetPaymentsAmount',
-                    decode_fun => fun decode_amount_response/1
-                },
-                process_analytics_request(filter_request, Query, Context, Opts)
-        end,
+    Process = fun
+        () ->
+            Query = make_query(Req, Context),
+            Opts = #{
+                thrift_fun => 'GetPaymentsAmount',
+                decode_fun => fun decode_amount_response/1
+            },
+            process_analytics_request(filter_request, Query, Context, Opts);
+        (Restrictions) ->
+            Query = make_query(Req, Context, Restrictions),
+            Opts = #{
+                thrift_fun => 'GetPaymentsAmount',
+                decode_fun => fun decode_amount_response/1
+            },
+            process_analytics_request(filter_request, Query, Context, Opts)
+    end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetAveragePayment' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
-    Process =
-        fun
-            () ->
-                Query = make_query(Req, Context),
-                Opts = #{
-                    thrift_fun => 'GetAveragePayment',
-                    decode_fun => fun decode_amount_response/1
-                },
-                process_analytics_request(filter_request, Query, Context, Opts);
-            (Restrictions) ->
-                Query = make_query(Req, Context, Restrictions),
-                Opts = #{
-                    thrift_fun => 'GetAveragePayment',
-                    decode_fun => fun decode_amount_response/1
-                },
-                process_analytics_request(filter_request, Query, Context, Opts)
-        end,
+    Process = fun
+        () ->
+            Query = make_query(Req, Context),
+            Opts = #{
+                thrift_fun => 'GetAveragePayment',
+                decode_fun => fun decode_amount_response/1
+            },
+            process_analytics_request(filter_request, Query, Context, Opts);
+        (Restrictions) ->
+            Query = make_query(Req, Context, Restrictions),
+            Opts = #{
+                thrift_fun => 'GetAveragePayment',
+                decode_fun => fun decode_amount_response/1
+            },
+            process_analytics_request(filter_request, Query, Context, Opts)
+    end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsCount' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
-    Process =
-        fun
-            () ->
-                Query = make_query(Req, Context),
-                Opts = #{
-                    thrift_fun => 'GetPaymentsCount',
-                    decode_fun => fun decode_count_response/1
-                },
-                process_analytics_request(filter_request, Query, Context, Opts);
-            (Restrictions) ->
-                Query = make_query(Req, Context, Restrictions),
-                Opts = #{
-                    thrift_fun => 'GetPaymentsCount',
-                    decode_fun => fun decode_count_response/1
-                },
-                process_analytics_request(filter_request, Query, Context, Opts)
-        end,
+    Process = fun
+        () ->
+            Query = make_query(Req, Context),
+            Opts = #{
+                thrift_fun => 'GetPaymentsCount',
+                decode_fun => fun decode_count_response/1
+            },
+            process_analytics_request(filter_request, Query, Context, Opts);
+        (Restrictions) ->
+            Query = make_query(Req, Context, Restrictions),
+            Opts = #{
+                thrift_fun => 'GetPaymentsCount',
+                decode_fun => fun decode_count_response/1
+            },
+            process_analytics_request(filter_request, Query, Context, Opts)
+    end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsErrorDistribution' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
-    Process =
-        fun
-            () ->
-                Query = make_query(Req, Context),
-                Opts = #{
-                    thrift_fun => 'GetPaymentsErrorDistribution',
-                    decode_fun => fun decode_error_distributions_response/1
-                },
-                process_analytics_request(filter_request, Query, Context, Opts);
-            (Restrictions) ->
-                Query = make_query(Req, Context, Restrictions),
-                Opts = #{
-                    thrift_fun => 'GetPaymentsErrorDistribution',
-                    decode_fun => fun decode_error_distributions_response/1
-                },
-                process_analytics_request(filter_request, Query, Context, Opts)
-        end,
+    Process = fun
+        () ->
+            Query = make_query(Req, Context),
+            Opts = #{
+                thrift_fun => 'GetPaymentsErrorDistribution',
+                decode_fun => fun decode_error_distributions_response/1
+            },
+            process_analytics_request(filter_request, Query, Context, Opts);
+        (Restrictions) ->
+            Query = make_query(Req, Context, Restrictions),
+            Opts = #{
+                thrift_fun => 'GetPaymentsErrorDistribution',
+                decode_fun => fun decode_error_distributions_response/1
+            },
+            process_analytics_request(filter_request, Query, Context, Opts)
+    end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsSplitAmount' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
-    Process =
-        fun
-            () ->
-                Query = make_query(Req, Context),
-                Opts = #{
-                    thrift_fun => 'GetPaymentsSplitAmount',
-                    decode_fun => fun decode_split_amount_response/1
-                },
-                process_analytics_request(split_filter_request, Query, Context, Opts);
-            (Restrictions) ->
-                Query = make_query(Req, Context, Restrictions),
-                Opts = #{
-                    thrift_fun => 'GetPaymentsSplitAmount',
-                    decode_fun => fun decode_split_amount_response/1
-                },
-                process_analytics_request(split_filter_request, Query, Context, Opts)
-        end,
+    Process = fun
+        () ->
+            Query = make_query(Req, Context),
+            Opts = #{
+                thrift_fun => 'GetPaymentsSplitAmount',
+                decode_fun => fun decode_split_amount_response/1
+            },
+            process_analytics_request(split_filter_request, Query, Context, Opts);
+        (Restrictions) ->
+            Query = make_query(Req, Context, Restrictions),
+            Opts = #{
+                thrift_fun => 'GetPaymentsSplitAmount',
+                decode_fun => fun decode_split_amount_response/1
+            },
+            process_analytics_request(split_filter_request, Query, Context, Opts)
+    end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsSplitCount' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
-    Process =
-        fun
-            () ->
-                Query = make_query(Req, Context),
-                Opts = #{
-                    thrift_fun => 'GetPaymentsSplitCount',
-                    decode_fun => fun decode_split_count_response/1
-                },
-                process_analytics_request(split_filter_request, Query, Context, Opts);
-            (Restrictions) ->
-                Query = make_query(Req, Context, Restrictions),
-                Opts = #{
-                    thrift_fun => 'GetPaymentsSplitCount',
-                    decode_fun => fun decode_split_count_response/1
-                },
-                process_analytics_request(split_filter_request, Query, Context, Opts)
-        end,
+    Process = fun
+        () ->
+            Query = make_query(Req, Context),
+            Opts = #{
+                thrift_fun => 'GetPaymentsSplitCount',
+                decode_fun => fun decode_split_count_response/1
+            },
+            process_analytics_request(split_filter_request, Query, Context, Opts);
+        (Restrictions) ->
+            Query = make_query(Req, Context, Restrictions),
+            Opts = #{
+                thrift_fun => 'GetPaymentsSplitCount',
+                decode_fun => fun decode_split_count_response/1
+            },
+            process_analytics_request(split_filter_request, Query, Context, Opts)
+    end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetRefundsAmount' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
-    Process =
-        fun
-            () ->
-                Query = make_query(Req, Context),
-                Opts = #{
-                    thrift_fun => 'GetRefundsAmount',
-                    decode_fun => fun decode_amount_response/1
-                },
-                process_analytics_request(filter_request, Query, Context, Opts);
-            (Restrictions) ->
-                Query = make_query(Req, Context, Restrictions),
-                Opts = #{
-                    thrift_fun => 'GetRefundsAmount',
-                    decode_fun => fun decode_amount_response/1
-                },
-                process_analytics_request(filter_request, Query, Context, Opts)
-        end,
+    Process = fun
+        () ->
+            Query = make_query(Req, Context),
+            Opts = #{
+                thrift_fun => 'GetRefundsAmount',
+                decode_fun => fun decode_amount_response/1
+            },
+            process_analytics_request(filter_request, Query, Context, Opts);
+        (Restrictions) ->
+            Query = make_query(Req, Context, Restrictions),
+            Opts = #{
+                thrift_fun => 'GetRefundsAmount',
+                decode_fun => fun decode_amount_response/1
+            },
+            process_analytics_request(filter_request, Query, Context, Opts)
+    end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetCurrentBalances' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
-    Process =
-        fun
-            () ->
-                Query = make_query(Req, Context),
-                Opts = #{
-                    thrift_fun => 'GetCurrentBalances',
-                    decode_fun => fun decode_amount_response/1
-                },
-                process_analytics_request(merchant_filter, Query, Context, Opts);
-            (Restrictions) ->
-                Query = make_query(Req, Context, Restrictions),
-                Opts = #{
-                    thrift_fun => 'GetCurrentBalances',
-                    decode_fun => fun decode_amount_response/1
-                },
-                process_analytics_request(merchant_filter, Query, Context, Opts)
-        end,
+    Process = fun
+        () ->
+            Query = make_query(Req, Context),
+            Opts = #{
+                thrift_fun => 'GetCurrentBalances',
+                decode_fun => fun decode_amount_response/1
+            },
+            process_analytics_request(merchant_filter, Query, Context, Opts);
+        (Restrictions) ->
+            Query = make_query(Req, Context, Restrictions),
+            Opts = #{
+                thrift_fun => 'GetCurrentBalances',
+                decode_fun => fun decode_amount_response/1
+            },
+            process_analytics_request(merchant_filter, Query, Context, Opts)
+    end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsSubErrorDistribution' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
-    Process =
-        fun
-            () ->
-                Query = make_query(Req, Context),
-                Opts = #{
-                    thrift_fun => 'GetPaymentsSubErrorDistribution',
-                    decode_fun => fun decode_sub_error_distributions_response/1
-                },
-                process_analytics_request(filter_request, Query, Context, Opts);
-            (Restrictions) ->
-                Query = make_query(Req, Context, Restrictions),
-                Opts = #{
-                    thrift_fun => 'GetPaymentsSubErrorDistribution',
-                    decode_fun => fun decode_sub_error_distributions_response/1
-                },
-                process_analytics_request(filter_request, Query, Context, Opts)
-        end,
+    Process = fun
+        () ->
+            Query = make_query(Req, Context),
+            Opts = #{
+                thrift_fun => 'GetPaymentsSubErrorDistribution',
+                decode_fun => fun decode_sub_error_distributions_response/1
+            },
+            process_analytics_request(filter_request, Query, Context, Opts);
+        (Restrictions) ->
+            Query = make_query(Req, Context, Restrictions),
+            Opts = #{
+                thrift_fun => 'GetPaymentsSubErrorDistribution',
+                decode_fun => fun decode_sub_error_distributions_response/1
+            },
+            process_analytics_request(filter_request, Query, Context, Opts)
+    end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetCurrentBalancesGroupByShop' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
-    Process =
-        fun
-            () ->
-                Query = make_query(Req, Context),
-                Opts = #{
-                    thrift_fun => 'GetCurrentShopBalances',
-                    decode_fun => fun decode_shop_amount_response/1
-                },
-                process_analytics_request(merchant_filter, Query, Context, Opts);
-            (Restrictions) ->
-                Query = make_query(Req, Context, Restrictions),
-                Opts = #{
-                    thrift_fun => 'GetCurrentShopBalances',
-                    decode_fun => fun decode_shop_amount_response/1
-                },
-                process_analytics_request(merchant_filter, Query, Context, Opts)
-        end,
+    Process = fun
+        () ->
+            Query = make_query(Req, Context),
+            Opts = #{
+                thrift_fun => 'GetCurrentShopBalances',
+                decode_fun => fun decode_shop_amount_response/1
+            },
+            process_analytics_request(merchant_filter, Query, Context, Opts);
+        (Restrictions) ->
+            Query = make_query(Req, Context, Restrictions),
+            Opts = #{
+                thrift_fun => 'GetCurrentShopBalances',
+                decode_fun => fun decode_shop_amount_response/1
+            },
+            process_analytics_request(merchant_filter, Query, Context, Opts)
+    end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(_OperationID, _Req, _Context) ->
     {error, noimpl}.

@@ -19,11 +19,10 @@
 ) -> {ok, anapi_handler:request_state()} | {error, noimpl}.
 prepare(OperationID, Req, Context) when OperationID =:= 'SearchReports' ->
     OperationContext = make_authorization_query(OperationID, Req, Context),
-    Authorize =
-        fun() ->
-            {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)}
-        end,
-    Process = fun () ->
+    Authorize = fun() ->
+        {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)}
+    end,
+    Process = fun() ->
         Params = #{
             party_id => anapi_handler_utils:get_party_id(Context),
             shop_ids => anapi_handler_utils:enumerate_shop_ids(Req, Context),
@@ -45,32 +44,26 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetReport' ->
                 anapi_handler:respond(general_error(404, <<"Report not found">>))
         end,
     OperationContext = make_authorization_query(OperationID, Req, Context),
-    Authorize =
-        fun() ->
-            {ok, anapi_auth:authorize_operation([{operation, OperationContext}, {reports, Report}], Context)}
-        end,
-    Process =
-        fun
-            () -> {ok, {200, #{}, decode_report(Report)}}
-        end,
+    Authorize = fun() ->
+        {ok, anapi_auth:authorize_operation([{operation, OperationContext}, {reports, Report}], Context)}
+    end,
+    Process = fun() -> {ok, {200, #{}, decode_report(Report)}} end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'CreateReport' ->
     OperationContext = make_authorization_query(OperationID, Req, Context),
-    Authorize =
-        fun() ->
-            {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)}
-        end,
-    Process =
-        fun () ->
-            Params = #{
-                party_id => anapi_handler_utils:get_party_id(Context),
-                shop_id => genlib_map:get(shopID, Req),
-                from_time => anapi_handler_utils:get_time(fromTime, Req),
-                to_time => anapi_handler_utils:get_time(toTime, Req),
-                report_type => encode_report_type(maps:get(reportType, Req))
-            },
-            process_create_report(Params, Context)
-        end,
+    Authorize = fun() ->
+        {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)}
+    end,
+    Process = fun() ->
+        Params = #{
+            party_id => anapi_handler_utils:get_party_id(Context),
+            shop_id => genlib_map:get(shopID, Req),
+            from_time => anapi_handler_utils:get_time(fromTime, Req),
+            to_time => anapi_handler_utils:get_time(toTime, Req),
+            report_type => encode_report_type(maps:get(reportType, Req))
+        },
+        process_create_report(Params, Context)
+    end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'CancelReport' ->
     ReportId = maps:get(reportID, Req),
@@ -85,9 +78,10 @@ prepare(OperationID, Req, Context) when OperationID =:= 'CancelReport' ->
                 {error, general_error(404, <<"Report not found">>)}
         end,
     OperationContext = make_authorization_query(OperationID, Req, Context),
-    Authorize =
-        fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}, {reports, Report}], Context)} end,
-    Process = fun () ->
+    Authorize = fun() ->
+        {ok, anapi_auth:authorize_operation([{operation, OperationContext}, {reports, Report}], Context)}
+    end,
+    Process = fun() ->
         anapi_handler:respond_if_error(Report),
         cancel_report(ReportId, Context)
     end,
@@ -102,11 +96,10 @@ prepare(OperationID, Req, Context) when OperationID =:= 'DownloadFile' ->
                 {error, general_error(404, <<"Report not found">>)}
         end,
     OperationContext = make_authorization_query(OperationID, Req, Context),
-    Authorize =
-        fun() ->
-            {ok, anapi_auth:authorize_operation([{operation, OperationContext}, {reports, Report}], Context)}
-        end,
-    Process = fun () ->
+    Authorize = fun() ->
+        {ok, anapi_auth:authorize_operation([{operation, OperationContext}, {reports, Report}], Context)}
+    end,
+    Process = fun() ->
         anapi_handler:respond_if_error(Report),
         #reports_Report{files = Files} = Report,
         FileID = maps:get(fileID, Req),

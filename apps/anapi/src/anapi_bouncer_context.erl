@@ -69,6 +69,7 @@ build(reports, Params = #{}, Acc, WoodyCtx) ->
             )
         }
     }.
+
 %%
 
 build_report_ctx(ID, WoodyCtx) when is_integer(ID) ->

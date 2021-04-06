@@ -111,10 +111,9 @@ map_error(validation_error, Error) ->
 -type restrictions_context() :: restrictions_context(map()).
 
 -type resolution() ::
-    allowed
-    | {restricted, _Restrictions}
-    | forbidden.
-
+    allowed |
+    {restricted, _Restrictions} |
+    forbidden.
 
 get_handlers() ->
     [

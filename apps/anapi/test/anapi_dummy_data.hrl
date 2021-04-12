@@ -238,17 +238,17 @@
 
 -define(STAT_BANK_CARD, #merchstat_BankCard{
     token = ?STRING,
-    payment_system = visa,
+    payment_system_deprecated = visa,
     bin = <<"411111">>,
     masked_pan = <<"411111******1111">>
 }).
 
 -define(STAT_BANK_CARD_WITH_TP, #merchstat_BankCard{
     token = ?STRING,
-    payment_system = visa,
+    payment_system_deprecated = visa,
     bin = <<"411111">>,
     masked_pan = <<"411111******1111">>,
-    token_provider = applepay
+    token_provider_deprecated = applepay
 }).
 
 -define(PAYOUT_SUMMARY_ITEM, #merchstat_PayoutSummaryItem{

@@ -346,10 +346,10 @@ decode_stat_payment_tool_token({mobile_commerce, MobileCommerce}) ->
 
 decode_bank_card(#merchstat_BankCard{
     'token' = Token,
-    'payment_system' = PaymentSystem,
+    'payment_system_deprecated' = PaymentSystem,
     'bin' = Bin,
     'masked_pan' = MaskedPan,
-    'token_provider' = TokenProvider
+    'token_provider_deprecated' = TokenProvider
 }) ->
     anapi_utils:map_to_base64url(
         genlib_map:compact(#{
@@ -432,8 +432,8 @@ decode_bank_card_details(BankCard, V) ->
         <<"lastDigits">> => LastDigits,
         <<"bin">> => Bin,
         <<"cardNumberMask">> => anapi_handler_decoder_utils:decode_masked_pan(Bin, LastDigits),
-        <<"paymentSystem">> => genlib:to_binary(BankCard#merchstat_BankCard.payment_system),
-        <<"tokenProvider">> => decode_token_provider(BankCard#merchstat_BankCard.token_provider)
+        <<"paymentSystem">> => genlib:to_binary(BankCard#merchstat_BankCard.payment_system_deprecated),
+        <<"tokenProvider">> => decode_token_provider(BankCard#merchstat_BankCard.token_provider_deprecated)
     }).
 
 decode_token_provider(Provider) when Provider /= undefined ->

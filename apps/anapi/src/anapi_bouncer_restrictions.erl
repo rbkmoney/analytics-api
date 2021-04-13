@@ -6,6 +6,7 @@
 %% API
 -export([get_restricted_shop_ids/1]).
 
+-spec get_restricted_shop_ids(bouncer_restriction_thrift:'Restrictions'()) -> [binary()].
 get_restricted_shop_ids(Restrictions) ->
     #brstn_Restrictions{
         anapi = #brstn_RestrictionsAnalyticsAPI{

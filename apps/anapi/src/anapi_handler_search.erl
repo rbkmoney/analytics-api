@@ -33,7 +33,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'SearchInvoices' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query = make_query(Req, Context),
             Opts = #{
                 thrift_fun => 'GetInvoices',
@@ -53,7 +53,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'SearchPayments' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query = make_query(Req, Context),
             Opts = #{
                 thrift_fun => 'GetPayments',
@@ -73,7 +73,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'SearchPayouts' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query0 = make_query(Req, Context),
             Query1 = Query0#{
                 <<"payout_statuses">> => [<<"confirmed">>, <<"paid">>]
@@ -99,7 +99,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'SearchRefunds' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query = make_query(Req, Context),
             Opts = #{
                 %% TODO no special fun for refunds so we can use any
@@ -123,7 +123,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'SearchChargebacks' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query = make_query(Req, Context),
             Opts = #{
                 thrift_fun => 'GetChargebacks',

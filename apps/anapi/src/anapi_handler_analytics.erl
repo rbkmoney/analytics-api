@@ -31,7 +31,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsToolDistribu
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query = make_query(Req, Context),
             Opts = #{
                 thrift_fun => 'GetPaymentsToolDistribution',
@@ -51,7 +51,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsAmount' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query = make_query(Req, Context),
             Opts = #{
                 thrift_fun => 'GetPaymentsAmount',
@@ -71,7 +71,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetAveragePayment' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query = make_query(Req, Context),
             Opts = #{
                 thrift_fun => 'GetAveragePayment',
@@ -91,7 +91,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsCount' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query = make_query(Req, Context),
             Opts = #{
                 thrift_fun => 'GetPaymentsCount',
@@ -111,7 +111,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsErrorDistrib
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query = make_query(Req, Context),
             Opts = #{
                 thrift_fun => 'GetPaymentsErrorDistribution',
@@ -131,7 +131,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsSplitAmount'
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query = make_query(Req, Context),
             Opts = #{
                 thrift_fun => 'GetPaymentsSplitAmount',
@@ -151,7 +151,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsSplitCount' 
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query = make_query(Req, Context),
             Opts = #{
                 thrift_fun => 'GetPaymentsSplitCount',
@@ -171,7 +171,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetRefundsAmount' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query = make_query(Req, Context),
             Opts = #{
                 thrift_fun => 'GetRefundsAmount',
@@ -191,7 +191,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetCurrentBalances' ->
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query = make_query(Req, Context),
             Opts = #{
                 thrift_fun => 'GetCurrentBalances',
@@ -211,7 +211,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsSubErrorDist
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query = make_query(Req, Context),
             Opts = #{
                 thrift_fun => 'GetPaymentsSubErrorDistribution',
@@ -231,7 +231,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetCurrentBalancesGroup
     OperationContext = make_authorization_query(OperationID, Context),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
-        () ->
+        (undefined) ->
             Query = make_query(Req, Context),
             Opts = #{
                 thrift_fun => 'GetCurrentShopBalances',

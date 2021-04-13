@@ -20,8 +20,6 @@
 -export([get_consumer/1]).
 -export([get_access_config/0]).
 
--export([get_subject_id/1]).
-
 -export([authorize_operation/2]).
 
 -type consumer() :: client | merchant | provider.
@@ -100,14 +98,10 @@ get_resource_hierarchy() ->
         party => #{}
     }.
 
--spec get_subject_id(context()) -> binary().
-get_subject_id({Claims, _}) ->
-    uac_authorizer_jwt:get_subject_id(Claims).
-
 -spec authorize_operation(
-    Prototypes :: capi_bouncer_context:prototypes(),
-    Context :: capi_handler:processing_context()
-) -> resolution() | no_return().
+    Prototypes :: anapi_bouncer_context:prototypes(),
+    Context :: anapi_handler:processing_context()
+) -> anapi_handler:resolution() | no_return().
 authorize_operation([], _) ->
     undefined;
 authorize_operation(Prototypes, #{swagger_context := ReqCtx, woody_context := WoodyCtx}) ->

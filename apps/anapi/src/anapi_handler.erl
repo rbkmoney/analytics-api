@@ -28,15 +28,40 @@
 -export([respond/1]).
 -export([respond_if_error/1]).
 
-%% Handler behaviour
+-type request_data() :: #{atom() | binary() => term()}.
+
+-type operation_id() :: swag_server:operation_id().
+-type request_context() :: swag_server:request_context().
+-type response() :: swag_server:response().
+-type processing_context() :: #{
+    swagger_context := swag_server:request_context(),
+    woody_context := woody_context:ctx()
+}.
+
+-type throw(_T) :: no_return().
+
+-type restrictions() :: bouncer_restriction_thrift:'Restrictions'().
+
+-type request_state() :: #{
+    authorize := fun(() -> {ok, resolution()} | throw(response())),
+    process := fun((restrictions() | undefined) -> {ok, response()} | throw(response()))
+}.
+
+-type resolution() ::
+    allowed |
+    {restricted, restrictions()} |
+    forbidden.
 
 -export_type([operation_id/0]).
 -export_type([request_data/0]).
 -export_type([request_context/0]).
 -export_type([response/0]).
 -export_type([processing_context/0]).
--export_type([processing_context/1]).
 -export_type([resolution/0]).
+
+-type handler_opts() :: swag_server:handler_opts(_).
+
+%% Handler behaviour
 
 -callback prepare(
     OperationID :: operation_id(),
@@ -90,31 +115,6 @@ map_error(validation_error, Error) ->
         <<"message">> => Message
     }).
 
--type request_data() :: #{atom() | binary() => term()}.
-
--type operation_id() :: swag_server:operation_id().
--type request_context() :: swag_server:request_context().
--type response() :: swag_server:response().
--type processing_context(T) :: #{
-    swagger_context := swag_server:request_context(),
-    woody_context := woody_context:ctx(),
-    preprocess_context => preprocess_context(T),
-    restrictions_context => restrictions_context()
-}.
-
--type processing_context() :: processing_context(map()).
-
--type preprocess_context(T) :: T.
--type preprocess_context() :: preprocess_context(map()).
-
--type restrictions_context(T) :: T.
--type restrictions_context() :: restrictions_context(map()).
-
--type resolution() ::
-    allowed |
-    {restricted, _Restrictions} |
-    forbidden.
-
 get_handlers() ->
     [
         anapi_handler_search,
@@ -153,7 +153,7 @@ handle_request_(OperationID, Req, ReqCtx = #{auth_context := AuthCtx}) ->
         {ok, Resolution} = Authorize(),
         case Resolution of
             allowed ->
-                Process();
+                Process(undefined);
             {restricted, Restrictions} ->
                 Process(Restrictions);
             forbidden ->

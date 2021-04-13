@@ -118,12 +118,15 @@ init_per_group(all_tests, Config) ->
         {[invoices, payments], read}
     ],
     {ok, Token} = anapi_ct_helper:issue_token(BasePermissions, unlimited),
-    [{context, anapi_ct_helper:get_context(Token)} | Config];
+    SupPid = anapi_ct_helper:start_mocked_service_sup(?MODULE),
+    Apps1 = anapi_ct_helper_bouncer:mock_bouncer_arbiter(anapi_ct_helper_bouncer:judge_always_allowed(), SupPid),
+    [{context, anapi_ct_helper:get_context(Token)}, {group_apps, Apps1}, {group_test_sup, SupPid} | Config];
 init_per_group(_, Config) ->
     Config.
 
 -spec end_per_group(group_name(), config()) -> _.
-end_per_group(_Group, _C) ->
+end_per_group(_Group, C) ->
+    _ = anapi_utils:maybe(?config(group_test_sup, C), fun anapi_ct_helper:stop_mocked_service_sup/1),
     ok.
 
 -spec init_per_testcase(test_case_name(), config()) -> config().
@@ -287,6 +290,7 @@ search_reports_ok_test(Config) ->
 -spec get_report_ok_test(config()) -> _.
 get_report_ok_test(Config) ->
     anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT} end}], Config),
+
     {ok, _} = anapi_client_reports:get_report(?config(context, Config), ?INTEGER).
 
 -spec get_report_not_found_test(config()) -> _.

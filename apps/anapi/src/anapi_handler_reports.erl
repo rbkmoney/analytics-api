@@ -22,7 +22,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'SearchReports' ->
     Authorize = fun() ->
         {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)}
     end,
-    Process = fun() ->
+    Process = fun(undefined) ->
         Params = #{
             party_id => anapi_handler_utils:get_party_id(Context),
             shop_ids => anapi_handler_utils:enumerate_shop_ids(Req, Context),
@@ -38,23 +38,26 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetReport' ->
     ReportId = maps:get(reportID, Req),
     Report =
         case anapi_handler_utils:get_report_by_id(ReportId, Context) of
-            {ok, Report} ->
-                Report;
+            {ok, R} ->
+                R;
             {exception, #reports_ReportNotFound{}} ->
-                anapi_handler:respond(general_error(404, <<"Report not found">>))
+                {error, general_error(404, <<"Report not found">>)}
         end,
     OperationContext = make_authorization_query(OperationID, Req, Context),
     Authorize = fun() ->
         {ok, anapi_auth:authorize_operation([{operation, OperationContext}, {reports, Report}], Context)}
     end,
-    Process = fun() -> {ok, {200, #{}, decode_report(Report)}} end,
+    Process = fun(undefined) ->
+        anapi_handler:respond_if_error(Report),
+        {ok, {200, #{}, decode_report(Report)}}
+    end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'CreateReport' ->
     OperationContext = make_authorization_query(OperationID, Req, Context),
     Authorize = fun() ->
         {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)}
     end,
-    Process = fun() ->
+    Process = fun(undefined) ->
         Params = #{
             party_id => anapi_handler_utils:get_party_id(Context),
             shop_id => genlib_map:get(shopID, Req),
@@ -69,9 +72,9 @@ prepare(OperationID, Req, Context) when OperationID =:= 'CancelReport' ->
     ReportId = maps:get(reportID, Req),
     Report =
         case anapi_handler_utils:get_report_by_id(ReportId, Context) of
-            {ok, Report} ->
-                case can_cancel_report(Report) of
-                    true -> Report;
+            {ok, R} ->
+                case can_cancel_report(R) of
+                    true -> R;
                     false -> {error, logic_error(invalidRequest, <<"Invalid report type">>)}
                 end;
             {exception, #reports_ReportNotFound{}} ->
@@ -81,7 +84,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'CancelReport' ->
     Authorize = fun() ->
         {ok, anapi_auth:authorize_operation([{operation, OperationContext}, {reports, Report}], Context)}
     end,
-    Process = fun() ->
+    Process = fun(undefined) ->
         anapi_handler:respond_if_error(Report),
         cancel_report(ReportId, Context)
     end,
@@ -90,8 +93,8 @@ prepare(OperationID, Req, Context) when OperationID =:= 'DownloadFile' ->
     ReportId = maps:get(reportID, Req),
     Report =
         case anapi_handler_utils:get_report_by_id(ReportId, Context) of
-            {ok, Report} ->
-                Report;
+            {ok, R} ->
+                R;
             {exception, #reports_ReportNotFound{}} ->
                 {error, general_error(404, <<"Report not found">>)}
         end,
@@ -99,7 +102,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'DownloadFile' ->
     Authorize = fun() ->
         {ok, anapi_auth:authorize_operation([{operation, OperationContext}, {reports, Report}], Context)}
     end,
-    Process = fun() ->
+    Process = fun(undefined) ->
         anapi_handler:respond_if_error(Report),
         #reports_Report{files = Files} = Report,
         FileID = maps:get(fileID, Req),

@@ -13,14 +13,24 @@
 -export_type([fragments/0]).
 
 -type prototypes() :: [
-    {operation, prototype_operation()}
+    {operation, prototype_operation()} |
+    {reports, prototype_reports()}
 ].
 
 -type prototype_operation() :: #{
     id => swag_server:operation_id(),
-    party => entity_id(),
-    shop_ids => [entity_id()]
+    party_id => entity_id(),
+    shop_id => entity_id(),
+    report_id => entity_id(),
+    file_id => entity_id()
 }.
+
+-type prototype_reports() :: #{
+    report => report_id() | report() | undefined
+}.
+
+-type report_id() :: reporter_reports_thrift:'ReportID'().
+-type report() :: reporter_reports_thrift:'Report'().
 
 -type entity_id() :: binary().
 
@@ -39,7 +49,7 @@ new() ->
 mk_base_fragment() ->
     bouncer_context_helpers:make_env_fragment(#{
         now => genlib_rfc3339:format(genlib_time:unow(), second),
-        deployment => #{id => genlib_app:env(capi, deployment, undefined)}
+        deployment => #{id => genlib_app:env(anapi, deployment, undefined)}
     }).
 
 -spec build(prototypes(), fragments(), woody_context:ctx()) -> fragments().
@@ -49,7 +59,7 @@ build(Prototype, {Acc0, External}, WoodyCtx) ->
 
 build(operation, Params = #{id := OperationID}, Acc, _WoodyCtx) ->
     Acc#bctx_v1_ContextFragment{
-        capi = #bctx_v1_ContextCommonAPI{
+        anapi = #bctx_v1_ContextAnalyticsAPI{
             op = #bctx_v1_AnalyticsAPIOperation{
                 id = operation_id_to_binary(OperationID),
                 party = maybe_entity(party_id, Params),

@@ -41,7 +41,8 @@
         payproc_errors,
         erl_health,
         scoper,
-        uac
+        uac,
+        bouncer_client
     ]},
     {env, []},
     {licenses, ["Apache 2.0"]}

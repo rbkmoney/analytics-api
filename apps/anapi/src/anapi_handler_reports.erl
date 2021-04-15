@@ -25,6 +25,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'SearchReports' ->
     Process = fun(undefined) ->
         Params = #{
             party_id => anapi_handler_utils:get_party_id(Context),
+            shop_id => genlib_map:get(shopID, Req),
             shop_ids => anapi_handler_utils:enumerate_shop_ids(Req, Context),
             from_time => anapi_handler_utils:get_time(fromTime, Req),
             to_time => anapi_handler_utils:get_time(toTime, Req),
@@ -45,7 +46,8 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetReport' ->
         end,
     OperationContext = make_authorization_query(OperationID, Req, Context),
     Authorize = fun() ->
-        {ok, anapi_auth:authorize_operation([{operation, OperationContext}, {reports, Report}], Context)}
+        Prototypes = [{operation, OperationContext}, {reports, #{report => maybe_woody_reply(Report)}}],
+        {ok, anapi_auth:authorize_operation(Prototypes, Context)}
     end,
     Process = fun(undefined) ->
         anapi_handler:respond_if_error(Report),
@@ -82,7 +84,8 @@ prepare(OperationID, Req, Context) when OperationID =:= 'CancelReport' ->
         end,
     OperationContext = make_authorization_query(OperationID, Req, Context),
     Authorize = fun() ->
-        {ok, anapi_auth:authorize_operation([{operation, OperationContext}, {reports, Report}], Context)}
+        Prototypes = [{operation, OperationContext}, {reports, #{report => maybe_woody_reply(Report)}}],
+        {ok, anapi_auth:authorize_operation(Prototypes, Context)}
     end,
     Process = fun(undefined) ->
         anapi_handler:respond_if_error(Report),
@@ -100,7 +103,8 @@ prepare(OperationID, Req, Context) when OperationID =:= 'DownloadFile' ->
         end,
     OperationContext = make_authorization_query(OperationID, Req, Context),
     Authorize = fun() ->
-        {ok, anapi_auth:authorize_operation([{operation, OperationContext}, {reports, Report}], Context)}
+        Prototypes = [{operation, OperationContext}, {reports, #{report => maybe_woody_reply(Report)}}],
+        {ok, anapi_auth:authorize_operation(Prototypes, Context)}
     end,
     Process = fun(undefined) ->
         anapi_handler:respond_if_error(Report),
@@ -135,10 +139,10 @@ process_create_report(Params, Context) ->
         }
     },
     ReportType = maps:get(report_type, Params),
-    case anapi_handler_utils:service_call({reporting, 'CreateReport', [ReportRequest, ReportType]}, Context) of
+    case anapi_handler_utils:service_call({reporting, 'CreateReport', {ReportRequest, ReportType}}, Context) of
         {ok, ReportId} ->
             {ok, Report} = anapi_handler_utils:service_call(
-                {reporting, 'GetReport', [ReportId]},
+                {reporting, 'GetReport', {ReportId}},
                 Context
             ),
             {ok, {201, #{}, decode_report(Report)}};
@@ -153,7 +157,7 @@ process_create_report(Params, Context) ->
     end.
 
 cancel_report(ReportId, Context) ->
-    Call = {reporting, 'CancelReport', [ReportId]},
+    Call = {reporting, 'CancelReport', {ReportId}},
     case anapi_handler_utils:service_call(Call, Context) of
         {ok, _} ->
             {ok, {202, #{}, undefined}};
@@ -178,7 +182,7 @@ process_search_reports(Params, Context) ->
         continuation_token = ContinuationToken,
         report_types = ReportTypes
     },
-    Call = {reporting, 'GetReports', [StatReportRequest]},
+    Call = {reporting, 'GetReports', {StatReportRequest}},
     case anapi_handler_utils:service_call(Call, Context) of
         {ok, #reports_StatReportResponse{reports = Reports, continuation_token = CT}} ->
             Res = genlib_map:compact(#{
@@ -200,7 +204,7 @@ process_search_reports(Params, Context) ->
 
 generate_report_presigned_url(FileID, Context) ->
     ExpiresAt = get_default_url_lifetime(),
-    Call = {reporting, 'GeneratePresignedUrl', [FileID, ExpiresAt]},
+    Call = {reporting, 'GeneratePresignedUrl', {FileID, ExpiresAt}},
     case anapi_handler_utils:service_call(Call, Context) of
         {ok, URL} ->
             {ok, {200, #{}, #{<<"url">> => URL}}};
@@ -262,3 +266,8 @@ decode_report_file(#reports_FileMeta{file_id = ID, filename = Filename, signatur
 
 decode_report_file_signature(#reports_Signature{md5 = MD5, sha256 = SHA256}) ->
     #{<<"md5">> => MD5, <<"sha256">> => SHA256}.
+
+maybe_woody_reply({error, _}) ->
+    undefined;
+maybe_woody_reply(Reply) ->
+    Reply.

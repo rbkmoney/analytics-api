@@ -49,7 +49,7 @@
 init_suite(Module, Config) ->
     SupPid = start_mocked_service_sup(Module),
     Apps1 = start_app(woody),
-    Apps2 = start_anapi(Config),
+    Apps2 = start_anapi(Config) ++ anapi_ct_helper_bouncer:mock_bouncer_client(SupPid),
     [{apps, lists:reverse(Apps2 ++ Apps1)}, {suite_test_sup, SupPid} | Config].
 
 -spec start_app(app_name()) -> [app_name()].
@@ -70,11 +70,17 @@ start_anapi(Config) ->
         {ip, ?ANAPI_IP},
         {port, ?ANAPI_PORT},
         {service_type, real},
+        {bouncer_ruleset_id, ?TEST_RULESET_ID},
         {access_conf, #{
             jwt => #{
                 keyset => #{
-                    % TODO use crypto:generate_key here when move on 21 Erlang
-                    anapi => {pem_file, get_keysource("keys/local/private.pem", Config)}
+                    anapi => #{
+                        source => {pem_file, get_keysource("keys/local/private.pem", Config)},
+                        metadata => #{
+                            auth_method => user_session_token,
+                            user_realm => <<"external">>
+                        }
+                    }
                 }
             }
         }},
@@ -132,6 +138,7 @@ issue_token(PartyID, ACL, LifeTime, ExtraProperties) ->
 
 -spec get_unique_id() -> binary().
 get_unique_id() ->
+    pg:start_link(),
     <<ID:64>> = snowflake:new(),
     genlib_format:format_int_base(ID, 62).
 

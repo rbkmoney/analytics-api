@@ -66,12 +66,12 @@ format_request_errors(Errors) -> genlib_string:join(<<"\n">>, Errors).
 
 -spec get_report_by_id(binary(), processing_context()) -> woody:result().
 get_report_by_id(ReportId, Context) ->
-    Call = {reporting, 'GetReport', [ReportId]},
+    Call = {reporting, 'GetReport', {ReportId}},
     service_call(Call, Context).
 
 %%%
 
--spec service_call({atom(), atom(), list()}, processing_context()) -> woody:result().
+-spec service_call({atom(), atom(), tuple()}, processing_context()) -> woody:result().
 service_call({ServiceName, Function, Args}, #{woody_context := WoodyContext}) ->
     anapi_woody_client:call_service(ServiceName, Function, Args, WoodyContext).
 
@@ -137,8 +137,8 @@ get_party_shops(PartyID, undefined, Context) ->
         get_party_shops(PartyID, live, Context)
     ]);
 get_party_shops(PartyID, Realm, Context) ->
-    Call = {party_shop, 'GetShopsIds', [PartyID, Realm]},
-    {ok, ShopIDs} = anapi_handler_utils:service_call(Call, Context),
+    Call = {party_shop, 'GetShopsIds', {PartyID, Realm}},
+    {ok, ShopIDs} = service_call(Call, Context),
     ShopIDs.
 
 validate_party_access(_UserID, undefined) ->

@@ -22,7 +22,26 @@
 
 -export([authorize_operation/2]).
 
+-type context() :: uac:context().
+-type claims() :: uac:claims().
+
+-type restrictions() :: bouncer_restriction_thrift:'Restrictions'().
+
+-type resolution() ::
+    allowed |
+    {restricted, restrictions()} |
+    forbidden.
+
+-type auth_method() ::
+    user_session_token.
+
 -type consumer() :: client | merchant | provider.
+
+-export_type([context/0]).
+-export_type([claims/0]).
+-export_type([restrictions/0]).
+-export_type([resolution/0]).
+-export_type([auth_method/0]).
 
 -define(DOMAIN, <<"common-api">>).
 
@@ -101,7 +120,7 @@ get_resource_hierarchy() ->
 -spec authorize_operation(
     Prototypes :: anapi_bouncer_context:prototypes(),
     Context :: anapi_handler:processing_context()
-) -> anapi_handler:resolution() | no_return().
+) -> resolution() | no_return().
 authorize_operation([], _) ->
     undefined;
 authorize_operation(Prototypes, #{swagger_context := ReqCtx, woody_context := WoodyCtx}) ->

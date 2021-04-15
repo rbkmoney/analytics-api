@@ -40,24 +40,17 @@
 
 -type throw(_T) :: no_return().
 
--type restrictions() :: bouncer_restriction_thrift:'Restrictions'().
-
 -type request_state() :: #{
-    authorize := fun(() -> {ok, resolution()} | throw(response())),
-    process := fun((restrictions() | undefined) -> {ok, response()} | throw(response()))
+    authorize := fun(() -> {ok, anapi_auth:resolution()} | throw(response())),
+    process := fun((anapi_auth:restrictions() | undefined) -> {ok, response()} | throw(response()))
 }.
-
--type resolution() ::
-    allowed |
-    {restricted, restrictions()} |
-    forbidden.
 
 -export_type([operation_id/0]).
 -export_type([request_data/0]).
 -export_type([request_context/0]).
 -export_type([response/0]).
 -export_type([processing_context/0]).
--export_type([resolution/0]).
+-export_type([request_state/0]).
 
 -type handler_opts() :: swag_server:handler_opts(_).
 
@@ -67,7 +60,7 @@
     OperationID :: operation_id(),
     Req :: request_data(),
     Context :: processing_context()
-) -> {ok | error, response() | noimpl}.
+) -> {ok, request_state()} | {error, noimpl}.
 
 -import(anapi_handler_utils, [logic_error/2, server_error/1]).
 
@@ -75,8 +68,6 @@
 -define(REALM, <<"external">>).
 
 -define(SWAG_HANDLER_SCOPE, swag_handler).
-
--define(DOMAIN, <<"common-api">>).
 
 -spec authorize_api_key(swag_server:operation_id(), swag_server:api_key(), swag_server:handler_opts(_)) ->
     Result :: false | {true, uac:context()}.
@@ -86,7 +77,7 @@ authorize_api_key(OperationID, ApiKey, _HandlerOpts) ->
         #{operation_id => OperationID},
         fun() ->
             _ = logger:debug("Api key authorization started"),
-            case uac:authorize_api_key(ApiKey, get_verification_options()) of
+            case uac:authorize_api_key(ApiKey, #{}) of
                 {ok, Context} ->
                     _ = logger:debug("Api key authorization successful"),
                     {true, Context};
@@ -122,11 +113,6 @@ get_handlers() ->
         anapi_handler_analytics
     ].
 
-get_verification_options() ->
-    #{
-        domains_to_decode => [?DOMAIN]
-    }.
-
 -spec handle_request(
     OperationID :: operation_id(),
     Req :: swag_server:object(),
@@ -158,12 +144,11 @@ handle_request_(OperationID, Req, ReqCtx = #{auth_context := AuthCtx}) ->
                 Process(Restrictions);
             forbidden ->
                 _ = logger:info("Authorization failed"),
-                {ok, {401, #{}, undefined}};
-            {forbidden, Error} ->
-                _ = logger:info("Authorization failed due to ~p", [Error]),
                 {ok, {401, #{}, undefined}}
         end
     catch
+        throw:{handler_respond, HandlerResponse} ->
+            {ok, HandlerResponse};
         throw:{bad_deadline, _Deadline} ->
             {ok, logic_error(invalidDeadline, <<"Invalid data in X-Request-Deadline header">>)};
         throw:{handler_function_clause, _OperationID} ->
@@ -190,7 +175,7 @@ prepare(OperationID, Req, Context, [Handler | Rest]) ->
         {error, noimpl} ->
             prepare(OperationID, Req, Context, Rest);
         Response ->
-            {ok, Response, Handler}
+            Response
     end.
 
 -spec respond(response()) -> throw(response()).
@@ -243,8 +228,8 @@ process_woody_error(_Source, result_unknown, _Details) ->
 
 process_general_error(Class, Reason, Stacktrace, OperationID, Req, SwagContext) ->
     _ = logger:error(
-        "Operation ~p failed due to ~p:~p given req: ~p and context: ~p",
-        [OperationID, Class, Reason, Req, SwagContext],
+        "Operation ~p failed due to ~p:~p given req: ~p and context: ~p ~nST:~p",
+        [OperationID, Class, Reason, Req, SwagContext, Stacktrace],
         #{
             error => #{
                 class => genlib:to_binary(Class),

@@ -296,6 +296,7 @@ get_report_ok_test(Config) ->
 -spec get_report_not_found_test(config()) -> _.
 get_report_not_found_test(Config) ->
     anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT_ALT} end}], Config),
+    _ = anapi_ct_helper_bouncer:judge_always_forbidden(),
     {error, {404, #{<<"message">> := <<"Report not found">>}}} =
         anapi_client_reports:get_report(?config(context, Config), ?INTEGER).
 
@@ -305,7 +306,7 @@ create_report_ok_test(Config) ->
         [
             {reporting, fun
                 ('CreateReport', _) -> {ok, ?INTEGER};
-                ('GetReport', [?INTEGER]) -> {ok, ?REPORT}
+                ('GetReport', {?INTEGER}) -> {ok, ?REPORT}
             end}
         ],
         Config
@@ -324,7 +325,7 @@ cancel_report_ok_test(Config) ->
         [
             {reporting, fun
                 ('CancelReport', _) -> {ok, ok};
-                ('GetReport', [?INTEGER]) -> {ok, ?REPORT}
+                ('GetReport', {?INTEGER}) -> {ok, ?REPORT}
             end}
         ],
         Config
@@ -335,7 +336,7 @@ cancel_report_ok_test(Config) ->
 cancel_report_bad_request_test(Config) ->
     anapi_ct_helper:mock_services(
         [
-            {reporting, fun('GetReport', [?INTEGER]) -> {ok, ?REPORT(<<"provision_of_service">>)} end}
+            {reporting, fun('GetReport', {?INTEGER}) -> {ok, ?REPORT(<<"provision_of_service">>)} end}
         ],
         Config
     ),
@@ -348,7 +349,7 @@ create_report_without_shop_id_ok_test(Config) ->
         [
             {reporting, fun
                 ('CreateReport', _) -> {ok, ?INTEGER};
-                ('GetReport', [?INTEGER]) -> {ok, ?REPORT_WITHOUT_SHOP_ID}
+                ('GetReport', {?INTEGER}) -> {ok, ?REPORT_WITHOUT_SHOP_ID}
             end}
         ],
         Config

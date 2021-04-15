@@ -25,13 +25,13 @@
 
 -type service_name() :: atom().
 
--spec call_service(service_name(), woody:func(), [term()], woody_context:ctx()) -> woody:result().
+-spec call_service(service_name(), woody:func(), tuple(), woody_context:ctx()) -> woody:result().
 call_service(ServiceName, Function, Args, Context) ->
     EventHandlerOpts = genlib_app:env(anapi, scoper_event_handler_options, #{}),
     EventHandler = {scoper_woody_event_handler, EventHandlerOpts},
     call_service(ServiceName, Function, Args, Context, EventHandler).
 
--spec call_service(service_name(), woody:func(), [term()], woody_context:ctx(), woody:ev_handler()) -> woody:result().
+-spec call_service(service_name(), woody:func(), tuple(), woody_context:ctx(), woody:ev_handler()) -> woody:result().
 call_service(ServiceName, Function, Args, Context0, EventHandler) ->
     Deadline = get_service_deadline(ServiceName),
     Context1 = set_deadline(Deadline, Context0),

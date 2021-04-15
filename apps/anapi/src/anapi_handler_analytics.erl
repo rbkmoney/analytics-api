@@ -254,9 +254,7 @@ process_analytics_request(QueryType, Query, Context, Opts = #{thrift_fun := Thri
     Call = {
         analytics,
         ThriftFun,
-        [
-            anapi_handler_encoder:encode_analytics_request(QueryType, Query)
-        ]
+        {anapi_handler_encoder:encode_analytics_request(QueryType, Query)}
     },
     process_analytics_request_result(anapi_handler_utils:service_call(Call, Context), Opts).
 

@@ -11,7 +11,7 @@
 
 -define(CTX_ENTITY(ID), #bctx_v1_Entity{id = ID}).
 
--define(CTX_ANAPI(Op), #bctx_v1_ContextCommonAPI{op = Op}).
+-define(CTX_ANAPI(Op), #bctx_v1_ContextAnalyticsAPI{op = Op}).
 
 -define(CTX_ANAPI_OP(ID), #bctx_v1_AnalyticsAPIOperation{id = ID}).
 

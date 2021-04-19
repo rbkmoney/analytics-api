@@ -128,6 +128,7 @@ prepare_reporting_param(Param) ->
         {report_type, P} -> #{<<"reportType">> => genlib:to_binary(P)};
         {report_types, P} -> #{<<"reportTypes">> => genlib:to_binary(P)};
         {reportID, P} -> #{<<"reportID">> => genlib:to_binary(P)};
+        {limit, P} -> #{<<"limit">> => genlib:to_binary(P)};
         {ParamName, P} -> #{genlib:to_binary(ParamName) => P}
     end.
 

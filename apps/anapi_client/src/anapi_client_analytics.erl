@@ -31,7 +31,7 @@
 -type context() :: anapi_client_lib:context().
 -type analytics_query() :: anapi_client_lib:analytics_query().
 
--spec get_payments_tool_distribution(context(), analytics_query()) -> {ok, term(), term()} | {error, term()}.
+-spec get_payments_tool_distribution(context(), analytics_query()) -> {ok, term()} | {error, term()}.
 get_payments_tool_distribution(Context, Query) ->
     Qs = anapi_client_lib:make_analytics_query_string(Query),
     Params = #{qs_val => Qs},
@@ -44,7 +44,7 @@ get_payments_tool_distribution(Context, Query) ->
             {error, Error}
     end.
 
--spec get_payments_amount(context(), analytics_query()) -> {ok, term(), term()} | {error, term()}.
+-spec get_payments_amount(context(), analytics_query()) -> {ok, term()} | {error, term()}.
 get_payments_amount(Context, Query) ->
     Qs = anapi_client_lib:make_analytics_query_string(Query),
     Params = #{qs_val => Qs},
@@ -57,7 +57,7 @@ get_payments_amount(Context, Query) ->
             {error, Error}
     end.
 
--spec get_average_payment(context(), analytics_query()) -> {ok, term(), term()} | {error, term()}.
+-spec get_average_payment(context(), analytics_query()) -> {ok, term()} | {error, term()}.
 get_average_payment(Context, Query) ->
     Qs = anapi_client_lib:make_analytics_query_string(Query),
     Params = #{qs_val => Qs},
@@ -70,7 +70,7 @@ get_average_payment(Context, Query) ->
             {error, Error}
     end.
 
--spec get_payments_count(context(), analytics_query()) -> {ok, term(), term()} | {error, term()}.
+-spec get_payments_count(context(), analytics_query()) -> {ok, term()} | {error, term()}.
 get_payments_count(Context, Query) ->
     Qs = anapi_client_lib:make_analytics_query_string(Query),
     Params = #{qs_val => Qs},
@@ -83,7 +83,7 @@ get_payments_count(Context, Query) ->
             {error, Error}
     end.
 
--spec get_payments_error_distribution(context(), analytics_query()) -> {ok, term(), term()} | {error, term()}.
+-spec get_payments_error_distribution(context(), analytics_query()) -> {ok, term()} | {error, term()}.
 get_payments_error_distribution(Context, Query) ->
     Qs = anapi_client_lib:make_analytics_query_string(Query),
     Params = #{qs_val => Qs},
@@ -96,7 +96,7 @@ get_payments_error_distribution(Context, Query) ->
             {error, Error}
     end.
 
--spec get_payments_sub_error_distribution(context(), analytics_query()) -> {ok, term(), term()} | {error, term()}.
+-spec get_payments_sub_error_distribution(context(), analytics_query()) -> {ok, term()} | {error, term()}.
 get_payments_sub_error_distribution(Context, Query) ->
     Qs = anapi_client_lib:make_analytics_query_string(Query),
     Params = #{qs_val => Qs},
@@ -109,7 +109,7 @@ get_payments_sub_error_distribution(Context, Query) ->
             {error, Error}
     end.
 
--spec get_payments_split_amount(context(), analytics_query()) -> {ok, term(), term()} | {error, term()}.
+-spec get_payments_split_amount(context(), analytics_query()) -> {ok, term()} | {error, term()}.
 get_payments_split_amount(Context, Query) ->
     Qs = anapi_client_lib:make_analytics_query_string(Query),
     Params = #{qs_val => Qs},
@@ -122,7 +122,7 @@ get_payments_split_amount(Context, Query) ->
             {error, Error}
     end.
 
--spec get_payments_split_count(context(), analytics_query()) -> {ok, term(), term()} | {error, term()}.
+-spec get_payments_split_count(context(), analytics_query()) -> {ok, term()} | {error, term()}.
 get_payments_split_count(Context, Query) ->
     Qs = anapi_client_lib:make_analytics_query_string(Query),
     Params = #{qs_val => Qs},
@@ -135,7 +135,7 @@ get_payments_split_count(Context, Query) ->
             {error, Error}
     end.
 
--spec get_refunds_amount(context(), analytics_query()) -> {ok, term(), term()} | {error, term()}.
+-spec get_refunds_amount(context(), analytics_query()) -> {ok, term()} | {error, term()}.
 get_refunds_amount(Context, Query) ->
     Qs = anapi_client_lib:make_analytics_query_string(Query),
     Params = #{qs_val => Qs},
@@ -148,7 +148,7 @@ get_refunds_amount(Context, Query) ->
             {error, Error}
     end.
 
--spec get_current_balances(context(), analytics_query()) -> {ok, term(), term()} | {error, term()}.
+-spec get_current_balances(context(), analytics_query()) -> {ok, term()} | {error, term()}.
 get_current_balances(Context, Query) ->
     Qs = anapi_client_lib:make_analytics_query_string(Query),
     Params = #{qs_val => Qs},
@@ -161,7 +161,7 @@ get_current_balances(Context, Query) ->
             {error, Error}
     end.
 
--spec get_current_balances_group_by_shop(context(), analytics_query()) -> {ok, term(), term()} | {error, term()}.
+-spec get_current_balances_group_by_shop(context(), analytics_query()) -> {ok, term()} | {error, term()}.
 get_current_balances_group_by_shop(Context, Query) ->
     Qs = anapi_client_lib:make_analytics_query_string(Query),
     Params = #{qs_val => Qs},

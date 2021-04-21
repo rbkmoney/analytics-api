@@ -28,9 +28,9 @@
 -type restrictions() :: bouncer_restriction_thrift:'Restrictions'().
 
 -type resolution() ::
-    allowed |
-    {restricted, restrictions()} |
-    forbidden.
+    allowed
+    | {restricted, restrictions()}
+    | forbidden.
 
 -type auth_method() ::
     user_session_token.

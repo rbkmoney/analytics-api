@@ -26,10 +26,19 @@
     shop = ?CTX_ENTITY(ShopID)
 }).
 
--define(CTX_REPORT_OP(ID, ReportID, PartyID), #bctx_v1_AnalyticsAPIOperation{
+-define(CTX_REPORT_OP(ID, ReportID), #bctx_v1_AnalyticsAPIOperation{
+    id = ID,
+    report = ?CTX_ENTITY(ReportID)
+}).
+
+-define(CTX_FILE_OP(ID, ReportID, FileID), #bctx_v1_AnalyticsAPIOperation{
     id = ID,
     report = ?CTX_ENTITY(ReportID),
-    party = ?CTX_ENTITY(PartyID)
+    file = ?CTX_ENTITY(FileID)
+}).
+
+-define(CTX_CONTEXT_REPORTS(Report), #bctx_v1_ContextReports{
+    report = Report
 }).
 
 -define(CTX_REPORT(ID, PartyID, ShopID, Files), #bctx_v1_Report{

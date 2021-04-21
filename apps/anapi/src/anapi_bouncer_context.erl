@@ -13,8 +13,8 @@
 -export_type([fragments/0]).
 
 -type prototypes() :: [
-    {operation, prototype_operation()} |
-    {reports, prototype_reports()}
+    {operation, prototype_operation()}
+    | {reports, prototype_reports()}
 ].
 
 -type prototype_operation() :: #{

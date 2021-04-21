@@ -28,7 +28,7 @@
     Context :: anapi_handler:processing_context()
 ) -> {ok, anapi_handler:request_state()} | {error, noimpl}.
 prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsToolDistribution' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
@@ -48,7 +48,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsToolDistribu
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsAmount' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
@@ -68,7 +68,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsAmount' ->
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetAveragePayment' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
@@ -88,7 +88,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetAveragePayment' ->
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsCount' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
@@ -108,7 +108,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsCount' ->
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsErrorDistribution' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
@@ -128,7 +128,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsErrorDistrib
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsSplitAmount' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
@@ -148,7 +148,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsSplitAmount'
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsSplitCount' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
@@ -168,7 +168,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsSplitCount' 
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetRefundsAmount' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
@@ -188,7 +188,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetRefundsAmount' ->
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetCurrentBalances' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
@@ -208,7 +208,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetCurrentBalances' ->
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsSubErrorDistribution' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
@@ -228,18 +228,21 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsSubErrorDist
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetCurrentBalancesGroupByShop' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    %% TODO REMOVE ASAP
+    Req2 = Req#{partyID => uac_authorizer_jwt:get_subject_id(anapi_handler_utils:get_auth_context(Context))},
+
+    OperationContext = make_authorization_query(OperationID, Req2),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
-            Query = make_query(Req, Context),
+            Query = make_query(Req2, Context),
             Opts = #{
                 thrift_fun => 'GetCurrentShopBalances',
                 decode_fun => fun decode_shop_amount_response/1
             },
             process_analytics_request(merchant_filter, Query, Context, Opts);
         (Restrictions) ->
-            Query = make_query(Req, Context, Restrictions),
+            Query = make_query(Req2, Context, Restrictions),
             Opts = #{
                 thrift_fun => 'GetCurrentShopBalances',
                 decode_fun => fun decode_shop_amount_response/1
@@ -251,11 +254,7 @@ prepare(_OperationID, _Req, _Context) ->
     {error, noimpl}.
 
 process_analytics_request(QueryType, Query, Context, Opts = #{thrift_fun := ThriftFun}) ->
-    Call = {
-        analytics,
-        ThriftFun,
-        {anapi_handler_encoder:encode_analytics_request(QueryType, Query)}
-    },
+    Call = {analytics, ThriftFun, {anapi_handler_encoder:encode_analytics_request(QueryType, Query)}},
     process_analytics_request_result(anapi_handler_utils:service_call(Call, Context), Opts).
 
 process_analytics_request_result(Result, #{decode_fun := DecodeFun}) ->
@@ -274,15 +273,15 @@ make_query(Req, Context, Restrictions) ->
     RestrictedShopIDs = anapi_bouncer_restrictions:get_restricted_shop_ids(Restrictions),
     RequestedShopIDs = anapi_handler_utils:enumerate_shop_ids(Req, Context),
     ShopIDs = anapi_handler_utils:intersected_shop_ids(RestrictedShopIDs, RequestedShopIDs),
-    make_restricted_query(ShopIDs, Req, Context).
+    make_restricted_query(ShopIDs, Req).
 
 make_query(Req, Context) ->
     ShopIDs = anapi_handler_utils:enumerate_shop_ids(Req, Context),
-    make_restricted_query(ShopIDs, Req, Context).
+    make_restricted_query(ShopIDs, Req).
 
-make_restricted_query(ShopIDs, Req, Context) ->
+make_restricted_query(ShopIDs, Req) ->
     #{
-        party_id => anapi_handler_utils:get_party_id(Context),
+        party_id => maps:get('partyID', Req),
         shop_ids => ShopIDs,
         exclude_shop_ids => genlib_map:get('excludeShopIDs', Req),
         from_time => anapi_handler_utils:get_time('fromTime', Req),
@@ -290,10 +289,10 @@ make_restricted_query(ShopIDs, Req, Context) ->
         split_unit => genlib_map:get('splitUnit', Req)
     }.
 
-make_authorization_query(OperationID, Context) ->
+make_authorization_query(OperationID, Req) ->
     #{
         id => OperationID,
-        party_id => anapi_handler_utils:get_party_id(Context)
+        party_id => maps:get('partyID', Req)
     }.
 
 %%

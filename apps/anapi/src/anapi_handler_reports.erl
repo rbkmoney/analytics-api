@@ -18,19 +18,20 @@
     Context :: anapi_handler:processing_context()
 ) -> {ok, anapi_handler:request_state()} | {error, noimpl}.
 prepare(OperationID, Req, Context) when OperationID =:= 'SearchReports' ->
-    OperationContext = make_authorization_query(OperationID, Req, Context),
+    OperationContext = make_authorization_query(OperationID, Req, maps:get(partyID, Req)),
     Authorize = fun() ->
         {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)}
     end,
     Process = fun(undefined) ->
         Params = #{
-            party_id => anapi_handler_utils:get_party_id(Context),
+            party_id => maps:get('partyID', Req),
             shop_id => genlib_map:get(shopID, Req),
             shop_ids => anapi_handler_utils:enumerate_shop_ids(Req, Context),
             from_time => anapi_handler_utils:get_time(fromTime, Req),
             to_time => anapi_handler_utils:get_time(toTime, Req),
             report_types => [encode_report_type(F) || F <- maps:get(reportTypes, Req)],
-            continuation_token => genlib_map:get(continuationToken, Req)
+            continuation_token => genlib_map:get(continuationToken, Req),
+            limit => maps:get(limit, Req, undefined)
         },
         process_search_reports(Params, Context)
     end,
@@ -44,7 +45,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetReport' ->
             {exception, #reports_ReportNotFound{}} ->
                 {error, general_error(404, <<"Report not found">>)}
         end,
-    OperationContext = make_authorization_query(OperationID, Req, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() ->
         Prototypes = [{operation, OperationContext}, {reports, #{report => maybe_woody_reply(Report)}}],
         {ok, anapi_auth:authorize_operation(Prototypes, Context)}
@@ -55,13 +56,13 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetReport' ->
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'CreateReport' ->
-    OperationContext = make_authorization_query(OperationID, Req, Context),
+    OperationContext = make_authorization_query(OperationID, Req, maps:get(partyID, Req)),
     Authorize = fun() ->
         {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)}
     end,
     Process = fun(undefined) ->
         Params = #{
-            party_id => anapi_handler_utils:get_party_id(Context),
+            party_id => maps:get('partyID', Req),
             shop_id => genlib_map:get(shopID, Req),
             from_time => anapi_handler_utils:get_time(fromTime, Req),
             to_time => anapi_handler_utils:get_time(toTime, Req),
@@ -82,7 +83,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'CancelReport' ->
             {exception, #reports_ReportNotFound{}} ->
                 {error, general_error(404, <<"Report not found">>)}
         end,
-    OperationContext = make_authorization_query(OperationID, Req, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() ->
         Prototypes = [{operation, OperationContext}, {reports, #{report => maybe_woody_reply(Report)}}],
         {ok, anapi_auth:authorize_operation(Prototypes, Context)}
@@ -101,7 +102,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'DownloadFile' ->
             {exception, #reports_ReportNotFound{}} ->
                 {error, general_error(404, <<"Report not found">>)}
         end,
-    OperationContext = make_authorization_query(OperationID, Req, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() ->
         Prototypes = [{operation, OperationContext}, {reports, #{report => maybe_woody_reply(Report)}}],
         {ok, anapi_auth:authorize_operation(Prototypes, Context)}
@@ -121,12 +122,16 @@ prepare(OperationID, Req, Context) when OperationID =:= 'DownloadFile' ->
 prepare(_OperationID, _Req, _Context) ->
     {error, noimpl}.
 
-make_authorization_query(OperationID, Req, Context) ->
+make_authorization_query(OperationID, Req, PartyID) ->
+    Query = make_authorization_query(OperationID, Req),
+    Query#{party_id => PartyID}.
+
+make_authorization_query(OperationID, Req) ->
     genlib_map:compact(#{
         id => OperationID,
-        party_id => anapi_handler_utils:get_party_id(Context),
         shop_id => genlib_map:get(shopID, Req),
-        report_id => genlib_map:get(reportID, Req)
+        report_id => genlib_map:get(reportID, Req),
+        file_id => genlib_map:get(fileID, Req)
     }).
 
 process_create_report(Params, Context) ->
@@ -141,10 +146,7 @@ process_create_report(Params, Context) ->
     ReportType = maps:get(report_type, Params),
     case anapi_handler_utils:service_call({reporting, 'CreateReport', {ReportRequest, ReportType}}, Context) of
         {ok, ReportId} ->
-            {ok, Report} = anapi_handler_utils:service_call(
-                {reporting, 'GetReport', {ReportId}},
-                Context
-            ),
+            {ok, Report} = anapi_handler_utils:service_call({reporting, 'GetReport', {ReportId}}, Context),
             {ok, {201, #{}, decode_report(Report)}};
         {exception, Exception} ->
             case Exception of
@@ -180,7 +182,8 @@ process_search_reports(Params, Context) ->
     StatReportRequest = #reports_StatReportRequest{
         request = ReportRequest,
         continuation_token = ContinuationToken,
-        report_types = ReportTypes
+        report_types = ReportTypes,
+        limit = maps:get(limit, Params, undefined)
     },
     Call = {reporting, 'GetReports', {StatReportRequest}},
     case anapi_handler_utils:service_call(Call, Context) of

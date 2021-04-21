@@ -17,14 +17,14 @@ search_reports(Context, Query) ->
     Response = swag_client_reports_api:search_reports(Url, PreparedParams, Opts),
     anapi_client_lib:handle_response(Response).
 
--spec get_report(context(), binary()) -> {ok, list()} | {error, term()}.
+-spec get_report(context(), integer()) -> {ok, list()} | {error, term()}.
 get_report(Context, ReportID) ->
     Params = #{binding => #{<<"reportID">> => ReportID}},
     {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
     Response = swag_client_reports_api:get_report(Url, PreparedParams, Opts),
     anapi_client_lib:handle_response(Response).
 
--spec cancel_report(context(), binary()) -> {ok, list()} | {error, term()}.
+-spec cancel_report(context(), integer()) -> {ok, list()} | {error, term()}.
 cancel_report(Context, ReportID) ->
     Params = #{binding => #{<<"reportID">> => ReportID}},
     {Url, PreparedParams, Opts} = anapi_client_lib:make_request(Context, Params),
@@ -39,7 +39,7 @@ create_report(Context, Query) ->
     Response = swag_client_reports_api:create_report(Url, PreparedParams, Opts),
     anapi_client_lib:handle_response(Response).
 
--spec download_file(context(), binary(), binary()) -> {ok, redirect} | {error, term()}.
+-spec download_file(context(), integer(), binary()) -> {ok, redirect} | {error, term()}.
 download_file(Context, ReportID, FileID) ->
     Params = #{
         binding => #{

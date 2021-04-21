@@ -32,7 +32,7 @@
 
 -spec map_to_base64url(map()) -> binary() | no_return().
 map_to_base64url(Map) when is_map(Map) ->
-    base64url:encode(jsx:encode(Map)).
+    jose_base64url:encode(jsx:encode(Map)).
 
 -spec to_universal_time(Timestamp :: binary()) -> TimestampUTC :: binary().
 to_universal_time(Timestamp) ->

@@ -107,7 +107,7 @@
        {ref,"846a0819d9b6d09d0c31f160e33a78dbad2067b4"}},
   1},
  {<<"uac">>,
-  {git,"git@github.com:rbkmoney/erlang_uac.git",
+  {git,"https://github.com/rbkmoney/erlang_uac.git",
        {ref,"b67fca391127ad6aa3345aa67a7460a10a856c52"}},
   0},
  {<<"unicode_util_compat">>,{pkg,<<"unicode_util_compat">>,<<"0.7.0">>},1},

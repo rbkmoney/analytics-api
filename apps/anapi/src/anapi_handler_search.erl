@@ -30,7 +30,7 @@
     Context :: anapi_handler:processing_context()
 ) -> {ok, anapi_handler:request_state()} | {error, noimpl}.
 prepare(OperationID, Req, Context) when OperationID =:= 'SearchInvoices' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
@@ -50,7 +50,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'SearchInvoices' ->
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'SearchPayments' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
@@ -70,7 +70,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'SearchPayments' ->
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'SearchPayouts' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
@@ -96,7 +96,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'SearchPayouts' ->
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'SearchRefunds' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
@@ -120,7 +120,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'SearchRefunds' ->
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'SearchChargebacks' ->
-    OperationContext = make_authorization_query(OperationID, Context),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun
         (undefined) ->
@@ -146,15 +146,15 @@ make_query(Req, Context, Restrictions) ->
     RestrictedShopIDs = anapi_bouncer_restrictions:get_restricted_shop_ids(Restrictions),
     RequestedShopIDs = anapi_handler_utils:enumerate_shop_ids(Req, Context),
     ShopIDs = anapi_handler_utils:intersected_shop_ids(RestrictedShopIDs, RequestedShopIDs),
-    make_restricted_query(ShopIDs, Req, Context).
+    make_restricted_query(ShopIDs, Req).
 
 make_query(Req, Context) ->
     ShopIDs = anapi_handler_utils:enumerate_shop_ids(Req, Context),
-    make_restricted_query(ShopIDs, Req, Context).
+    make_restricted_query(ShopIDs, Req).
 
-make_restricted_query(ShopIDs, Req, Context) ->
+make_restricted_query(ShopIDs, Req) ->
     #{
-        <<"merchant_id">> => anapi_handler_utils:get_party_id(Context),
+        <<"merchant_id">> => maps:get('partyID', Req),
         <<"shop_ids">> => ShopIDs,
         <<"invoice_id">> => genlib_map:get('invoiceID', Req),
         <<"invoice_ids">> => genlib_map:get('invoiceIDs', Req),
@@ -192,10 +192,10 @@ make_restricted_query(ShopIDs, Req, Context) ->
         <<"payout_type">> => encode_payout_type(genlib_map:get('payoutToolType', Req))
     }.
 
-make_authorization_query(OperationID, Context) ->
+make_authorization_query(OperationID, Req) ->
     #{
         id => OperationID,
-        party_id => anapi_handler_utils:get_party_id(Context)
+        party_id => maps:get('partyID', Req)
     }.
 
 process_search_request(QueryType, Query, Req, Context, Opts = #{thrift_fun := ThriftFun}) ->
@@ -403,10 +403,10 @@ decode_stat_payment_tool_token({mobile_commerce, MobileCommerce}) ->
 
 decode_bank_card(#merchstat_BankCard{
     'token' = Token,
-    'payment_system' = PaymentSystem,
+    'payment_system_deprecated' = PaymentSystem,
     'bin' = Bin,
     'masked_pan' = MaskedPan,
-    'token_provider' = TokenProvider
+    'token_provider_deprecated' = TokenProvider
 }) ->
     anapi_utils:map_to_base64url(
         genlib_map:compact(#{
@@ -489,8 +489,8 @@ decode_bank_card_details(BankCard, V) ->
         <<"lastDigits">> => LastDigits,
         <<"bin">> => Bin,
         <<"cardNumberMask">> => anapi_handler_decoder_utils:decode_masked_pan(Bin, LastDigits),
-        <<"paymentSystem">> => genlib:to_binary(BankCard#merchstat_BankCard.payment_system),
-        <<"tokenProvider">> => decode_token_provider(BankCard#merchstat_BankCard.token_provider)
+        <<"paymentSystem">> => genlib:to_binary(BankCard#merchstat_BankCard.payment_system_deprecated),
+        <<"tokenProvider">> => decode_token_provider(BankCard#merchstat_BankCard.token_provider_deprecated)
     }).
 
 decode_token_provider(Provider) when Provider /= undefined ->

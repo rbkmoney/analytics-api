@@ -7,6 +7,9 @@
 
 -export([mock_bouncer_assert_party_op_ctx/3]).
 -export([mock_bouncer_assert_shop_op_ctx/4]).
+-export([mock_bouncer_assert_report_op_ctx/3]).
+-export([mock_bouncer_assert_report_op_ctx/6]).
+-export([mock_bouncer_assert_report_file_op_ctx/7]).
 
 -export([mock_bouncer_client/1]).
 -export([mock_bouncer_arbiter/2]).
@@ -31,7 +34,43 @@ mock_bouncer_assert_shop_op_ctx(Op, PartyID, ShopID, Config) ->
     mock_bouncer_arbiter(
         ?assertContextMatches(
             #bctx_v1_ContextFragment{
-                capi = ?CTX_ANAPI(?CTX_SHOP_OP(Op, PartyID, ShopID))
+                anapi = ?CTX_ANAPI(?CTX_SHOP_OP(Op, PartyID, ShopID))
+            }
+        ),
+        Config
+    ).
+
+-spec mock_bouncer_assert_report_op_ctx(_, _, _) -> _.
+mock_bouncer_assert_report_op_ctx(Op, ReportID, Config) ->
+    mock_bouncer_arbiter(
+        ?assertContextMatches(
+            #bctx_v1_ContextFragment{
+                anapi = ?CTX_ANAPI(?CTX_REPORT_OP(Op, ReportID)),
+                reports = ?CTX_CONTEXT_REPORTS(undefined)
+            }
+        ),
+        Config
+    ).
+
+-spec mock_bouncer_assert_report_op_ctx(_, _, _, _, _, _) -> _.
+mock_bouncer_assert_report_op_ctx(Op, PartyID, ShopID, ReportID, Files, Config) ->
+    mock_bouncer_arbiter(
+        ?assertContextMatches(
+            #bctx_v1_ContextFragment{
+                anapi = ?CTX_ANAPI(?CTX_REPORT_OP(Op, ReportID)),
+                reports = ?CTX_CONTEXT_REPORTS(?CTX_REPORT(ReportID, PartyID, ShopID, Files))
+            }
+        ),
+        Config
+    ).
+
+-spec mock_bouncer_assert_report_file_op_ctx(_, _, _, _, _, _, _) -> _.
+mock_bouncer_assert_report_file_op_ctx(Op, PartyID, ShopID, ReportID, FileID, Files, Config) ->
+    mock_bouncer_arbiter(
+        ?assertContextMatches(
+            #bctx_v1_ContextFragment{
+                anapi = ?CTX_ANAPI(?CTX_FILE_OP(Op, ReportID, FileID)),
+                reports = ?CTX_CONTEXT_REPORTS(?CTX_REPORT(ReportID, PartyID, ShopID, Files))
             }
         ),
         Config

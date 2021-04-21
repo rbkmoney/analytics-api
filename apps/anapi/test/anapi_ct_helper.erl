@@ -93,21 +93,21 @@ get_keysource(Key, Config) ->
     filename:join(?config(data_dir, Config), Key).
 
 -spec issue_token(_, _) ->
-    {ok, binary()} |
-    {error, nonexistent_signee}.
+    {ok, binary()}
+    | {error, nonexistent_key}.
 issue_token(ACL, LifeTime) ->
     issue_token(ACL, LifeTime, #{}).
 
 -spec issue_token(_, _, _) ->
-    {ok, binary()} |
-    {error, nonexistent_signee}.
+    {ok, binary()}
+    | {error, nonexistent_key}.
 issue_token(ACL, LifeTime, ExtraProperties) ->
     % ugly
     issue_token(?STRING, ACL, LifeTime, ExtraProperties).
 
 -spec issue_token(_, _, _, _) ->
-    {ok, binary()} |
-    {error, nonexistent_signee}.
+    {ok, binary()}
+    | {error, nonexistent_key}.
 issue_token(PartyID, ACL, LifeTime, ExtraProperties) ->
     Claims = maps:merge(
         #{
@@ -130,15 +130,15 @@ issue_token(PartyID, ACL, LifeTime, ExtraProperties) ->
     of
         {ok, Token} ->
             {ok, Token};
-        {error, nonexistent_signee} ->
-            {error, nonexistent_signee};
+        {error, nonexistent_key} ->
+            {error, nonexistent_key};
         {error, {invalid_signee, Reason}} ->
             error({invalid_signee, Reason})
     end.
 
 -spec get_unique_id() -> binary().
 get_unique_id() ->
-    pg:start_link(),
+    _ = pg:start_link(),
     <<ID:64>> = snowflake:new(),
     genlib_format:format_int_base(ID, 62).
 

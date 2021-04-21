@@ -320,7 +320,11 @@ get_payments_sub_error_distribution_ok_test(Config) ->
         ],
         Config
     ),
-    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"GetPaymentsSubErrorDistribution">>, ?STRING, Config),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(
+        <<"GetPaymentsSubErrorDistribution">>,
+        ?STRING,
+        Config
+    ),
     Query = [
         {partyID, ?STRING},
         {shopIDs, <<"asdf,asdf2">>},

@@ -31,7 +31,7 @@
 -export([get_time/2]).
 
 -export([enumerate_shop_ids/2]).
--export([intersected_shop_ids/2]).
+-export([intersect_shop_ids/2]).
 
 -export([create_dsl/3]).
 
@@ -112,8 +112,8 @@ enumerate_shop_ids(Req, Context) ->
             ShopIDs
     end.
 
--spec intersected_shop_ids([binary()], [binary()]) -> [binary()].
-intersected_shop_ids(ShopIDs1, ShopIDs2) ->
+-spec intersect_shop_ids([binary()], [binary()]) -> [binary()].
+intersect_shop_ids(ShopIDs1, ShopIDs2) ->
     Set1 = ordsets:from_list(ShopIDs1),
     Set2 = ordsets:from_list(ShopIDs2),
     IntersectedSet = ordsets:intersection(Set1, Set2),

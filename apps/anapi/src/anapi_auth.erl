@@ -121,13 +121,7 @@ get_resource_hierarchy() ->
     Prototypes :: anapi_bouncer_context:prototypes(),
     Context :: anapi_handler:processing_context()
 ) -> resolution() | no_return().
-authorize_operation([], _) ->
-    undefined;
 authorize_operation(Prototypes, #{swagger_context := ReqCtx, woody_context := WoodyCtx}) ->
-    case anapi_bouncer:extract_context_fragments(ReqCtx, WoodyCtx) of
-        Fragments when Fragments /= undefined ->
-            Fragments1 = anapi_bouncer_context:build(Prototypes, Fragments, WoodyCtx),
-            anapi_bouncer:judge(Fragments1, WoodyCtx);
-        undefined ->
-            undefined
-    end.
+    Fragments = anapi_bouncer:extract_context_fragments(ReqCtx, WoodyCtx),
+    Fragments1 = anapi_bouncer_context:build(Prototypes, Fragments, WoodyCtx),
+    anapi_bouncer:judge(Fragments1, WoodyCtx).

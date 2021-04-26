@@ -167,7 +167,7 @@ handle_request_(OperationID, Req, ReqCtx = #{auth_context := AuthCtx}) ->
     Req :: request_data(),
     Context :: processing_context(),
     Handlers :: list(module())
-) -> {ok, request_state()}.
+) -> {ok, request_state()} | {error, no_impl}.
 prepare(_OperationID, _Req, _Context, []) ->
     {error, no_impl};
 prepare(OperationID, Req, Context, [Handler | Rest]) ->
@@ -228,8 +228,8 @@ process_woody_error(_Source, result_unknown, _Details) ->
 
 process_general_error(Class, Reason, Stacktrace, OperationID, Req, SwagContext) ->
     _ = logger:error(
-        "Operation ~p failed due to ~p:~p given req: ~p and context: ~p ~nST:~p",
-        [OperationID, Class, Reason, Req, SwagContext, Stacktrace],
+        "Operation ~p failed due to ~p:~p given req: ~p and context: ~p",
+        [OperationID, Class, Reason, Req, SwagContext],
         #{
             error => #{
                 class => genlib:to_binary(Class),

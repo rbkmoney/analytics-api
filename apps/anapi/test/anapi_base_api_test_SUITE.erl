@@ -22,6 +22,7 @@
 -include_lib("damsel/include/dmsl_merch_stat_thrift.hrl").
 -include_lib("reporter_proto/include/reporter_reports_thrift.hrl").
 -include_lib("anapi_dummy_data.hrl").
+-include_lib("anapi_bouncer_data.hrl").
 
 -export([all/0]).
 -export([groups/0]).
@@ -40,7 +41,6 @@
     search_refunds_ok_test/1,
     search_payouts_ok_test/1,
     search_chargebacks_ok_test/1,
-    search_chargebacks_by_party_id_ok_test/1,
     get_report_ok_test/1,
     get_report_not_found_test/1,
     search_reports_ok_test/1,
@@ -83,7 +83,6 @@ groups() ->
             search_refunds_ok_test,
             search_payouts_ok_test,
             search_chargebacks_ok_test,
-            search_chargebacks_by_party_id_ok_test,
             get_report_ok_test,
             get_report_not_found_test,
             search_reports_ok_test,
@@ -123,7 +122,8 @@ init_per_group(_, Config) ->
     Config.
 
 -spec end_per_group(group_name(), config()) -> _.
-end_per_group(_Group, _C) ->
+end_per_group(_Group, C) ->
+    _ = anapi_utils:maybe(?config(group_test_sup, C), fun anapi_ct_helper:stop_mocked_service_sup/1),
     ok.
 
 -spec init_per_testcase(test_case_name(), config()) -> config().
@@ -146,11 +146,13 @@ search_invoices_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"SearchInvoices">>, ?STRING, Config),
     Query = [
         {limit, 2},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}},
         {invoiceStatus, <<"fulfilled">>},
+        {partyID, ?STRING},
         {shopID, ?STRING},
         {shopIDs, <<?STRING/binary, ",", ?STRING/binary>>},
         {invoiceID, <<"testInvoiceID">>},
@@ -173,11 +175,13 @@ search_payments_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"SearchPayments">>, ?STRING, Config),
     Params = [
         {limit, 2},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}},
         {payerEmail, <<"test@test.ru">>},
+        {partyID, ?STRING},
         {shopID, ?STRING},
         {shopIDs, <<?STRING/binary, ",", ?STRING/binary>>},
         {paymentStatus, <<"processed">>},
@@ -217,11 +221,13 @@ search_refunds_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"SearchRefunds">>, ?STRING, Config),
     Query = [
         {limit, 2},
         {offset, 2},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}},
+        {partyID, ?STRING},
         {shopID, ?STRING},
         {shopIDs, <<?STRING/binary, ",", ?STRING/binary>>},
         {invoiceID, <<"testInvoiceID">>},
@@ -245,11 +251,13 @@ search_payouts_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"SearchPayouts">>, ?STRING, Config),
     Query = [
         {limit, 2},
         {offset, 2},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}},
+        {partyID, ?STRING},
         {shopID, ?STRING},
         {shopIDs, <<?STRING/binary, ",", ?STRING/binary>>},
         {payoutID, <<"testPayoutID">>},
@@ -269,8 +277,10 @@ search_reports_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"SearchReports">>, ?STRING, Config),
     Query0 = [
         {limit, 2},
+        {partyID, ?STRING},
         {shopID, ?STRING},
         {shopIDs, <<?STRING/binary, ",", ?STRING/binary>>},
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},
@@ -279,6 +289,7 @@ search_reports_ok_test(Config) ->
     ],
     {ok, _} = anapi_client_reports:search_reports(?config(context, Config), Query0),
     Query1 = [
+        {partyID, ?STRING},
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},
         {to_time, {{2016, 03, 22}, {6, 12, 27}}},
         {report_types, ?REPORT_TYPE}
@@ -288,13 +299,22 @@ search_reports_ok_test(Config) ->
 -spec get_report_ok_test(config()) -> _.
 get_report_ok_test(Config) ->
     _ = anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT} end}], Config),
-    {ok, _} = anapi_client_reports:get_report(?config(context, Config), ?INTEGER_BINARY).
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_report_op_ctx(
+        <<"GetReport">>,
+        ?STRING,
+        ?STRING,
+        ?INTEGER_BINARY,
+        [?CTX_ENTITY(?STRING)],
+        Config
+    ),
+    {ok, _} = anapi_client_reports:get_report(?config(context, Config), ?INTEGER).
 
 -spec get_report_not_found_test(config()) -> _.
 get_report_not_found_test(Config) ->
     _ = anapi_ct_helper:mock_services([{reporting, fun('GetReport', _) -> {ok, ?REPORT_ALT} end}], Config),
-    {error, {404, #{<<"message">> := <<"Report not found">>}}} =
-        anapi_client_reports:get_report(?config(context, Config), ?INTEGER_BINARY).
+    _ = anapi_ct_helper_bouncer:mock_bouncer_arbiter(anapi_ct_helper_bouncer:judge_always_forbidden(), Config),
+    {error, {401, _}} =
+        anapi_client_reports:get_report(?config(context, Config), ?INTEGER).
 
 -spec create_report_ok_test(config()) -> _.
 create_report_ok_test(Config) ->
@@ -307,7 +327,9 @@ create_report_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"CreateReport">>, ?STRING, Config),
     Query0 = [
+        {partyID, ?STRING},
         {shopID, ?STRING},
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},
         {to_time, {{2016, 03, 22}, {6, 12, 27}}},
@@ -326,7 +348,15 @@ cancel_report_ok_test(Config) ->
         ],
         Config
     ),
-    {ok, _} = anapi_client_reports:cancel_report(?config(context, Config), ?INTEGER_BINARY).
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_report_op_ctx(
+        <<"CancelReport">>,
+        ?STRING,
+        ?STRING,
+        ?INTEGER_BINARY,
+        [?CTX_ENTITY(?STRING)],
+        Config
+    ),
+    {ok, _} = anapi_client_reports:cancel_report(?config(context, Config), ?INTEGER).
 
 -spec cancel_report_bad_request_test(config()) -> _.
 cancel_report_bad_request_test(Config) ->
@@ -336,8 +366,13 @@ cancel_report_bad_request_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_report_op_ctx(
+        <<"CancelReport">>,
+        ?INTEGER_BINARY,
+        Config
+    ),
     {error, {400, #{<<"message">> := <<"Invalid report type">>}}} =
-        anapi_client_reports:cancel_report(?config(context, Config), ?INTEGER_BINARY).
+        anapi_client_reports:cancel_report(?config(context, Config), ?INTEGER).
 
 -spec create_report_without_shop_id_ok_test(config()) -> _.
 create_report_without_shop_id_ok_test(Config) ->
@@ -350,7 +385,9 @@ create_report_without_shop_id_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"CreateReport">>, ?STRING, Config),
     Query0 = [
+        {partyID, ?STRING},
         {from_time, {{2016, 03, 22}, {6, 12, 27}}},
         {to_time, {{2016, 03, 22}, {6, 12, 27}}},
         {reportType, ?REPORT_TYPE}
@@ -368,7 +405,16 @@ download_report_file_ok_test(Config) ->
         ],
         Config
     ),
-    {ok, _} = anapi_client_reports:download_file(?config(context, Config), ?INTEGER_BINARY, ?STRING).
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_report_file_op_ctx(
+        <<"DownloadFile">>,
+        ?STRING,
+        ?STRING,
+        ?INTEGER_BINARY,
+        ?STRING,
+        [?CTX_ENTITY(?STRING)],
+        Config
+    ),
+    {ok, _} = anapi_client_reports:download_file(?config(context, Config), ?INTEGER, ?STRING).
 
 -spec search_chargebacks_ok_test(config()) -> _.
 search_chargebacks_ok_test(Config) ->
@@ -379,37 +425,14 @@ search_chargebacks_ok_test(Config) ->
         ],
         Config
     ),
-    Query = [
-        {limit, 2},
-        {from_time, {{2015, 08, 11}, {19, 42, 35}}},
-        {to_time, {{2020, 08, 11}, {19, 42, 35}}},
-        {shopID, ?STRING},
-        {shopIDs, <<?STRING/binary, ",", ?STRING/binary>>},
-        {invoiceID, <<"testInvoiceID">>},
-        {paymentID, <<"testPaymentID">>},
-        {chargebackID, <<"testChargebackID">>},
-        {chargebackStatuses, <<"pending,accepted">>},
-        {chargebackStages, <<"chargeback,pre_arbitration">>},
-        {chargebackCategories, <<"fraud,dispute">>},
-        {continuationToken, <<"come_back_next_time">>}
-    ],
-    {ok, _, _} = anapi_client_searches:search_chargebacks(?config(context, Config), Query).
-
--spec search_chargebacks_by_party_id_ok_test(config()) -> _.
-search_chargebacks_by_party_id_ok_test(Config) ->
-    _ = anapi_ct_helper:mock_services(
-        [
-            {merchant_stat, fun('GetChargebacks', _) -> {ok, ?STAT_RESPONSE_CHARGEBACKS} end},
-            {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
-        ],
-        Config
-    ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"SearchChargebacks">>, ?STRING, Config),
     Query = [
         {limit, 2},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
         {to_time, {{2020, 08, 11}, {19, 42, 35}}},
         {partyID, ?STRING},
-        {paymentInstitutionRealm, <<"live">>},
+        {shopID, ?STRING},
+        {shopIDs, <<?STRING/binary, ",", ?STRING/binary>>},
         {invoiceID, <<"testInvoiceID">>},
         {paymentID, <<"testPaymentID">>},
         {chargebackID, <<"testChargebackID">>},
@@ -429,6 +452,7 @@ search_by_inaccessible_party_id_error_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_arbiter(anapi_ct_helper_bouncer:judge_always_forbidden(), Config),
     Query = [
         {limit, 2},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
@@ -443,5 +467,5 @@ search_by_inaccessible_party_id_error_test(Config) ->
         {chargebackCategories, <<"fraud,dispute">>},
         {continuationToken, <<"come_back_next_time">>}
     ],
-    {error, {400, #{<<"code">> := <<"invalidPartyID">>}}} =
+    {error, {401, _}} =
         anapi_client_searches:search_chargebacks(?config(context, Config), Query).

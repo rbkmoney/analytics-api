@@ -20,7 +20,30 @@
 -export([get_consumer/1]).
 -export([get_access_config/0]).
 
+-export([authorize_operation/2]).
+
+-type context() :: uac:context().
+-type claims() :: uac:claims().
+
+-type restrictions() :: bouncer_restriction_thrift:'Restrictions'().
+
+-type resolution() ::
+    allowed
+    | {restricted, restrictions()}
+    | forbidden.
+
+-type auth_method() ::
+    user_session_token.
+
 -type consumer() :: client | merchant | provider.
+
+-export_type([context/0]).
+-export_type([claims/0]).
+-export_type([restrictions/0]).
+-export_type([resolution/0]).
+-export_type([auth_method/0]).
+
+-define(DOMAIN, <<"common-api">>).
 
 %%
 
@@ -81,7 +104,7 @@ get_consumer(Claims) ->
 -spec get_access_config() -> map().
 get_access_config() ->
     #{
-        domain_name => <<"common-api">>,
+        domain_name => ?DOMAIN,
         resource_hierarchy => get_resource_hierarchy()
     }.
 
@@ -93,3 +116,12 @@ get_resource_hierarchy() ->
         payments => #{},
         party => #{}
     }.
+
+-spec authorize_operation(
+    Prototypes :: anapi_bouncer_context:prototypes(),
+    Context :: anapi_handler:processing_context()
+) -> resolution() | no_return().
+authorize_operation(Prototypes, #{swagger_context := ReqCtx, woody_context := WoodyCtx}) ->
+    Fragments = anapi_bouncer:extract_context_fragments(ReqCtx, WoodyCtx),
+    Fragments1 = anapi_bouncer_context:build(Prototypes, Fragments, WoodyCtx),
+    anapi_bouncer:judge(Fragments1, WoodyCtx).

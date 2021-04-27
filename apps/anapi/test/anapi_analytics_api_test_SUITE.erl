@@ -116,7 +116,8 @@ init_per_group(_, Config) ->
     Config.
 
 -spec end_per_group(group_name(), config()) -> _.
-end_per_group(_Group, _C) ->
+end_per_group(_Group, C) ->
+    _ = anapi_utils:maybe(?config(group_test_sup, C), fun anapi_ct_helper:stop_mocked_service_sup/1),
     ok.
 
 -spec init_per_testcase(test_case_name(), config()) -> config().
@@ -139,7 +140,9 @@ get_payments_tool_distribution_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"GetPaymentsToolDistribution">>, ?STRING, Config),
     Query = [
+        {partyID, ?STRING},
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
@@ -157,7 +160,9 @@ get_payments_amount_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"GetPaymentsAmount">>, ?STRING, Config),
     Query = [
+        {partyID, ?STRING},
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
@@ -175,7 +180,9 @@ get_average_payment_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"GetAveragePayment">>, ?STRING, Config),
     Query = [
+        {partyID, ?STRING},
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
@@ -193,7 +200,9 @@ get_payments_count_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"GetPaymentsCount">>, ?STRING, Config),
     Query = [
+        {partyID, ?STRING},
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
@@ -211,7 +220,9 @@ get_payments_error_distribution_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"GetPaymentsErrorDistribution">>, ?STRING, Config),
     Query = [
+        {partyID, ?STRING},
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
@@ -229,7 +240,9 @@ get_payments_split_amount_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"GetPaymentsSplitAmount">>, ?STRING, Config),
     Query = [
+        {partyID, ?STRING},
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
@@ -248,7 +261,9 @@ get_payments_split_count_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"GetPaymentsSplitCount">>, ?STRING, Config),
     Query = [
+        {partyID, ?STRING},
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
@@ -267,7 +282,9 @@ get_refunds_amount_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"GetRefundsAmount">>, ?STRING, Config),
     Query = [
+        {partyID, ?STRING},
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
@@ -285,7 +302,9 @@ get_current_balances_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"GetCurrentBalances">>, ?STRING, Config),
     Query = [
+        {partyID, ?STRING},
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>}
     ],
@@ -301,7 +320,13 @@ get_payments_sub_error_distribution_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(
+        <<"GetPaymentsSubErrorDistribution">>,
+        ?STRING,
+        Config
+    ),
     Query = [
+        {partyID, ?STRING},
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},
@@ -319,7 +344,9 @@ get_current_balances_group_by_shop_ok_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"GetCurrentBalancesGroupByShop">>, ?STRING, Config),
     Query = [
+        %% {partyID, ?STRING}, %% TODO UNCOMMENT ASAP
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>}
     ],
@@ -338,7 +365,9 @@ analytics_timeout_test(Config) ->
         ],
         Config
     ),
+    _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"GetRefundsAmount">>, ?STRING, Config),
     Query = [
+        {partyID, ?STRING},
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>},
         {from_time, {{2015, 08, 11}, {19, 42, 35}}},

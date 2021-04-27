@@ -25,19 +25,42 @@
 -export([handle_request/4]).
 -export([map_error/2]).
 
-%% Handler behaviour
+-export([respond/1]).
+-export([respond_if_error/1]).
+
+-type request_data() :: #{atom() | binary() => term()}.
+
+-type operation_id() :: swag_server:operation_id().
+-type request_context() :: swag_server:request_context().
+-type response() :: swag_server:response().
+-type processing_context() :: #{
+    swagger_context := swag_server:request_context(),
+    woody_context := woody_context:ctx()
+}.
+
+-type throw(_T) :: no_return().
+
+-type request_state() :: #{
+    authorize := fun(() -> {ok, anapi_auth:resolution()} | throw(response())),
+    process := fun((anapi_auth:restrictions() | undefined) -> {ok, response()} | throw(response()))
+}.
 
 -export_type([operation_id/0]).
 -export_type([request_data/0]).
 -export_type([request_context/0]).
 -export_type([response/0]).
 -export_type([processing_context/0]).
+-export_type([request_state/0]).
 
--callback process_request(
+-type handler_opts() :: swag_server:handler_opts(_).
+
+%% Handler behaviour
+
+-callback prepare(
     OperationID :: operation_id(),
     Req :: request_data(),
     Context :: processing_context()
-) -> {ok | error, response() | noimpl}.
+) -> {ok, request_state()} | {error, noimpl}.
 
 -import(anapi_handler_utils, [logic_error/2, server_error/1]).
 
@@ -46,9 +69,7 @@
 
 -define(SWAG_HANDLER_SCOPE, swag_handler).
 
--define(DOMAIN, <<"common-api">>).
-
--spec authorize_api_key(swag_server:operation_id(), swag_server:api_key(), handler_opts()) ->
+-spec authorize_api_key(swag_server:operation_id(), swag_server:api_key(), swag_server:handler_opts(_)) ->
     Result :: false | {true, uac:context()}.
 authorize_api_key(OperationID, ApiKey, _HandlerOpts) ->
     scoper:scope(
@@ -56,7 +77,7 @@ authorize_api_key(OperationID, ApiKey, _HandlerOpts) ->
         #{operation_id => OperationID},
         fun() ->
             _ = logger:debug("Api key authorization started"),
-            case uac:authorize_api_key(ApiKey, get_verification_options()) of
+            case uac:authorize_api_key(ApiKey, #{}) of
                 {ok, Context} ->
                     _ = logger:debug("Api key authorization successful"),
                     {true, Context};
@@ -85,17 +106,6 @@ map_error(validation_error, Error) ->
         <<"message">> => Message
     }).
 
--type request_data() :: #{atom() | binary() => term()}.
-
--type operation_id() :: swag_server:operation_id().
--type request_context() :: swag_server:request_context().
--type response() :: swag_server:response().
--type handler_opts() :: swag_server:handler_opts(_).
--type processing_context() :: #{
-    swagger_context := swag_server:request_context(),
-    woody_context := woody_context:ctx()
-}.
-
 get_handlers() ->
     [
         anapi_handler_search,
@@ -103,40 +113,42 @@ get_handlers() ->
         anapi_handler_analytics
     ].
 
-get_verification_options() ->
-    #{
-        domains_to_decode => [?DOMAIN]
-    }.
-
 -spec handle_request(
     OperationID :: operation_id(),
-    Req :: request_data(),
-    SwagContext :: request_context(),
+    Req :: swag_server:object(),
+    ReqCtx :: request_context(),
     HandlerOpts :: handler_opts()
 ) -> {ok | error, response()}.
-handle_request(OperationID, Req, SwagContext, _HandlerOpts) ->
+handle_request(OperationID, Req, ReqCtx, _HandlerOpts) ->
     scoper:scope(
         ?SWAG_HANDLER_SCOPE,
         #{
             operation_id => OperationID
         },
-        fun() -> handle_request_(OperationID, Req, SwagContext) end
+        fun() -> handle_request_(OperationID, Req, ReqCtx) end
     ).
 
-handle_request_(OperationID, Req, SwagContext = #{auth_context := AuthContext}) ->
+handle_request_(OperationID, Req, ReqCtx = #{auth_context := AuthCtx}) ->
+    _ = logger:debug("Processing request: ~p", [OperationID]),
     try
-        WoodyContext = attach_deadline(Req, create_woody_context(Req, AuthContext)),
-        _ = logger:debug("Processing request"),
-        OperationACL = anapi_auth:get_operation_access(OperationID, Req),
-        case uac:authorize_operation(OperationACL, AuthContext) of
-            ok ->
-                Context = create_processing_context(SwagContext, WoodyContext),
-                process_request(OperationID, Req, Context, get_handlers());
-            {error, _} = Error ->
-                _ = logger:info("Operation ~p authorization failed due to ~p", [OperationID, Error]),
+        WoodyCtx = attach_deadline(Req, create_woody_context(Req, AuthCtx)),
+        Context0 = create_processing_context(ReqCtx, WoodyCtx),
+        Handlers = get_handlers(),
+        {ok, #{authorize := Authorize, process := Process}} =
+            prepare(OperationID, Req, Context0, Handlers),
+        {ok, Resolution} = Authorize(),
+        case Resolution of
+            allowed ->
+                Process(undefined);
+            {restricted, Restrictions} ->
+                Process(Restrictions);
+            forbidden ->
+                _ = logger:info("Authorization failed"),
                 {ok, {401, #{}, undefined}}
         end
     catch
+        throw:{handler_respond, HandlerResponse} ->
+            {ok, HandlerResponse};
         throw:{bad_deadline, _Deadline} ->
             {ok, logic_error(invalidDeadline, <<"Invalid data in X-Request-Deadline header">>)};
         throw:{handler_function_clause, _OperationID} ->
@@ -147,31 +159,41 @@ handle_request_(OperationID, Req, SwagContext = #{auth_context := AuthContext}) 
         error:{woody_error, {Source, Class, Details}} ->
             process_woody_error(Source, Class, Details);
         Class:Reason:Stacktrace ->
-            process_general_error(Class, Reason, Stacktrace, OperationID, Req, SwagContext)
+            process_general_error(Class, Reason, Stacktrace, OperationID, Req, ReqCtx)
     end.
 
--spec process_request(
+-spec prepare(
     OperationID :: operation_id(),
     Req :: request_data(),
     Context :: processing_context(),
     Handlers :: list(module())
-) -> {ok | error, response()}.
-process_request(OperationID, _Req, _Context, []) ->
-    erlang:throw({handler_function_clause, OperationID});
-process_request(OperationID, Req, Context, [Handler | Rest]) ->
-    case Handler:process_request(OperationID, Req, Context) of
+) -> {ok, request_state()} | no_return().
+prepare(OperationID, _Req, _Context, []) ->
+    throw({handler_function_clause, OperationID});
+prepare(OperationID, Req, Context, [Handler | Rest]) ->
+    case Handler:prepare(OperationID, Req, Context) of
         {error, noimpl} ->
-            process_request(OperationID, Req, Context, Rest);
+            prepare(OperationID, Req, Context, Rest);
         Response ->
             Response
     end.
 
+-spec respond(response()) -> throw(response()).
+respond(Response) ->
+    erlang:throw({handler_respond, Response}).
+
+-spec respond_if_error({error, response()} | _Entity) -> ok | throw(response()).
+respond_if_error({error, Response}) ->
+    respond(Response);
+respond_if_error(_) ->
+    ok.
+
 %%
 
-create_processing_context(SwaggerContext, WoodyContext) ->
+create_processing_context(ReqCtx, WoodyCtx) ->
     #{
-        woody_context => WoodyContext,
-        swagger_context => SwaggerContext
+        woody_context => WoodyCtx,
+        swagger_context => ReqCtx
     }.
 
 create_woody_context(#{'X-Request-ID' := RequestID}, AuthContext) ->

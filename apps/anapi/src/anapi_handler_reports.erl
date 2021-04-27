@@ -5,82 +5,134 @@
 
 -behaviour(anapi_handler).
 
--export([process_request/3]).
+-export([prepare/3]).
 
 -import(anapi_handler_utils, [general_error/2, logic_error/2]).
 
 % seconds
 -define(DEFAULT_URL_LIFETIME, 60).
 
--spec process_request(
+-spec prepare(
     OperationID :: anapi_handler:operation_id(),
     Req :: anapi_handler:request_data(),
     Context :: anapi_handler:processing_context()
-) -> {ok | error, anapi_handler:response() | noimpl}.
-process_request('SearchReports', Req, Context) ->
-    Params = #{
-        party_id => anapi_handler_utils:get_party_id(Context),
-        shop_id => genlib_map:get(shopID, Req),
-        shop_ids => anapi_handler_utils:enumerate_shop_ids(Req, Context),
-        from_time => anapi_handler_utils:get_time(fromTime, Req),
-        to_time => anapi_handler_utils:get_time(toTime, Req),
-        report_types => [encode_report_type(F) || F <- maps:get(reportTypes, Req)],
-        continuation_token => genlib_map:get(continuationToken, Req),
-        limit => maps:get(limit, Req, undefined)
-    },
-    process_search_reports(Params, Context);
-process_request('GetReport', Req, Context) ->
-    PartyId = anapi_handler_utils:get_party_id(Context),
+) -> {ok, anapi_handler:request_state()} | {error, noimpl}.
+prepare(OperationID, Req, Context) when OperationID =:= 'SearchReports' ->
+    OperationContext = make_authorization_query(OperationID, Req, maps:get(partyID, Req)),
+    Authorize = fun() ->
+        {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)}
+    end,
+    Process = fun(undefined) ->
+        Params = #{
+            party_id => maps:get('partyID', Req),
+            shop_id => genlib_map:get(shopID, Req),
+            shop_ids => anapi_handler_utils:enumerate_shop_ids(Req, Context),
+            from_time => anapi_handler_utils:get_time(fromTime, Req),
+            to_time => anapi_handler_utils:get_time(toTime, Req),
+            report_types => [encode_report_type(F) || F <- maps:get(reportTypes, Req)],
+            continuation_token => genlib_map:get(continuationToken, Req),
+            limit => maps:get(limit, Req, undefined)
+        },
+        process_search_reports(Params, Context)
+    end,
+    {ok, #{authorize => Authorize, process => Process}};
+prepare(OperationID, Req, Context) when OperationID =:= 'GetReport' ->
     ReportId = maps:get(reportID, Req),
-    case anapi_handler_utils:get_report_by_id(ReportId, Context) of
-        {ok, Report = #reports_Report{party_id = PartyId}} ->
-            {ok, {200, #{}, decode_report(Report)}};
-        {ok, _WrongReport} ->
-            {ok, general_error(404, <<"Report not found">>)};
-        {exception, #reports_ReportNotFound{}} ->
-            {ok, general_error(404, <<"Report not found">>)}
-    end;
-process_request('CreateReport', Req, Context) ->
-    Params = #{
-        party_id => anapi_handler_utils:get_party_id(Context),
-        shop_id => genlib_map:get(shopID, Req),
-        from_time => anapi_handler_utils:get_time(fromTime, Req),
-        to_time => anapi_handler_utils:get_time(toTime, Req),
-        report_type => encode_report_type(maps:get(reportType, Req))
-    },
-    process_create_report(Params, Context);
-process_request('CancelReport', Req, Context) ->
+    Report =
+        case anapi_handler_utils:get_report_by_id(ReportId, Context) of
+            {ok, R} ->
+                R;
+            {exception, #reports_ReportNotFound{}} ->
+                {error, general_error(404, <<"Report not found">>)}
+        end,
+    OperationContext = make_authorization_query(OperationID, Req),
+    Authorize = fun() ->
+        Prototypes = [{operation, OperationContext}, {reports, #{report => maybe_woody_reply(Report)}}],
+        {ok, anapi_auth:authorize_operation(Prototypes, Context)}
+    end,
+    Process = fun(undefined) ->
+        anapi_handler:respond_if_error(Report),
+        {ok, {200, #{}, decode_report(Report)}}
+    end,
+    {ok, #{authorize => Authorize, process => Process}};
+prepare(OperationID, Req, Context) when OperationID =:= 'CreateReport' ->
+    OperationContext = make_authorization_query(OperationID, Req, maps:get(partyID, Req)),
+    Authorize = fun() ->
+        {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)}
+    end,
+    Process = fun(undefined) ->
+        Params = #{
+            party_id => maps:get('partyID', Req),
+            shop_id => genlib_map:get(shopID, Req),
+            from_time => anapi_handler_utils:get_time(fromTime, Req),
+            to_time => anapi_handler_utils:get_time(toTime, Req),
+            report_type => encode_report_type(maps:get(reportType, Req))
+        },
+        process_create_report(Params, Context)
+    end,
+    {ok, #{authorize => Authorize, process => Process}};
+prepare(OperationID, Req, Context) when OperationID =:= 'CancelReport' ->
     ReportId = maps:get(reportID, Req),
-    PartyId = anapi_handler_utils:get_party_id(Context),
-    case anapi_handler_utils:get_report_by_id(ReportId, Context) of
-        {ok, Report = #reports_Report{party_id = PartyId}} ->
-            case can_cancel_report(Report) of
-                true -> cancel_report(ReportId, Context);
-                false -> {ok, logic_error(invalidRequest, <<"Invalid report type">>)}
-            end;
-        {ok, _WrongReport} ->
-            {ok, general_error(404, <<"Report not found">>)};
-        {exception, #reports_ReportNotFound{}} ->
-            {ok, general_error(404, <<"Report not found">>)}
-    end;
-process_request('DownloadFile', Req, Context) ->
-    Call = {reporting, 'GetReport', {maps:get(reportID, Req)}},
-    case anapi_handler_utils:service_call(Call, Context) of
-        {ok, #reports_Report{status = created, files = Files}} ->
-            FileID = maps:get(fileID, Req),
-            case lists:keymember(FileID, #reports_FileMeta.file_id, Files) of
-                true ->
-                    generate_report_presigned_url(FileID, Context);
-                false ->
-                    {ok, general_error(404, <<"File not found">>)}
-            end;
-        {exception, #reports_ReportNotFound{}} ->
-            {ok, general_error(404, <<"Report not found">>)}
-    end;
-%%
-
-process_request(_OperationID, _Req, _Context) ->
+    Report =
+        case anapi_handler_utils:get_report_by_id(ReportId, Context) of
+            {ok, R} ->
+                case can_cancel_report(R) of
+                    true -> R;
+                    false -> {error, logic_error(invalidRequest, <<"Invalid report type">>)}
+                end;
+            {exception, #reports_ReportNotFound{}} ->
+                {error, general_error(404, <<"Report not found">>)}
+        end,
+    OperationContext = make_authorization_query(OperationID, Req),
+    Authorize = fun() ->
+        Prototypes = [{operation, OperationContext}, {reports, #{report => maybe_woody_reply(Report)}}],
+        {ok, anapi_auth:authorize_operation(Prototypes, Context)}
+    end,
+    Process = fun(undefined) ->
+        anapi_handler:respond_if_error(Report),
+        cancel_report(ReportId, Context)
+    end,
+    {ok, #{authorize => Authorize, process => Process}};
+prepare(OperationID, Req, Context) when OperationID =:= 'DownloadFile' ->
+    ReportId = maps:get(reportID, Req),
+    Report =
+        case anapi_handler_utils:get_report_by_id(ReportId, Context) of
+            {ok, R} ->
+                R;
+            {exception, #reports_ReportNotFound{}} ->
+                {error, general_error(404, <<"Report not found">>)}
+        end,
+    OperationContext = make_authorization_query(OperationID, Req),
+    Authorize = fun() ->
+        Prototypes = [{operation, OperationContext}, {reports, #{report => maybe_woody_reply(Report)}}],
+        {ok, anapi_auth:authorize_operation(Prototypes, Context)}
+    end,
+    Process = fun(undefined) ->
+        anapi_handler:respond_if_error(Report),
+        #reports_Report{files = Files} = Report,
+        FileID = maps:get(fileID, Req),
+        case lists:keymember(FileID, #reports_FileMeta.file_id, Files) of
+            true ->
+                generate_report_presigned_url(FileID, Context);
+            false ->
+                {error, general_error(404, <<"File not found">>)}
+        end
+    end,
+    {ok, #{authorize => Authorize, process => Process}};
+prepare(_OperationID, _Req, _Context) ->
     {error, noimpl}.
+
+make_authorization_query(OperationID, Req, PartyID) ->
+    Query = make_authorization_query(OperationID, Req),
+    Query#{party_id => PartyID}.
+
+make_authorization_query(OperationID, Req) ->
+    genlib_map:compact(#{
+        id => OperationID,
+        shop_id => genlib_map:get(shopID, Req),
+        report_id => genlib_map:get(reportID, Req),
+        file_id => genlib_map:get(fileID, Req)
+    }).
 
 process_create_report(Params, Context) ->
     ReportRequest = #reports_ReportRequest{
@@ -217,3 +269,8 @@ decode_report_file(#reports_FileMeta{file_id = ID, filename = Filename, signatur
 
 decode_report_file_signature(#reports_Signature{md5 = MD5, sha256 = SHA256}) ->
     #{<<"md5">> => MD5, <<"sha256">> => SHA256}.
+
+maybe_woody_reply({error, _}) ->
+    undefined;
+maybe_woody_reply(Reply) ->
+    Reply.

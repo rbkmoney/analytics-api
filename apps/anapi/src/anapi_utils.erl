@@ -25,6 +25,8 @@
 
 -export([unwrap/1]).
 
+-export([maybe/2]).
+
 % 5 min
 -define(MAX_REQUEST_DEADLINE_TIME, timer:minutes(5)).
 
@@ -128,6 +130,14 @@ get_process_metadata() ->
         undefined -> #{};
         Metadata -> Metadata
     end.
+
+%%
+
+-spec maybe(T | undefined, fun((T) -> R)) -> R | undefined.
+maybe(undefined, _Fun) ->
+    undefined;
+maybe(V, Fun) ->
+    Fun(V).
 
 %%
 

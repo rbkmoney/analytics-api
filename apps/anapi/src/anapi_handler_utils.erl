@@ -26,12 +26,12 @@
 -export([service_call/2]).
 
 -export([get_auth_context/1]).
--export([get_party_id/1]).
 
 -export([merge_and_compact/2]).
 -export([get_time/2]).
 
 -export([enumerate_shop_ids/2]).
+-export([intersect_shop_ids/2]).
 
 -export([create_dsl/3]).
 
@@ -78,10 +78,6 @@ service_call({ServiceName, Function, Args}, #{woody_context := WoodyContext}) ->
 get_auth_context(#{swagger_context := #{auth_context := AuthContext}}) ->
     AuthContext.
 
--spec get_party_id(processing_context()) -> binary().
-get_party_id(Context) ->
-    uac_authorizer_jwt:get_subject_id(get_auth_context(Context)).
-
 -spec merge_and_compact(map(), map()) -> map().
 merge_and_compact(M1, M2) ->
     genlib_map:compact(maps:merge(M1, M2)).
@@ -109,12 +105,19 @@ enumerate_shop_ids(Req, Context) ->
             % Neither shopID nor shopIDs is set, will search using partyID & realm
             Realm = genlib_map:get('paymentInstitutionRealm', Req),
             PartyID = genlib_map:get('partyID', Req),
-            UserID = get_party_id(Context),
+            UserID = maps:get('partyID', Req),
             ok = validate_party_access(UserID, PartyID),
             get_party_shops(UserID, Realm, Context);
         ShopIDs ->
             ShopIDs
     end.
+
+-spec intersect_shop_ids([binary()], [binary()]) -> [binary()].
+intersect_shop_ids(ShopIDs1, ShopIDs2) ->
+    Set1 = ordsets:from_list(ShopIDs1),
+    Set2 = ordsets:from_list(ShopIDs2),
+    IntersectedSet = ordsets:intersection(Set1, Set2),
+    ordsets:to_list(IntersectedSet).
 
 get_request_shops(Req) ->
     ShopIDs = genlib:define(genlib_map:get('shopIDs', Req), []),
@@ -130,7 +133,7 @@ get_party_shops(PartyID, undefined, Context) ->
     ]);
 get_party_shops(PartyID, Realm, Context) ->
     Call = {party_shop, 'GetShopsIds', {PartyID, Realm}},
-    {ok, ShopIDs} = anapi_handler_utils:service_call(Call, Context),
+    {ok, ShopIDs} = service_call(Call, Context),
     ShopIDs.
 
 validate_party_access(_UserID, undefined) ->
@@ -160,7 +163,9 @@ processing_context_new() ->
 
 enumerate_shop_ids_one_test() ->
     ShopID = <<"SHOP_ID">>,
+    PartyID = <<"PARTY_ID">>,
     Req = #{
+        'partyID' => PartyID,
         'shopID' => ShopID
     },
     [ShopID] = enumerate_shop_ids(Req, processing_context_new()).
@@ -168,7 +173,9 @@ enumerate_shop_ids_one_test() ->
 -spec enumerate_shop_ids_many_test() -> _.
 enumerate_shop_ids_many_test() ->
     ShopIDs = [<<"SHOP_ID">>, <<"SHOP_ID_2">>],
+    PartyID = <<"PARTY_ID">>,
     Req = #{
+        'partyID' => PartyID,
         'shopIDs' => ShopIDs
     },
     ShopIDs = enumerate_shop_ids(Req, processing_context_new()).
@@ -177,7 +184,9 @@ enumerate_shop_ids_many_test() ->
 enumerate_shop_ids_both_filters_present_test() ->
     ShopID = <<"SHOP_ID">>,
     ShopIDs = [<<"SHOP_ID_2">>, <<"SHOP_ID_3">>],
+    PartyID = <<"PARTY_ID">>,
     Req = #{
+        'partyID' => PartyID,
         'shopID' => ShopID,
         'shopIDs' => ShopIDs
     },

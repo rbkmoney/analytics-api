@@ -167,9 +167,9 @@ handle_request_(OperationID, Req, ReqCtx = #{auth_context := AuthCtx}) ->
     Req :: request_data(),
     Context :: processing_context(),
     Handlers :: list(module())
-) -> {ok, request_state()} | {error, no_impl}.
-prepare(_OperationID, _Req, _Context, []) ->
-    {error, no_impl};
+) -> {ok, request_state()} | no_return().
+prepare(OperationID, _Req, _Context, []) ->
+    throw({handler_function_clause, OperationID});
 prepare(OperationID, Req, Context, [Handler | Rest]) ->
     case Handler:prepare(OperationID, Req, Context) of
         {error, noimpl} ->

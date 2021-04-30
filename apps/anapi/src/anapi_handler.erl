@@ -21,7 +21,7 @@
 -type error_type() :: swag_server_logic_handler:error_type().
 
 %% API callbacks
--export([authorize_api_key/3]).
+-export([authorize_api_key/4]).
 -export([handle_request/4]).
 -export([map_error/2]).
 
@@ -69,9 +69,13 @@
 
 -define(SWAG_HANDLER_SCOPE, swag_handler).
 
--spec authorize_api_key(swag_server:operation_id(), swag_server:api_key(), swag_server:handler_opts(_)) ->
-    Result :: false | {true, uac:context()}.
-authorize_api_key(OperationID, ApiKey, _HandlerOpts) ->
+-spec authorize_api_key(
+    swag_server:operation_id(),
+    swag_server:api_key(),
+    swag_server:request_context(),
+    swag_server:handler_opts(_)
+) -> Result :: false | {true, uac:context()}.
+authorize_api_key(OperationID, ApiKey, _ReqCtx, _HandlerOpts) ->
     scoper:scope(
         ?SWAG_HANDLER_SCOPE,
         #{operation_id => OperationID},

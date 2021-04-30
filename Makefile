@@ -21,7 +21,7 @@ BASE_IMAGE_TAG := d2b5ac42305aadae44d6f8b1d859fd1065749997
 
 # Build image tag to be used
 BUILD_IMAGE_NAME := build-erlang
-BUILD_IMAGE_TAG := e6e7e3ad278ede660e512426940ea0613b595f2b
+BUILD_IMAGE_TAG := cc2d319150ec0b9cd23ad9347692a8066616b0f4
 CALL_ANYWHERE := \
 	submodules \
 	all compile xref lint dialyze test cover \

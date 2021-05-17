@@ -346,7 +346,7 @@ get_current_balances_group_by_shop_ok_test(Config) ->
     ),
     _ = anapi_ct_helper_bouncer:mock_bouncer_assert_party_op_ctx(<<"GetCurrentBalancesGroupByShop">>, ?STRING, Config),
     Query = [
-        %% {partyID, ?STRING}, %% TODO UNCOMMENT ASAP
+        {partyID, ?STRING},
         {shopIDs, <<"asdf,asdf2">>},
         {excludeShopIDs, <<"asdf3">>}
     ],

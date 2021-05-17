@@ -148,13 +148,10 @@ prepare(OperationID, Req, Context) when OperationID =:= 'GetPaymentsSubErrorDist
     end,
     {ok, #{authorize => Authorize, process => Process}};
 prepare(OperationID, Req, Context) when OperationID =:= 'GetCurrentBalancesGroupByShop' ->
-    %% TODO REMOVE ASAP
-    Req2 = Req#{partyID => uac_authorizer_jwt:get_subject_id(anapi_handler_utils:get_auth_context(Context))},
-
-    OperationContext = make_authorization_query(OperationID, Req2),
+    OperationContext = make_authorization_query(OperationID, Req),
     Authorize = fun() -> {ok, anapi_auth:authorize_operation([{operation, OperationContext}], Context)} end,
     Process = fun(Restrictions) ->
-        Query = make_query(Req2, Context, Restrictions),
+        Query = make_query(Req, Context, Restrictions),
         Opts = #{
             thrift_fun => 'GetCurrentShopBalances',
             decode_fun => fun decode_shop_amount_response/1

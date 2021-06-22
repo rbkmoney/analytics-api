@@ -443,9 +443,48 @@ decode_bank_card_details(BankCard, V) ->
         <<"lastDigits">> => LastDigits,
         <<"bin">> => Bin,
         <<"cardNumberMask">> => anapi_handler_decoder_utils:decode_masked_pan(Bin, LastDigits),
-        <<"paymentSystem">> => genlib:to_binary(BankCard#merchstat_BankCard.payment_system_deprecated),
+        <<"paymentSystem">> => decode_payment_system(BankCard, BankCard#merchstat_BankCard.payment_system_deprecated),
         <<"tokenProvider">> => decode_token_provider(BankCard#merchstat_BankCard.token_provider_deprecated)
     }).
+
+%% Added for backward compatibility, remove after
+%% migration to new dictionaries
+decode_payment_system(BankCard, undefined) ->
+    case BankCard#merchstat_BankCard.payment_system of
+        undefined -> undefined;
+        #domain_PaymentSystemRef{id = ID} -> convert_payment_system_to_legacy(ID)
+    end;
+decode_payment_system(_BankCard, Val) ->
+    genlib:to_binary(Val).
+
+convert_payment_system_to_legacy(<<"AMERICAN EXPRESS">>) ->
+    <<"amex">>;
+convert_payment_system_to_legacy(<<"AMERICAN EXPRESS COMPANY">>) ->
+    <<"amex">>;
+convert_payment_system_to_legacy(<<"CHINA UNION PAY">>) ->
+    <<"unionpay">>;
+convert_payment_system_to_legacy(<<"DANKORT">>) ->
+    <<"dankort">>;
+convert_payment_system_to_legacy(<<"DINERS CLUB INTERNATIONAL">>) ->
+    <<"dinersclub">>;
+convert_payment_system_to_legacy(<<"DISCOVER">>) ->
+    <<"discover">>;
+convert_payment_system_to_legacy(<<"JCB">>) ->
+    <<"jcb">>;
+convert_payment_system_to_legacy(<<"MAESTRO">>) ->
+    <<"maestro">>;
+convert_payment_system_to_legacy(<<"MASTERCARD">>) ->
+    <<"mastercard">>;
+convert_payment_system_to_legacy(<<"NSPK MIR">>) ->
+    <<"nspkmir">>;
+convert_payment_system_to_legacy(<<"VISA">>) ->
+    <<"visa">>;
+convert_payment_system_to_legacy(<<"VISA/DANKORT">>) ->
+    <<"visa">>;
+convert_payment_system_to_legacy(<<"DUMMY">>) ->
+    <<"dummy">>;
+convert_payment_system_to_legacy(<<"UZCARD">>) ->
+    <<"uzcard">>.
 
 decode_token_provider(Provider) when Provider /= undefined ->
     genlib:to_binary(Provider);

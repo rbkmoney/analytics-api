@@ -65,11 +65,9 @@
 -define(STAT_RESPONSE_PAYOUTS,
     ?STAT_RESPONSE(
         {payouts, [
-            ?STAT_PAYOUT({wallet, #merchstat_Wallet{wallet_id = ?STRING}}, []),
-            ?STAT_PAYOUT({bank_card, #merchstat_PayoutCard{card = ?STAT_BANK_CARD}}, [?PAYOUT_SUMMARY_ITEM]),
-            ?STAT_PAYOUT({bank_card, #merchstat_PayoutCard{card = ?STAT_BANK_CARD_WITH_TP}}, [?PAYOUT_SUMMARY_ITEM]),
-            ?STAT_PAYOUT({bank_account, ?STAT_PAYOUT_BANK_ACCOUNT_RUS}, undefined),
-            ?STAT_PAYOUT({bank_account, ?STAT_PAYOUT_BANK_ACCOUNT_INT}, [?PAYOUT_SUMMARY_ITEM])
+            ?STAT_PAYOUT({wallet_info, #domain_WalletInfo{wallet_id = ?STRING}}),
+            ?STAT_PAYOUT({russian_bank_account, ?STAT_PAYOUT_BANK_ACCOUNT_RUS}),
+            ?STAT_PAYOUT({international_bank_account, ?STAT_PAYOUT_BANK_ACCOUNT_INT})
         ]}
     )
 ).
@@ -190,7 +188,7 @@
     external_id = ?STRING
 }).
 
--define(STAT_PAYOUT(Type, PayoutSummary), #merchstat_StatPayout{
+-define(STAT_PAYOUT(Type), #merchstat_StatPayout{
     id = ?STRING,
     party_id = ?STRING,
     shop_id = ?STRING,
@@ -199,37 +197,29 @@
     amount = ?INTEGER,
     fee = ?INTEGER,
     currency_symbolic_code = ?RUB,
-    type = Type,
-    summary = PayoutSummary
+    payout_tool_info = Type
 }).
 
 -define(STAT_PAYOUT_BANK_ACCOUNT_RUS,
-    {russian_payout_account, #merchstat_RussianPayoutAccount{
-        bank_account = #merchstat_RussianBankAccount{
-            account = <<"12345678901234567890">>,
-            bank_name = ?STRING,
-            bank_post_account = <<"12345678901234567890">>,
-            bank_bik = <<"123456789">>
-        },
-        inn = ?STRING,
-        purpose = ?STRING
-    }}
+    #domain_RussianBankAccount{
+        account = <<"12345678901234567890">>,
+        bank_name = ?STRING,
+        bank_post_account = <<"12345678901234567890">>,
+        bank_bik = <<"123456789">>
+    }
 ).
 
 -define(STAT_PAYOUT_BANK_ACCOUNT_INT,
-    {international_payout_account, #merchstat_InternationalPayoutAccount{
-        bank_account = #merchstat_InternationalBankAccount{
-            number = <<"12345678901234567890">>,
-            bank = ?STAT_PAYOUT_BANK_DETAILS_INT,
-            correspondent_account = #merchstat_InternationalBankAccount{number = <<"00000000000000000000">>},
-            iban = <<"GR1601101250000000012300695">>,
-            account_holder = ?STRING
-        },
-        purpose = ?STRING
-    }}
+    #domain_InternationalBankAccount{
+        number = <<"12345678901234567890">>,
+        bank = ?STAT_PAYOUT_BANK_DETAILS_INT,
+        correspondent_account = #domain_InternationalBankAccount{number = <<"00000000000000000000">>},
+        iban = <<"GR1601101250000000012300695">>,
+        account_holder = ?STRING
+    }
 ).
 
--define(STAT_PAYOUT_BANK_DETAILS_INT, #merchstat_InternationalBankDetails{
+-define(STAT_PAYOUT_BANK_DETAILS_INT, #domain_InternationalBankDetails{
     %% In reality either bic or aba_rtn should be used, not both.
     bic = <<"DEUTDEFF500">>,
     country = usa,
@@ -251,16 +241,6 @@
     bin = <<"411111">>,
     masked_pan = <<"411111******1111">>,
     token_provider_deprecated = applepay
-}).
-
--define(PAYOUT_SUMMARY_ITEM, #merchstat_PayoutSummaryItem{
-    amount = ?INTEGER,
-    fee = ?INTEGER,
-    currency_symbolic_code = ?RUB,
-    from_time = ?TIMESTAMP,
-    to_time = ?TIMESTAMP,
-    operation_type = payment,
-    count = ?INTEGER
 }).
 
 -define(STAT_CHARGEBACK, #merchstat_StatChargeback{

@@ -200,24 +200,20 @@
     payout_tool_info = Type
 }).
 
--define(STAT_PAYOUT_BANK_ACCOUNT_RUS,
-    #domain_RussianBankAccount{
-        account = <<"12345678901234567890">>,
-        bank_name = ?STRING,
-        bank_post_account = <<"12345678901234567890">>,
-        bank_bik = <<"123456789">>
-    }
-).
+-define(STAT_PAYOUT_BANK_ACCOUNT_RUS, #domain_RussianBankAccount{
+    account = <<"12345678901234567890">>,
+    bank_name = ?STRING,
+    bank_post_account = <<"12345678901234567890">>,
+    bank_bik = <<"123456789">>
+}).
 
--define(STAT_PAYOUT_BANK_ACCOUNT_INT,
-    #domain_InternationalBankAccount{
-        number = <<"12345678901234567890">>,
-        bank = ?STAT_PAYOUT_BANK_DETAILS_INT,
-        correspondent_account = #domain_InternationalBankAccount{number = <<"00000000000000000000">>},
-        iban = <<"GR1601101250000000012300695">>,
-        account_holder = ?STRING
-    }
-).
+-define(STAT_PAYOUT_BANK_ACCOUNT_INT, #domain_InternationalBankAccount{
+    number = <<"12345678901234567890">>,
+    bank = ?STAT_PAYOUT_BANK_DETAILS_INT,
+    correspondent_account = #domain_InternationalBankAccount{number = <<"00000000000000000000">>},
+    iban = <<"GR1601101250000000012300695">>,
+    account_holder = ?STRING
+}).
 
 -define(STAT_PAYOUT_BANK_DETAILS_INT, #domain_InternationalBankDetails{
     %% In reality either bic or aba_rtn should be used, not both.

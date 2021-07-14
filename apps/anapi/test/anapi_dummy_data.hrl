@@ -40,6 +40,44 @@
     data = ?JSON
 }).
 
+-define(PAYMENT_INSTITUTION_ACCOUNT,
+    {payment_institution_account, #domain_PaymentInstitutionAccount{}}
+).
+
+-define(RUSSIAN_BANK_ACCOUNT,
+    {russian_bank_account, #domain_RussianBankAccount{
+        account = <<"12345678901234567890">>,
+        bank_name = ?STRING,
+        bank_post_account = <<"12345678901234567890">>,
+        bank_bik = <<"123456789">>
+    }}
+).
+
+-define(INTERNATIONAL_BANK_ACCOUNT,
+    {international_bank_account, #domain_InternationalBankAccount{
+        number = <<"12345678901234567890">>,
+        bank = ?INTERNATIONAL_BANK_DETAILS,
+        correspondent_account = #domain_InternationalBankAccount{number = <<"00000000000000000000">>},
+        iban = <<"GR1601101250000000012300695">>,
+        account_holder = ?STRING
+    }}
+).
+
+-define(INTERNATIONAL_BANK_DETAILS, #domain_InternationalBankDetails{
+    %% In reality either bic or aba_rtn should be used, not both.
+    bic = <<"DEUTDEFF500">>,
+    country = usa,
+    name = ?STRING,
+    address = ?STRING,
+    aba_rtn = <<"129131673">>
+}).
+
+-define(WALLET_INFO,
+    {wallet_info, #domain_WalletInfo{
+        wallet_id = ?STRING
+    }}
+).
+
 -define(STAT_RESPONSE(Data), #merchstat_StatResponse{
     data = Data,
     total_count = ?INTEGER,
@@ -65,9 +103,10 @@
 -define(STAT_RESPONSE_PAYOUTS,
     ?STAT_RESPONSE(
         {payouts, [
-            ?STAT_PAYOUT({wallet_info, #domain_WalletInfo{wallet_id = ?STRING}}),
-            ?STAT_PAYOUT({russian_bank_account, ?STAT_PAYOUT_BANK_ACCOUNT_RUS}),
-            ?STAT_PAYOUT({international_bank_account, ?STAT_PAYOUT_BANK_ACCOUNT_INT})
+            ?STAT_PAYOUT(?WALLET_INFO),
+            ?STAT_PAYOUT(?RUSSIAN_BANK_ACCOUNT),
+            ?STAT_PAYOUT(?INTERNATIONAL_BANK_ACCOUNT),
+            ?STAT_PAYOUT(?PAYMENT_INSTITUTION_ACCOUNT)
         ]}
     )
 ).
@@ -198,30 +237,6 @@
     fee = ?INTEGER,
     currency_symbolic_code = ?RUB,
     payout_tool_info = Type
-}).
-
--define(STAT_PAYOUT_BANK_ACCOUNT_RUS, #domain_RussianBankAccount{
-    account = <<"12345678901234567890">>,
-    bank_name = ?STRING,
-    bank_post_account = <<"12345678901234567890">>,
-    bank_bik = <<"123456789">>
-}).
-
--define(STAT_PAYOUT_BANK_ACCOUNT_INT, #domain_InternationalBankAccount{
-    number = <<"12345678901234567890">>,
-    bank = ?STAT_PAYOUT_BANK_DETAILS_INT,
-    correspondent_account = #domain_InternationalBankAccount{number = <<"00000000000000000000">>},
-    iban = <<"GR1601101250000000012300695">>,
-    account_holder = ?STRING
-}).
-
--define(STAT_PAYOUT_BANK_DETAILS_INT, #domain_InternationalBankDetails{
-    %% In reality either bic or aba_rtn should be used, not both.
-    bic = <<"DEUTDEFF500">>,
-    country = usa,
-    name = ?STRING,
-    address = ?STRING,
-    aba_rtn = <<"129131673">>
 }).
 
 -define(STAT_BANK_CARD, #merchstat_BankCard{

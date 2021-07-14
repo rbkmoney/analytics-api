@@ -197,10 +197,9 @@ encode_payment_method('bankCard') -> <<"bank_card">>;
 encode_payment_method('paymentTerminal') -> <<"payment_terminal">>;
 encode_payment_method(undefined) -> undefined.
 
-encode_payout_type('PayoutToolRussianBankAccount') -> <<"russian_bank_account">>;
-encode_payout_type('PayoutToolInternationalBankAccount') -> <<"international_bank_account">>;
-encode_payout_type('PayoutToolWalletInfo') -> <<"wallet_info">>;
-encode_payout_type('PayoutToolPaymentInstitutionAccount') -> <<"payment_institution_account">>;
+encode_payout_type('PayoutAccount') -> <<"bank_account">>;
+encode_payout_type('Wallet') -> <<"wallet_info">>;
+encode_payout_type('PaymentInstitutionAccount') -> <<"payment_institution_account">>;
 encode_payout_type(undefined) -> undefined.
 
 %%

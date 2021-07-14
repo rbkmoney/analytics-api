@@ -261,7 +261,7 @@ search_payouts_ok_test(Config) ->
         {shopID, ?STRING},
         {shopIDs, <<?STRING/binary, ",", ?STRING/binary>>},
         {payoutID, <<"testPayoutID">>},
-        {payoutToolType, <<"PayoutToolWalletInfo">>},
+        {payoutToolType, <<"Wallet">>},
         {continuationToken, <<"come_back_next_time">>},
         {excludedShops, <<"shop1, shop2">>}
     ],

@@ -33,7 +33,8 @@ allowed_origins(_, State) ->
 
 -spec allowed_headers(cowboy_req:req(), any()) -> {[binary()], any()}.
 allowed_headers(_, State) ->
-    {[
+    {
+        [
             <<"x-requested-with">>,
             <<"content-type">>,
             <<"accept">>,
@@ -41,7 +42,8 @@ allowed_headers(_, State) ->
             <<"x-request-id">>,
             <<"x-request-deadline">>
         ],
-        State}.
+        State
+    }.
 
 -spec allowed_methods(cowboy_req:req(), any()) -> {[binary()], any()}.
 allowed_methods(_, State) ->

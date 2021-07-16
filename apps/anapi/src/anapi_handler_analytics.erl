@@ -211,19 +211,19 @@ decode_payment_tool_distribution_response(PaymentToolDistribution) ->
             <<"name">> => Name,
             <<"percents">> => Percents
         }
-        || #analytics_NamingDistribution{
-               name = Name,
-               percents = Percents
-           } <- PaymentToolDistribution#analytics_PaymentToolDistributionResponse.payment_tools_distributions
+     || #analytics_NamingDistribution{
+            name = Name,
+            percents = Percents
+        } <- PaymentToolDistribution#analytics_PaymentToolDistributionResponse.payment_tools_distributions
     ].
 
 decode_amount_response(Amounts) ->
     [
         decode_amount_result(Amount, Currency)
-        || #analytics_CurrencyGroupedAmount{
-               amount = Amount,
-               currency = Currency
-           } <- Amounts#analytics_AmountResponse.groups_amount
+     || #analytics_CurrencyGroupedAmount{
+            amount = Amount,
+            currency = Currency
+        } <- Amounts#analytics_AmountResponse.groups_amount
     ].
 
 decode_count_response(Counts) ->
@@ -232,10 +232,10 @@ decode_count_response(Counts) ->
             <<"count">> => Count,
             <<"currency">> => Currency
         }
-        || #analytics_CurrecyGroupCount{
-               count = Count,
-               currency = Currency
-           } <- Counts#analytics_CountResponse.groups_count
+     || #analytics_CurrecyGroupCount{
+            count = Count,
+            currency = Currency
+        } <- Counts#analytics_CountResponse.groups_count
     ].
 
 decode_error_distributions_response(ErrorDistributions) ->
@@ -244,10 +244,10 @@ decode_error_distributions_response(ErrorDistributions) ->
             <<"error">> => Name,
             <<"percents">> => Percents
         }
-        || #analytics_NamingDistribution{
-               name = Name,
-               percents = Percents
-           } <- ErrorDistributions#analytics_ErrorDistributionsResponse.error_distributions
+     || #analytics_NamingDistribution{
+            name = Name,
+            percents = Percents
+        } <- ErrorDistributions#analytics_ErrorDistributionsResponse.error_distributions
     ].
 
 decode_sub_error_distributions_response(ErrorDistributions) ->
@@ -256,10 +256,10 @@ decode_sub_error_distributions_response(ErrorDistributions) ->
             <<"error">> => decode_sub_error(SubError),
             <<"percents">> => Percents
         }
-        || #analytics_ErrorDistribution{
-               error = SubError,
-               percents = Percents
-           } <- ErrorDistributions#analytics_SubErrorDistributionsResponse.error_distributions
+     || #analytics_ErrorDistribution{
+            error = SubError,
+            percents = Percents
+        } <- ErrorDistributions#analytics_SubErrorDistributionsResponse.error_distributions
     ].
 
 decode_sub_error(undefined) ->
@@ -281,10 +281,10 @@ decode_split_amount_response(SplitAmounts) ->
             <<"currency">> => Currency,
             <<"offsetAmounts">> => [decode_offset_amount(OffsetAmount) || OffsetAmount <- OffsetAmounts]
         }
-        || #analytics_GroupedCurrencyOffsetAmount{
-               currency = Currency,
-               offset_amounts = OffsetAmounts
-           } <- SplitAmounts#analytics_SplitAmountResponse.grouped_currency_amounts
+     || #analytics_GroupedCurrencyOffsetAmount{
+            currency = Currency,
+            offset_amounts = OffsetAmounts
+        } <- SplitAmounts#analytics_SplitAmountResponse.grouped_currency_amounts
     ].
 
 decode_shop_amount_response(ShopAmounts) ->
@@ -341,13 +341,13 @@ decode_split_count_response(SplitCounts) ->
             <<"currency">> => Currency,
             <<"statusOffsetCounts">> => [
                 decode_grouped_status_offset_count(OffsetCount)
-                || OffsetCount <- GroupedStatusOffsetCounts
+             || OffsetCount <- GroupedStatusOffsetCounts
             ]
         }
-        || #analytics_GroupedCurrencyOffsetCount{
-               currency = Currency,
-               offset_amounts = GroupedStatusOffsetCounts
-           } <- SplitCounts#analytics_SplitCountResponse.payment_tools_destrobutions
+     || #analytics_GroupedCurrencyOffsetCount{
+            currency = Currency,
+            offset_amounts = GroupedStatusOffsetCounts
+        } <- SplitCounts#analytics_SplitCountResponse.payment_tools_destrobutions
     ].
 
 decode_grouped_status_offset_count(#analytics_GroupedStatusOffsetCount{

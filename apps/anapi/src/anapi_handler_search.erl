@@ -538,7 +538,7 @@ decode_stat_payout(Payout, _Context) ->
             <<"amount">> => Payout#merchstat_StatPayout.amount,
             <<"fee">> => Payout#merchstat_StatPayout.fee,
             <<"currency">> => Payout#merchstat_StatPayout.currency_symbolic_code,
-            <<"payoutToolDetails">> => decode_stat_payout_tool_details(Payout#merchstat_StatPayout.payout_tool_info)
+            <<"payoutToolDetails">> => decode_stat_payout_tool_info(Payout#merchstat_StatPayout.payout_tool_info)
         },
         decode_stat_payout_status(Payout#merchstat_StatPayout.status)
     ).
@@ -553,16 +553,16 @@ decode_stat_payout_status({Status, _}) ->
         <<"status">> => genlib:to_binary(Status)
     }.
 
-decode_stat_payout_tool_details({russian_bank_account, V}) ->
+decode_stat_payout_tool_info({russian_bank_account, V}) ->
     decode_russian_bank_account(V, #{<<"detailsType">> => <<"PayoutToolDetailsBankAccount">>});
-decode_stat_payout_tool_details({international_bank_account, V}) ->
+decode_stat_payout_tool_info({international_bank_account, V}) ->
     decode_international_bank_account(V, #{<<"detailsType">> => <<"PayoutToolDetailsInternationalBankAccount">>});
-decode_stat_payout_tool_details({wallet_info, V}) ->
+decode_stat_payout_tool_info({wallet_info, V}) ->
     #{
         <<"detailsType">> => <<"PayoutToolDetailsWalletInfo">>,
         <<"walletID">> => V#domain_WalletInfo.wallet_id
     };
-decode_stat_payout_tool_details({payment_institution_account, _V}) ->
+decode_stat_payout_tool_info({payment_institution_account, _V}) ->
     #{
         <<"detailsType">> => <<"PayoutToolDetailsPaymentInstitutionAccount">>
     }.

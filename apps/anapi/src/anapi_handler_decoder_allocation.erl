@@ -95,7 +95,8 @@ decode_test() ->
             #domain_InvoiceLine{
                 product = <<"info">>,
                 quantity = 2,
-                price = make_cash(16)
+                price = make_cash(16),
+                metadata = #{<<"TaxMode">> => {str, <<"10/110">>}}
             }
         ]
     },

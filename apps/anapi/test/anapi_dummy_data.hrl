@@ -14,6 +14,7 @@
 %%% limitations under the License.
 %%%
 
+-include_lib("damsel/include/dmsl_domain_thrift.hrl").
 -include_lib("damsel/include/dmsl_geo_ip_thrift.hrl").
 -include_lib("damsel/include/dmsl_merch_stat_thrift.hrl").
 -include_lib("reporter_proto/include/reporter_reports_thrift.hrl").
@@ -39,6 +40,8 @@
     type = <<"application/json">>,
     data = ?JSON
 }).
+
+-define(RATIONAL, #'Rational'{p = ?INTEGER, q = ?INTEGER}).
 
 -define(PAYMENT_INSTITUTION_ACCOUNT,
     {payment_institution_account, #domain_PaymentInstitutionAccount{}}
@@ -125,7 +128,8 @@
     amount = ?INTEGER,
     currency_symbolic_code = ?RUB,
     context = ?CONTENT,
-    external_id = ?STRING
+    external_id = ?STRING,
+    allocation = ?ALLOCATION
 }).
 
 -define(STAT_PAYMENT(Payer, Status), #merchstat_StatPayment{
@@ -147,7 +151,8 @@
     short_id = ?STRING,
     make_recurrent = false,
     cart = ?INVOICE_CART,
-    external_id = ?STRING
+    external_id = ?STRING,
+    allocation = ?ALLOCATION
 }).
 
 -define(INSTANT_INVOICE_PAYMENT_FLOW, {instant, #merchstat_InvoicePaymentFlowInstant{}}).
@@ -161,6 +166,8 @@
 -define(INVOICE_CART, #domain_InvoiceCart{
     lines = []
 }).
+
+-define(INVOICE_CART_TAXMODE, #{<<"TaxMode">> => {str, <<"10/110">>}}).
 
 -define(CASH, #domain_Cash{
     amount = ?INTEGER,
@@ -224,7 +231,8 @@
     amount = ?INTEGER,
     fee = ?INTEGER,
     currency_symbolic_code = ?RUB,
-    external_id = ?STRING
+    external_id = ?STRING,
+    allocation = ?ALLOCATION
 }).
 
 -define(STAT_PAYOUT(Type), #merchstat_StatPayout{
@@ -276,6 +284,46 @@
     stage = {arbitration, #domain_InvoicePaymentChargebackStageArbitration{}},
     content = ?CONTENT,
     external_id = ?STRING
+}).
+
+-define(ALLOCATION_CART, #domain_InvoiceCart{
+    lines = [
+        #domain_InvoiceLine{
+            product = ?STRING,
+            quantity = ?INTEGER,
+            price = ?CASH,
+            metadata = ?INVOICE_CART_TAXMODE
+        }
+    ]
+}).
+
+-define(ALLOCATION, #domain_Allocation{
+    transactions = [
+        #domain_AllocationTransaction{
+            id = ?STRING,
+            target =
+                {shop, #domain_AllocationTransactionTargetShop{
+                    owner_id = ?STRING,
+                    shop_id = ?STRING
+                }},
+            amount = ?CASH,
+            body = #domain_AllocationTransactionBodyTotal{
+                fee_target =
+                    {shop, #domain_AllocationTransactionTargetShop{
+                        owner_id = ?STRING,
+                        shop_id = ?STRING
+                    }},
+                total = ?CASH,
+                fee_amount = ?CASH,
+                fee = #domain_AllocationTransactionFeeShare{
+                    parts = ?RATIONAL
+                }
+            },
+            details = #domain_AllocationTransactionDetails{
+                cart = ?ALLOCATION_CART
+            }
+        }
+    ]
 }).
 
 -define(REPORT_TYPE, <<"paymentRegistry">>).

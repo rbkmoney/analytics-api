@@ -74,9 +74,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'SearchRefunds' ->
     Process = fun(Restrictions) ->
         Query = make_query(Req, Context, Restrictions),
         Opts = #{
-            %% TODO no special fun for refunds so we can use any
-            %% should be fixed in new magista
-            thrift_fun => 'GetPayments',
+            thrift_fun => 'GetRefunds',
             decode_fun => fun decode_stat_refund/2
         },
         process_search_request(refunds, Query, Req, Context, Opts)

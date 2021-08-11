@@ -216,7 +216,7 @@ search_payments_ok_test(Config) ->
 search_refunds_ok_test(Config) ->
     _ = anapi_ct_helper:mock_services(
         [
-            {merchant_stat, fun('GetPayments', _) -> {ok, ?STAT_RESPONSE_REFUNDS} end},
+            {merchant_stat, fun('GetRefunds', _) -> {ok, ?STAT_RESPONSE_REFUNDS} end},
             {party_shop, fun('GetShopsIds', _) -> {ok, [?STRING, ?STRING]} end}
         ],
         Config

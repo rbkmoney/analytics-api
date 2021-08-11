@@ -26,9 +26,12 @@
 -export([convert_crypto_currency_from_swag/1]).
 -export([convert_crypto_currency_to_swag/1]).
 
+-export([decode_currency/1]).
+
 -export_type([decode_data/0]).
 
 -type decode_data() :: #{binary() => term()}.
+-type encoded_currency() :: dmsl_domain_thrift:'Currency'() | dmsl_domain_thrift:'CurrencyRef'().
 
 -define(PAN_LENGTH, 16).
 
@@ -72,3 +75,7 @@ convert_crypto_currency_to_swag(bitcoin_cash) ->
     <<"bitcoinCash">>;
 convert_crypto_currency_to_swag(CryptoCurrency) when is_atom(CryptoCurrency) ->
     atom_to_binary(CryptoCurrency, utf8).
+
+-spec decode_currency(encoded_currency()) -> binary().
+decode_currency(#domain_Currency{symbolic_code = SymbolicCode}) -> SymbolicCode;
+decode_currency(#domain_CurrencyRef{symbolic_code = SymbolicCode}) -> SymbolicCode.

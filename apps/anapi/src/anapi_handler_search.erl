@@ -74,9 +74,7 @@ prepare(OperationID, Req, Context) when OperationID =:= 'SearchRefunds' ->
     Process = fun(Restrictions) ->
         Query = make_query(Req, Context, Restrictions),
         Opts = #{
-            %% TODO no special fun for refunds so we can use any
-            %% should be fixed in new magista
-            thrift_fun => 'GetPayments',
+            thrift_fun => 'GetRefunds',
             decode_fun => fun decode_stat_refund/2
         },
         process_search_request(refunds, Query, Req, Context, Opts)
@@ -217,7 +215,8 @@ decode_stat_invoice(Invoice, _Context) ->
             <<"product">> => Invoice#merchstat_StatInvoice.product,
             <<"description">> => Invoice#merchstat_StatInvoice.description,
             <<"cart">> => anapi_handler_decoder_invoicing:decode_invoice_cart(Invoice#merchstat_StatInvoice.cart),
-            <<"externalID">> => Invoice#merchstat_StatInvoice.external_id
+            <<"externalID">> => Invoice#merchstat_StatInvoice.external_id,
+            <<"allocation">> => anapi_handler_decoder_allocation:decode(Invoice#merchstat_StatInvoice.allocation)
         },
         decode_stat_invoice_status(Invoice#merchstat_StatInvoice.status)
     ).
@@ -254,7 +253,8 @@ decode_stat_payment(Stat, Context) ->
                 Stat#merchstat_StatPayment.make_recurrent
             ),
             <<"statusChangedAt">> => decode_status_changed_at(Stat#merchstat_StatPayment.status),
-            <<"externalID">> => Stat#merchstat_StatPayment.external_id
+            <<"externalID">> => Stat#merchstat_StatPayment.external_id,
+            <<"allocation">> => anapi_handler_decoder_allocation:decode(Stat#merchstat_StatPayment.allocation)
         },
         decode_stat_payment_status(Stat#merchstat_StatPayment.status, Context)
     ).
@@ -613,7 +613,8 @@ decode_stat_refund(Refund, Context) ->
             <<"currency">> => Refund#merchstat_StatRefund.currency_symbolic_code,
             <<"reason">> => Refund#merchstat_StatRefund.reason,
             <<"shopID">> => Refund#merchstat_StatRefund.shop_id,
-            <<"externalID">> => Refund#merchstat_StatRefund.external_id
+            <<"externalID">> => Refund#merchstat_StatRefund.external_id,
+            <<"allocation">> => anapi_handler_decoder_allocation:decode(Refund#merchstat_StatRefund.allocation)
         },
         decode_stat_refund_status(Refund#merchstat_StatRefund.status, Context)
     ).
